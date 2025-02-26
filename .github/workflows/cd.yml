@@ -31,7 +31,6 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         port: ${{ secrets.SERVER_PORT }}
         source: "."
-        timeout: "200s"
         target: "~/hono_api"
 
     # Setup credentials and restart application
