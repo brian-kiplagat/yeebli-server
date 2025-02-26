@@ -1,6 +1,7 @@
 {
   "scripts": {
     "dev": "tsx watch src/index.ts | pino-pretty",
+    "start": "tsx src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:drop": "drizzle-kit drop",
