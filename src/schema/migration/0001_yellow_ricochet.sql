@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `email_token` varchar(100);

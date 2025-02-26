@@ -13,6 +13,7 @@ export const userSchema = mysqlTable("user", {
   email: varchar("email", { length: 100 }).notNull().unique(),
   password: varchar("password", { length: 65 }).notNull(),
   reset_token: varchar("reset_token", { length: 100 }),
+  email_token: varchar("email_token", { length: 100 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   role: mysqlEnum("role", ["admin", "user", "moderator", "host"]).default(

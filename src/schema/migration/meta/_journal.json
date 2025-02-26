@@ -8,6 +8,13 @@
       "when": 1740585213891,
       "tag": "0000_open_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1740585385059,
+      "tag": "0001_yellow_ricochet",
+      "breakpoints": true
     }
   ]
 }
