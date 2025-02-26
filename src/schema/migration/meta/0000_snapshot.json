@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "69a29ad4-897c-4449-b7af-b3f7b5b975df",
-  "prevId": "41ca28dc-7263-4cf3-8fda-6de1f342b343",
+  "id": "967519c2-9914-420a-b26a-f9e7f2758e71",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "user": {
       "name": "user",
@@ -37,6 +37,13 @@
         },
         "reset_token": {
           "name": "reset_token",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "email_token": {
+          "name": "email_token",
           "type": "varchar(100)",
           "primaryKey": false,
           "notNull": false,
