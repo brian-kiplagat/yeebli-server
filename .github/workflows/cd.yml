@@ -45,7 +45,10 @@ jobs:
           cd ~/hono_api
           # Create credentials files
           echo '${{ secrets.ENV_PRODUCTION }}' > .env
-          npm install
-          npm run build
+          # Install dependencies with pnpm (since you're using pnpm)
+          pnpm install
+          # Build with output
+          echo "Starting build..."
+          pnpm run build
           # Start/reload the application with PM2
           pm2 reload hono_api || pm2 start ./dist/src/index.js --name hono_api
