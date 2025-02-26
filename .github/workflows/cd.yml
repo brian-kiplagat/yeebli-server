@@ -44,7 +44,8 @@ jobs:
         script: |
           cd ~/hono_api
           # Create credentials files
-         
           echo '${{ secrets.ENV_PRODUCTION }}' > .env
           npm install
-          pm2 reload hono_api || pm2 start server.js --name hono_api
+          npm run build
+          # Start/reload the application with PM2
+          pm2 reload hono_api || pm2 start ./dist/src/index.js --name hono_api
