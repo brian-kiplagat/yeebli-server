@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import { getReasonPhrase, StatusCodes } from 'http-status-codes';
+import { StatusCodes, getReasonPhrase } from 'http-status-codes';
 
 const serveNotFound = (c: Context) => {
   return c.json({ error: getReasonPhrase(StatusCodes.NOT_FOUND) }, <ContentfulStatusCode>StatusCodes.NOT_FOUND);

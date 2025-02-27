@@ -2,7 +2,7 @@ import { type Job, Worker } from 'bullmq';
 import { logger } from '../lib/logger.js';
 import { QUEUE, connection } from '../lib/queue.js';
 import type { UserService } from '../service/user.js';
-import { sendWelcomeEmail } from './sendWelcomeEmail.js';
+import { sendTransactionalEmail } from './sendWelcomeEmail.js';
 
 const TASK = {
   SendWelcomeEmail: 'send_code_completion',
@@ -43,7 +43,7 @@ class Tasker {
   private async processor(job: Job) {
     switch (job.name) {
       case TASK.SendWelcomeEmail: {
-        await sendWelcomeEmail(job.data, this.userService);
+        //await sendTransactionalEmail(job.data, this.userService);
         break;
       }
     }

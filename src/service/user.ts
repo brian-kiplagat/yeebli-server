@@ -1,4 +1,4 @@
-import { User } from '../lib/database.ts';
+import type { User } from '../lib/database.ts';
 import { encrypt } from '../lib/encryption.js';
 import type { UserRepository } from '../repository/user.js';
 

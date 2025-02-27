@@ -2,6 +2,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts | pino-pretty",
     "start": "tsx src/index.ts",
+    "check": "biome check --write",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:drop": "drizzle-kit drop",
