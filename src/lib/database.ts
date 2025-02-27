@@ -30,7 +30,13 @@ class DBLogger implements drizzleLogger {
   }
 }
 
-const connection = await mysql.createConnection({
+/*const connection = await mysql.createConnection({
+  host: env.DB_HOST,
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
+  database: env.DB_NAME,
+});*/
+const connection = await mysql.createPool({
   host: env.DB_HOST,
   user: env.DB_USER,
   password: env.DB_PASSWORD,
