@@ -1,7 +1,6 @@
 import type { User } from '../lib/database.ts';
 import env from '../lib/env.js';
 import { logger } from '../lib/logger.js';
-import type { UserService } from '../service/user.js';
 
 type TransactionalEmail = {
   subject: string;
