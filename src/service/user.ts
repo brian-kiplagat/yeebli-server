@@ -1,3 +1,4 @@
+import { User } from '../lib/database.ts';
 import { encrypt } from '../lib/encryption.js';
 import type { UserRepository } from '../repository/user.js';
 
@@ -22,5 +23,9 @@ export class UserService {
 
   public async find(id: number) {
     return this.repo.find(id);
+  }
+
+  public async update(id: number, user: Partial<User>) {
+    return this.repo.update(id, user);
   }
 }

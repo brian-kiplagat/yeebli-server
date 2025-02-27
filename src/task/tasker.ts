@@ -2,7 +2,7 @@ import { type Job, Worker } from 'bullmq';
 import { logger } from '../lib/logger.js';
 import { QUEUE, connection } from '../lib/queue.js';
 import type { UserService } from '../service/user.js';
-import sendWelcomeEmail from './sendWelcomeEmail.js';
+import { sendWelcomeEmail } from './sendWelcomeEmail.js';
 
 const TASK = {
   SendWelcomeEmail: 'send_code_completion',

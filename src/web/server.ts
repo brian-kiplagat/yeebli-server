@@ -11,7 +11,7 @@ import { UserService } from '../service/user.js';
 import { Tasker } from '../task/tasker.js';
 import { AuthController } from './controller/auth.js';
 import { serveInternalServerError, serveNotFound } from './controller/resp/error.js';
-import { loginValidator, registrationValidator } from './validator/user.js';
+import { emailVerificationValidator, loginValidator, registrationValidator } from './validator/user.js';
 
 export class Server {
   private app: Hono;
@@ -68,6 +68,7 @@ export class Server {
     user.get('/me', authCheck, authCtrl.me);
     user.post('/login', loginValidator, authCtrl.login);
     user.post('/register', registrationValidator, authCtrl.register);
+    user.post('/verify-email', emailVerificationValidator, authCtrl.verifyEmail);
 
     api.route('/user', user);
   }

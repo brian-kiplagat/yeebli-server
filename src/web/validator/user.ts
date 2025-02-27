@@ -19,7 +19,23 @@ const registrationValidator = validator('json', (value, c) => {
   return validateSchema(c, registrationSchema, value);
 });
 
+const emailVerificationSchema = z.object({
+  email: z.string().email(),
+});
+
+const emailVerificationValidator = validator('json', (value, c) => {
+  return validateSchema(c, emailVerificationSchema, value);
+});
+
 type LoginBody = z.infer<typeof loginSchema>;
 type RegistrationBody = z.infer<typeof registrationSchema>;
+type EmailVerificationBody = z.infer<typeof emailVerificationSchema>;
 
-export { type LoginBody, type RegistrationBody, loginValidator, registrationValidator };
+export {
+  type EmailVerificationBody,
+  type LoginBody,
+  type RegistrationBody,
+  emailVerificationValidator,
+  loginValidator,
+  registrationValidator,
+};

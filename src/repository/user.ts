@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { userSchema } from '../schema/schema.js';
-import { db, type NewUser } from '../lib/database.js';
+import { db, User, type NewUser } from '../lib/database.js';
 
 export class UserRepository {
   public async create(user: NewUser) {
@@ -17,5 +17,9 @@ export class UserRepository {
     return db.query.userSchema.findFirst({
       where: eq(userSchema.email, email),
     });
+  }
+
+  public async update(id: number, user: Partial<User>) {
+    return db.update(userSchema).set(user).where(eq(userSchema.id, id));
   }
 }

@@ -1,10 +1,14 @@
 import type { Context } from "hono";
-import { DB_ERRORS, type DatabaseError } from "../../lib/database.js";
+import { db, DB_ERRORS, type DatabaseError } from "../../lib/database.js";
 import { verify } from "../../lib/encryption.js";
 import { type JWTPayload, encode } from "../../lib/jwt.js";
 import type { UserService } from "../../service/user.js";
 import sendWelcomeEmailAsync from "../../task/client/sendWelcomeEmailAsync.js";
-import type { LoginBody, RegistrationBody } from "../validator/user.js";
+import type {
+  EmailVerificationBody,
+  LoginBody,
+  RegistrationBody,
+} from "../validator/user.js";
 import {
   ERRORS,
   serveBadRequest,
@@ -13,6 +17,9 @@ import {
 } from "./resp/error.js";
 import { serveData } from "./resp/resp.js";
 import { serializeUser } from "./serializer/user.js";
+import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
+import { userSchema } from "../../schema/schema.ts";
+import { eq } from "drizzle-orm";
 
 export class AuthController {
   private service: UserService;
@@ -23,6 +30,7 @@ export class AuthController {
     this.login = this.login.bind(this);
     this.register = this.register.bind(this);
     this.me = this.me.bind(this);
+    this.verifyEmail = this.verifyEmail.bind(this);
   }
 
   public async login(c: Context) {
@@ -76,6 +84,40 @@ export class AuthController {
     const token = await encode(user.id, user.email);
     const serializedUser = serializeUser(user);
     return serveData(c, { token, user: serializedUser });
+  }
+
+  public async verifyEmail(c: Context) {
+    const body: EmailVerificationBody = await c.req.json();
+    const user = await this.service.findByEmail(body.email);
+    if (!user) {
+      return c.json(
+        {
+          success: false,
+          message: "Invalid email, please check",
+          code: "AUTH_INVALID_CREDENTIALS",
+        },
+        401
+      );
+    }
+    //6 digint random number
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
+    await db
+      .update(userSchema)
+      .set({ email_token: token })
+      .where(eq(userSchema.id, user.id));
+    try {
+      await sendTransactionalEmail(user, {
+        subject: "Welcome to our app",
+        message: "Welcome to our app",
+      });
+    } catch (err) {
+      return serveInternalServerError(c, err);
+    }
+
+    return serveData(c, {
+      success: true,
+      message: 'Email token sent successfully',
+    });
   }
 
   public async me(c: Context) {
