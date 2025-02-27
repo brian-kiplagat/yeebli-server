@@ -42,6 +42,11 @@ const sendTransactionalEmail = async (
 
     if (!response.ok) {
       const error = await response.json();
+
+      logger.info(
+        `Mailer error to ${user.email} using template ${templateId}:`,
+        error
+      );
       throw new Error(`Email API error: ${error.message}`);
     }
 

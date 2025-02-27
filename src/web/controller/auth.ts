@@ -106,9 +106,11 @@ export class AuthController {
       .set({ email_token: token })
       .where(eq(userSchema.id, user.id));
     try {
-      await sendTransactionalEmail(user, {
-        subject: "Welcome to our app",
-        message: "Welcome to our app",
+      await sendTransactionalEmail(user, 1, {
+        subject: "Your code",
+        title: "Thanks for signing up",
+        subtitle: `${token}`,
+        body: `Welcome to Yeebli. Your code code is ${token}`,
       });
     } catch (err) {
       return serveInternalServerError(c, err);
