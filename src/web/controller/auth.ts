@@ -1,13 +1,18 @@
-import type { Context } from 'hono';
-import { DB_ERRORS, type DatabaseError } from '../../lib/database.js';
-import { verify } from '../../lib/encryption.js';
-import { type JWTPayload, encode } from '../../lib/jwt.js';
-import type { UserService } from '../../service/user.js';
-import sendWelcomeEmailAsync from '../../task/client/sendWelcomeEmailAsync.js';
-import type { LoginBody, RegistrationBody } from '../validator/user.js';
-import { ERRORS, serveBadRequest, serveInternalServerError, serveUnauthorized } from './resp/error.js';
-import { serveData } from './resp/resp.js';
-import { serializeUser } from './serializer/user.js';
+import type { Context } from "hono";
+import { DB_ERRORS, type DatabaseError } from "../../lib/database.js";
+import { verify } from "../../lib/encryption.js";
+import { type JWTPayload, encode } from "../../lib/jwt.js";
+import type { UserService } from "../../service/user.js";
+import sendWelcomeEmailAsync from "../../task/client/sendWelcomeEmailAsync.js";
+import type { LoginBody, RegistrationBody } from "../validator/user.js";
+import {
+  ERRORS,
+  serveBadRequest,
+  serveInternalServerError,
+  serveUnauthorized,
+} from "./resp/error.js";
+import { serveData } from "./resp/resp.js";
+import { serializeUser } from "./serializer/user.js";
 
 export class AuthController {
   private service: UserService;
@@ -24,11 +29,25 @@ export class AuthController {
     const body: LoginBody = await c.req.json();
     const user = await this.service.findByEmail(body.email);
     if (!user) {
-      return serveUnauthorized(c);
+      return c.json(
+        {
+          success: false,
+          message: "Invalid email, please try again",
+          code: "AUTH_INVALID_CREDENTIALS",
+        },
+        401
+      );
     }
     const isVerified = verify(body.password, user.password);
     if (!isVerified) {
-      return serveUnauthorized(c);
+      return c.json(
+        {
+          success: false,
+          message: "Invalid password, please try again",
+          code: "AUTH_INVALID_CREDENTIALS",
+        },
+        401
+      );
     }
 
     const token = await encode(user.id, user.email);
@@ -60,7 +79,7 @@ export class AuthController {
   }
 
   public async me(c: Context) {
-    const payload: JWTPayload = c.get('jwtPayload');
+    const payload: JWTPayload = c.get("jwtPayload");
     const user = await this.service.findByEmail(payload.email as string);
     if (!user) {
       return serveInternalServerError(c, new Error(ERRORS.USER_NOT_FOUND));
