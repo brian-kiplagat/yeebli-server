@@ -32,7 +32,7 @@ export class AuthController {
     this.login = this.login.bind(this);
     this.register = this.register.bind(this);
     this.me = this.me.bind(this);
-    this.verifyEmail = this.verifyEmail.bind(this);
+    this.sendToken = this.sendToken.bind(this);
     this.verifyRegistrationToken = this.verifyRegistrationToken.bind(this);
   }
 
@@ -94,7 +94,7 @@ export class AuthController {
     return serveData(c, { token, user: serializedUser });
   }
 
-  public async verifyEmail(c: Context) {
+  public async sendToken(c: Context) {
     try {
       const body: EmailVerificationBody = await c.req.json();
       const user = await this.service.findByEmail(body.email);
@@ -140,7 +140,7 @@ export class AuthController {
         return c.json(
           {
             success: false,
-            message: "Invalid email, please check",
+            message: "Ops, could not verify account, please check",
             code: "AUTH_INVALID_CREDENTIALS",
           },
           401
@@ -150,7 +150,7 @@ export class AuthController {
         return c.json(
           {
             success: false,
-            message: "Invalid email, please check",
+            message: "Ops, wrong code, please check",
             code: "AUTH_INVALID_CREDENTIALS",
           },
           401
