@@ -5,6 +5,7 @@ type UserResponse = {
   name: string;
   email: string;
   createdAt: Date | null;
+  is_verified: boolean | null;
 };
 
 const serializeUser = (user: User): UserResponse => {
@@ -13,6 +14,7 @@ const serializeUser = (user: User): UserResponse => {
     name: user.name,
     email: user.email,
     createdAt: user.createdAt,
+    is_verified: user.is_verified,
   };
 };
 
