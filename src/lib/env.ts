@@ -13,6 +13,7 @@ const envSchema = z.object({
   DB_NAME: z.string(),
   REDIS_HOST: z.string().default("localhost"),
   REDIS_PORT: z.string().default("6379"),
+  BREVO_API_KEY: z.string(),
 });
 
 export default envSchema.parse(process.env);

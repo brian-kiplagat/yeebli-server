@@ -1,6 +1,7 @@
 import { User } from "../lib/database.ts";
 import { logger } from "../lib/logger.js";
 import type { UserService } from "../service/user.js";
+import env from "../lib/env.js";
 
 type TransactionalEmail = {
   subject: string;
@@ -25,8 +26,7 @@ const sendTransactionalEmail = async (
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        "api-key":
-          "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",
+        "api-key": env.BREVO_API_KEY,
       },
       body: JSON.stringify({
         templateId: templateId,
