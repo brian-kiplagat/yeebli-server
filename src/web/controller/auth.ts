@@ -64,7 +64,7 @@ export class AuthController {
   public async register(c: Context) {
     const body: RegistrationBody = await c.req.json();
     try {
-      await this.service.create(body.name, body.email, body.password);
+      await this.service.create(body.name, body.email, body.password, 'host');
     } catch (err) {
       const e = err as DatabaseError;
       if (e.code === DB_ERRORS.DUPLICATE_KEY) {

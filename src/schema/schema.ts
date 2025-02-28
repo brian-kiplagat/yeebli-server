@@ -9,7 +9,7 @@ export const userSchema = mysqlTable('user', {
   email_token: varchar('email_token', { length: 100 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-  role: mysqlEnum('role', ['admin', 'user', 'moderator', 'host']).default('user'),
+  role: mysqlEnum('role', ['master', 'owner', 'host', 'user']).default('user'),
   profile_picture: varchar('profile_picture', { length: 255 }),
   bio: varchar('bio', { length: 255 }),
   custom_id: varchar('custom_id', { length: 255 }),
