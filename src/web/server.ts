@@ -1,25 +1,22 @@
-import { serveStatic } from "@hono/node-server/serve-static";
-import { swaggerUI } from "@hono/swagger-ui";
-import type { Worker } from "bullmq";
-import { Hono } from "hono";
-import { jwt } from "hono/jwt";
-import env from "../lib/env.js";
-import { logger } from "../lib/logger.js";
-import { connection } from "../lib/queue.js";
-import { UserRepository } from "../repository/user.js";
-import { UserService } from "../service/user.js";
-import { Tasker } from "../task/tasker.js";
-import { AuthController } from "./controller/auth.js";
-import {
-  serveInternalServerError,
-  serveNotFound,
-} from "./controller/resp/error.js";
+import { serveStatic } from '@hono/node-server/serve-static';
+import { swaggerUI } from '@hono/swagger-ui';
+import type { Worker } from 'bullmq';
+import { Hono } from 'hono';
+import { jwt } from 'hono/jwt';
+import env from '../lib/env.js';
+import { logger } from '../lib/logger.js';
+import { connection } from '../lib/queue.js';
+import { UserRepository } from '../repository/user.js';
+import { UserService } from '../service/user.js';
+import { Tasker } from '../task/tasker.js';
+import { AuthController } from './controller/auth.js';
+import { serveInternalServerError, serveNotFound } from './controller/resp/error.js';
 import {
   emailVerificationValidator,
   loginValidator,
   registerTokenValidator,
   registrationValidator,
-} from "./validator/user.js";
+} from './validator/user.js';
 
 export class Server {
   private app: Hono;
@@ -31,15 +28,15 @@ export class Server {
 
   public configure() {
     // Index path
-    this.app.get("/", (c) => {
-      return c.text("Ok");
+    this.app.get('/', (c) => {
+      return c.text('Ok');
     });
 
     // Static files
-    this.app.use("/static/*", serveStatic({ root: "./" }));
+    this.app.use('/static/*', serveStatic({ root: './' }));
 
     // API Doc
-    this.app.get("/doc", swaggerUI({ url: "/static/openapi.yaml" }));
+    this.app.get('/doc', swaggerUI({ url: '/static/openapi.yaml' }));
 
     // Universal catchall
     this.app.notFound((c) => {
@@ -51,7 +48,7 @@ export class Server {
       return serveInternalServerError(c, err);
     });
 
-    const api = this.app.basePath("/v1");
+    const api = this.app.basePath('/v1');
 
     // Setup repos
     const userRepo = new UserRepository();
@@ -73,24 +70,20 @@ export class Server {
     const user = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    user.get("/me", authCheck, authCtrl.me);
-    user.post("/login", loginValidator, authCtrl.login);
-    user.post("/register", registrationValidator, authCtrl.register);
-    user.post("/send-token", emailVerificationValidator, authCtrl.sendToken);
-    user.post(
-      "/verify-registration",
-      registerTokenValidator,
-      authCtrl.verifyRegistrationToken
-    );
+    user.get('/me', authCheck, authCtrl.me);
+    user.post('/login', loginValidator, authCtrl.login);
+    user.post('/register', registrationValidator, authCtrl.register);
+    user.post('/send-token', emailVerificationValidator, authCtrl.sendToken);
+    user.post('/verify-registration', registerTokenValidator, authCtrl.verifyRegistrationToken);
 
-    api.route("/user", user);
+    api.route('/user', user);
   }
 
   private registerWorker(userService: UserService) {
     const tasker = new Tasker(userService);
     const worker = tasker.setup();
     if (worker.isRunning()) {
-      logger.info("Worker is running");
+      logger.info('Worker is running');
     }
     this.worker = worker;
   }
