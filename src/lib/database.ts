@@ -2,7 +2,7 @@ import type { Logger as drizzleLogger } from "drizzle-orm/logger";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import * as schema from "../schema/schema.js";
-import type { leadSchema, userSchema } from "../schema/schema.js";
+import type { eventSchema, leadSchema, userSchema } from "../schema/schema.js";
 import env from "./env.js";
 import { logger } from "./logger.js";
 
@@ -23,6 +23,9 @@ export interface DatabaseError {
 
 export type User = typeof userSchema.$inferSelect;
 export type NewUser = typeof userSchema.$inferInsert;
+
+export type Event = typeof eventSchema.$inferSelect;
+export type NewEvent = typeof eventSchema.$inferInsert;
 
 export type Lead = typeof leadSchema.$inferSelect;
 export type NewLead = typeof leadSchema.$inferInsert;

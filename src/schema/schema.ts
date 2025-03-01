@@ -44,7 +44,7 @@ export const leadSchema = mysqlTable("leads", {
     "Form",
     "Interested",
     "Member",
-    "Inactive Member",
+    "Inactive Member",
   ]).default("Manual"),
   membership_level: mysqlEnum("membership_level", [
     "Silver",
@@ -54,5 +54,20 @@ export const leadSchema = mysqlTable("leads", {
   userId: int("user_id").references(() => userSchema.id),
 });
 
+export const eventSchema = mysqlTable("events", {
+  id: serial("id").primaryKey(),
+  event_name: varchar("event_name", { length: 255 }).notNull(),
+  event_date: varchar("event_date", { length: 10 }).notNull(), // Format: MM/DD/YYYY
+  start_time: varchar("start_time", { length: 5 }).notNull(), // Format: HH:MM
+  end_time: varchar("end_time", { length: 5 }).notNull(), // Format: HH:MM
+  video_url: varchar("video_url", { length: 255 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+  lead_id: int("lead_id").references(() => leadSchema.id).notNull(),
+  host_id: int("host_id").references(() => userSchema.id).notNull(),
+});
+
 export type Lead = typeof leadSchema.$inferSelect;
 export type NewLead = typeof leadSchema.$inferInsert;
+export type Event = typeof eventSchema.$inferSelect;
+export type NewEvent = typeof eventSchema.$inferInsert;
