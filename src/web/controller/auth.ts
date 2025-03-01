@@ -8,7 +8,7 @@ import { userSchema } from '../../schema/schema.ts';
 import type { UserService } from '../../service/user.js';
 import sendWelcomeEmailAsync from '../../task/client/sendWelcomeEmailAsync.js';
 import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
-import type { EmailVerificationBody, LoginBody, RegisterTokenBody, RegistrationBody } from '../validator/user.js';
+import type { EmailVerificationBody, LoginBody, RegisterTokenBody, RegistrationBody, RequestResetPasswordBody, ResetPasswordBody } from '../validator/user.js';
 import { ERRORS, serveBadRequest, serveInternalServerError, serveUnauthorized } from './resp/error.js';
 import { serveData } from './resp/resp.js';
 import { serializeUser } from './serializer/user.js';
@@ -24,6 +24,8 @@ export class AuthController {
     this.me = this.me.bind(this);
     this.sendToken = this.sendToken.bind(this);
     this.verifyRegistrationToken = this.verifyRegistrationToken.bind(this);
+    this.requestResetPassword = this.requestResetPassword.bind(this);
+    this.resetPassword = this.resetPassword.bind(this);
   }
 
   public async login(c: Context) {
@@ -154,6 +156,59 @@ export class AuthController {
     }
   }
 
+  public async requestResetPassword(c: Context) {
+    try {
+      const body: RequestResetPasswordBody = await c.req.json();
+      const user = await this.service.findByEmail(body.email);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      const token = Math.floor(100000 + Math.random() * 900000).toString();
+      await db.update(userSchema).set({ reset_token: token }).where(eq(userSchema.id, user.id));
+      await sendTransactionalEmail(user, 1, {
+        subject: "Reset password",
+        title: "Reset password",
+        subtitle: `${token}`,
+        body: `Reset password code is ${token}`,
+        cta_url: `https://yeebli-e10656.webflow.io/onboarding/forgotten?token=${token}&email=${user.email}`,
+      });
+      return serveData(c, {
+        success: true,
+        message: 'Reset password code sent successfully',
+      });
+    } catch (err) {
+      logger.error(err);
+      return serveInternalServerError(c, err);
+    }
+  }
+
+  public async resetPassword(c: Context) {
+    try {
+      const body: ResetPasswordBody = await c.req.json();
+      const user = await this.service.findByEmail(body.email);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      if (user.reset_token !== String(body.token)) {
+        return serveBadRequest(c, ERRORS.INVALID_TOKEN);
+      }
+      await this.service.update(user.id, { password: body.password });
+      await db.update(userSchema).set({ reset_token: null }).where(eq(userSchema.id, user.id));
+      await sendTransactionalEmail(user, 1, {
+        subject: "Password reset",
+        title: "Password reset",
+        subtitle: `Your password has been reset successfully`,
+        body: `Your password has been reset successfully. If this was not you, please contact support. Thanks again for using Yeebli!`,
+      });
+      return serveData(c, {
+        success: true,
+        message: 'Password reset successfully',
+      });
+    } catch (err) {
+      logger.error(err);
+      return serveInternalServerError(c, err);
+    }
+  }
   public async me(c: Context) {
     const payload: JWTPayload = c.get('jwtPayload');
     const user = await this.service.findByEmail(payload.email as string);

@@ -34,6 +34,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 const ERRORS = {
   USER_EXISTS: 'User already exists',
   USER_NOT_FOUND: 'User not found',
+  INVALID_TOKEN: 'Ops, your code is invalid, please try again',
 };
 
 export {

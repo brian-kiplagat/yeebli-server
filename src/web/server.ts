@@ -16,6 +16,8 @@ import {
   loginValidator,
   registerTokenValidator,
   registrationValidator,
+  requestResetPasswordValidator,
+  resetPasswordValidator,
 } from './validator/user.js';
 
 export class Server {
@@ -75,7 +77,8 @@ export class Server {
     user.post('/register', registrationValidator, authCtrl.register);
     user.post('/send-token', emailVerificationValidator, authCtrl.sendToken);
     user.post('/verify-registration', registerTokenValidator, authCtrl.verifyRegistrationToken);
-
+    user.post('/request-reset-password', requestResetPasswordValidator, authCtrl.requestResetPassword);
+    user.post('/reset-password', resetPasswordValidator, authCtrl.resetPassword);
     api.route('/user', user);
   }
 
