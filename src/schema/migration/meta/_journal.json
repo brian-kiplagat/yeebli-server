@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1740593450830,
-      "tag": "0000_tense_micromax",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1740764097556,
-      "tag": "0001_abandoned_lightspeed",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1740826609799,
-      "tag": "0002_milky_azazel",
+      "when": 1740831104804,
+      "tag": "0000_keen_expediter",
       "breakpoints": true
     }
   ]
