@@ -1,14 +1,14 @@
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 
 export const eventValidator = zValidator(
   "json",
   z.object({
-    title: z.string().min(1),
-    description: z.string().optional(),
-    startDate: z.string().datetime(),
-    endDate: z.string().datetime().optional(),
-    location: z.string().optional(),
-    type: z.string().optional(),
+    event_name: z.string().min(1),
+    event_description: z.string(),
+    event_date: z.string(),
+    start_time: z.string(),
+    end_time: z.string(),
+    video_url: z.string().optional(),
   })
 );

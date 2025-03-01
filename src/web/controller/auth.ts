@@ -8,7 +8,14 @@ import { userSchema } from '../../schema/schema.ts';
 import type { UserService } from '../../service/user.js';
 import sendWelcomeEmailAsync from '../../task/client/sendWelcomeEmailAsync.js';
 import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
-import type { EmailVerificationBody, LoginBody, RegisterTokenBody, RegistrationBody, RequestResetPasswordBody, ResetPasswordBody } from '../validator/user.js';
+import type {
+  EmailVerificationBody,
+  LoginBody,
+  RegisterTokenBody,
+  RegistrationBody,
+  RequestResetPasswordBody,
+  ResetPasswordBody,
+} from '../validator/user.js';
 import { ERRORS, serveBadRequest, serveInternalServerError, serveUnauthorized } from './resp/error.js';
 import { serveData } from './resp/resp.js';
 import { serializeUser } from './serializer/user.js';
@@ -166,8 +173,8 @@ export class AuthController {
       const token = Math.floor(100000 + Math.random() * 900000).toString();
       await db.update(userSchema).set({ reset_token: token }).where(eq(userSchema.id, user.id));
       await sendTransactionalEmail(user, 1, {
-        subject: "Reset password",
-        title: "Reset password",
+        subject: 'Reset password',
+        title: 'Reset password',
         subtitle: `${token}`,
         body: `Reset password code is ${token}`,
         cta_url: `https://yeebli-e10656.webflow.io/onboarding/forgotten?token=${token}&email=${user.email}`,
@@ -195,8 +202,8 @@ export class AuthController {
       await this.service.update(user.id, { password: body.password });
       await db.update(userSchema).set({ reset_token: null }).where(eq(userSchema.id, user.id));
       await sendTransactionalEmail(user, 1, {
-        subject: "Password reset",
-        title: "Password reset",
+        subject: 'Password reset',
+        title: 'Password reset',
         subtitle: `Your password has been reset successfully`,
         body: `Your password has been reset successfully. If this was not you, please contact support. Thanks again for using Yeebli!`,
       });

@@ -1,5 +1,5 @@
-import { LeadRepository } from "../repository/lead.js";
-import { type Lead, type NewLead } from "../schema/schema.js";
+import type { LeadRepository } from '../repository/lead.js';
+import type { Lead, NewLead } from '../schema/schema.js';
 
 export class LeadService {
   private repository: LeadRepository;

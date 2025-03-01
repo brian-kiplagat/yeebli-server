@@ -1,5 +1,5 @@
-import { EventRepository } from "../repository/event.ts";
-import { type Event, type NewEvent } from "../schema/schema.js";
+import type { EventRepository } from '../repository/event.ts';
+import type { Event, NewEvent } from '../schema/schema.js';
 
 export class EventService {
   private repository: EventRepository;

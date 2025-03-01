@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
-import { type NewLead, type Lead, db } from "../lib/database.js";
-import { leadSchema } from "../schema/schema.js";
+import { eq } from 'drizzle-orm';
+import { type Lead, type NewLead, db } from '../lib/database.js';
+import { leadSchema } from '../schema/schema.js';
 
 export class LeadRepository {
   public async create(lead: NewLead) {

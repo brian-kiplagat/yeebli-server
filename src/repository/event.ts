@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
-import { db } from "../lib/database.js";
-import { eventSchema } from "../schema/schema.js";
-import type { Event, NewEvent } from "../schema/schema.js";
+import { eq } from 'drizzle-orm';
+import { db } from '../lib/database.js';
+import { eventSchema } from '../schema/schema.js';
+import type { Event, NewEvent } from '../schema/schema.js';
 
 export class EventRepository {
   public async create(event: NewEvent) {

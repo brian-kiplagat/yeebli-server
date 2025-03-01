@@ -1,13 +1,13 @@
-import type { Logger as drizzleLogger } from "drizzle-orm/logger";
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
-import * as schema from "../schema/schema.js";
-import type { eventSchema, leadSchema, userSchema } from "../schema/schema.js";
-import env from "./env.js";
-import { logger } from "./logger.js";
+import type { Logger as drizzleLogger } from 'drizzle-orm/logger';
+import { drizzle } from 'drizzle-orm/mysql2';
+import mysql from 'mysql2/promise';
+import * as schema from '../schema/schema.js';
+import type { eventSchema, leadSchema, userSchema } from '../schema/schema.js';
+import env from './env.js';
+import { logger } from './logger.js';
 
 const DB_ERRORS = {
-  DUPLICATE_KEY: "ER_DUP_ENTRY",
+  DUPLICATE_KEY: 'ER_DUP_ENTRY',
 };
 
 export interface DatabaseError {
@@ -53,7 +53,7 @@ const connection = mysql.createPool({
 
 const db = drizzle(connection, {
   schema: schema,
-  mode: "default",
+  mode: 'default',
   logger: new DBLogger(),
 });
 export { DB_ERRORS, connection, db };

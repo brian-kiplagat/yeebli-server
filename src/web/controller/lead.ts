@@ -1,14 +1,9 @@
-import type { Context } from "hono";
-import { LeadService } from "../../service/lead.js";
-import {
-  ERRORS,
-  serveBadRequest,
-  serveInternalServerError,
-  serveNotFound,
-} from "./resp/error.js";
-import { UserService } from "../../service/user.ts";
-import { logger } from "../../lib/logger.ts";
-import { LeadBody } from "../validator/lead.ts";
+import type { Context } from 'hono';
+import { logger } from '../../lib/logger.ts';
+import type { LeadService } from '../../service/lead.js';
+import type { UserService } from '../../service/user.ts';
+import { LeadBody } from '../validator/lead.ts';
+import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
 
 export class LeadController {
   private service: LeadService;
@@ -20,7 +15,7 @@ export class LeadController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get("jwtPayload").email;
+    const email = c.get('jwtPayload').email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -31,7 +26,7 @@ export class LeadController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      if (user.role == "master") {
+      if (user.role == 'master') {
         //get all leads in db
         const leads = await this.service.getAllLeads();
         return c.json(leads);
@@ -51,7 +46,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = Number(c.req.param("id"));
+      const leadId = Number(c.req.param('id'));
       const lead = await this.service.getLead(leadId);
 
       if (!lead) {
@@ -81,7 +76,7 @@ export class LeadController {
         userId: user.id,
       });
 
-      return c.json({ message: "Lead created successfully" }, 201);
+      return c.json({ message: 'Lead created successfully' }, 201);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -94,7 +89,7 @@ export class LeadController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      const leadId = Number(c.req.param("id"));
+      const leadId = Number(c.req.param('id'));
       const lead = await this.service.getLead(leadId);
 
       if (!lead) {
@@ -108,7 +103,7 @@ export class LeadController {
         start_time: new Date(body.start_time),
       });
 
-      return c.json({ message: "Lead updated successfully" });
+      return c.json({ message: 'Lead updated successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -121,7 +116,7 @@ export class LeadController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      const leadId = Number(c.req.param("id"));
+      const leadId = Number(c.req.param('id'));
       const lead = await this.service.getLead(leadId);
 
       if (!lead || lead.userId !== user.id) {
@@ -129,7 +124,7 @@ export class LeadController {
       }
 
       await this.service.deleteLead(leadId);
-      return c.json({ message: "Lead deleted successfully" });
+      return c.json({ message: 'Lead deleted successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
