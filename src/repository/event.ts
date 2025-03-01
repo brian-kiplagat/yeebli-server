@@ -5,7 +5,7 @@ import type { Event, NewEvent } from '../schema/schema.js';
 
 export class EventRepository {
   public async create(event: NewEvent) {
-    return db.insert(eventSchema).values(event);
+    return db.insert(eventSchema).values(event).$returningId();
   }
 
   public async find(id: number) {

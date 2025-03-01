@@ -8,8 +8,9 @@ export class EventService {
     this.repository = repository;
   }
 
-  public async createEvent(lead: NewEvent): Promise<void> {
-    await this.repository.create(lead);
+  public async createEvent(lead: NewEvent): Promise<number> {
+    const result = await this.repository.create(lead);
+    return result[0].id;
   }
 
   public async getEvent(id: number): Promise<Event | undefined> {
