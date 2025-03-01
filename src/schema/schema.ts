@@ -51,9 +51,9 @@ export const eventSchema = mysqlTable('events', {
   id: serial('id').primaryKey(),
   event_name: varchar('event_name', { length: 255 }).notNull(),
   event_description: varchar('event_description', { length: 255 }),
-  event_date: varchar('event_date', { length: 10 }).notNull(), // Format: MM/DD/YYYY
-  start_time: varchar('start_time', { length: 5 }).notNull(), // Format: HH:MM
-  end_time: varchar('end_time', { length: 5 }).notNull(), // Format: HH:MM
+  event_date: varchar('event_date', { length: 50 }).notNull(), // Format: MM/DD/YYYY
+  start_time: varchar('start_time', { length: 50 }).notNull(), // Format: HH:MM
+  end_time: varchar('end_time', { length: 50 }).notNull(), // Format: HH:MM
   video_url: varchar('video_url', { length: 255 }),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),

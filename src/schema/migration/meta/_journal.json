@@ -2,12 +2,25 @@
   "version": "5",
   "dialect": "mysql",
   "entries": [
-   
     {
       "idx": 1,
       "version": "5",
       "when": 1740846794632,
       "tag": "0001_peaceful_stranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1740851825115,
+      "tag": "0002_fine_bromley",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1740851987237,
+      "tag": "0003_bent_sentinel",
       "breakpoints": true
     }
   ]

@@ -71,6 +71,7 @@ export class EventController {
       await this.service.createEvent({
         ...body,
         host_id: user.id,
+        lead_id: body.lead_id,
       });
 
       return c.json({ message: 'Event created successfully' }, 201);
