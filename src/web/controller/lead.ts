@@ -1,26 +1,43 @@
 import type { Context } from "hono";
 import { LeadService } from "../../service/lead.js";
-import { serveNotFound } from "./resp/error.js";
+import { ERRORS, serveBadRequest, serveNotFound } from "./resp/error.js";
+import { UserService } from "../../service/user.ts";
 
 export class LeadController {
   private service: LeadService;
+  private userService: UserService;
 
-  constructor(service: LeadService) {
+  constructor(service: LeadService, userService: UserService) {
     this.service = service;
+    this.userService = userService;
+  }
+
+  private async getUser(c: Context) {
+    const email = c.get("jwtPayload").email;
+    const user = await this.userService.findByEmail(email);
+    return user;
   }
 
   public getLeads = async (c: Context) => {
-    const userId = c.get("jwtPayload").id;
-    const leads = await this.service.getLeadsByUser(userId);
+    const user = await this.getUser(c);
+    if (!user) {
+      return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+    }
+
+    const leads = await this.service.getLeadsByUser(user.id);
     return c.json(leads);
   };
 
   public getLead = async (c: Context) => {
-    const userId = c.get("jwtPayload").id;
+    const user = await this.getUser(c);
+    if (!user) {
+      return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+    }
+
     const leadId = Number(c.req.param("id"));
     const lead = await this.service.getLead(leadId);
 
-    if (!lead || lead.userId !== userId) {
+    if (!lead) {
       return serveNotFound(c);
     }
 
@@ -28,23 +45,29 @@ export class LeadController {
   };
 
   public createLead = async (c: Context) => {
-    const userId = c.get("jwtPayload").id;
+    const user = await this.getUser(c);
+    if (!user) {
+      return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+    }
     const data = await c.req.json();
 
     await this.service.createLead({
       ...data,
-      userId,
+      userId: user.id,
     });
 
     return c.json({ message: "Lead created successfully" }, 201);
   };
 
   public updateLead = async (c: Context) => {
-    const userId = c.get("jwtPayload").id;
+    const user = await this.getUser(c);
+    if (!user) {
+      return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+    }
     const leadId = Number(c.req.param("id"));
     const lead = await this.service.getLead(leadId);
 
-    if (!lead || lead.userId !== userId) {
+    if (!lead || lead.userId !== user.id) {
       return serveNotFound(c);
     }
 
@@ -55,11 +78,14 @@ export class LeadController {
   };
 
   public deleteLead = async (c: Context) => {
-    const userId = c.get("jwtPayload").id;
+    const user = await this.getUser(c);
+    if (!user) {
+      return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+    }
     const leadId = Number(c.req.param("id"));
     const lead = await this.service.getLead(leadId);
 
-    if (!lead || lead.userId !== userId) {
+    if (!lead || lead.userId !== user.id) {
       return serveNotFound(c);
     }
 

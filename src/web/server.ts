@@ -75,7 +75,7 @@ export class Server {
 
     // Setup controllers
     const authController = new AuthController(userService);
-    const leadController = new LeadController(leadService);
+    const leadController = new LeadController(leadService, userService);
 
     // Register routes
     this.registerUserRoutes(api, authController);
