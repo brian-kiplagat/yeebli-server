@@ -23,7 +23,11 @@ export class LeadController {
     if (!user) {
       return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
     }
-
+    if (user.role == "master") {
+      //get all leads in db
+      const leads = await this.service.getAllLeads();
+      return c.json(leads);
+    }
     const leads = await this.service.getLeadsByUser(user.id);
     return c.json(leads);
   };
@@ -49,6 +53,7 @@ export class LeadController {
     if (!user) {
       return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
     }
+    console.log({ user });
     const data = await c.req.json();
 
     await this.service.createLead({
