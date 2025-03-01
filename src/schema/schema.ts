@@ -41,7 +41,6 @@ export const leadSchema = mysqlTable("leads", {
     "Membership- Gold",
     "Membership- Platinum",
   ]).default("Free Event"),
-  // User Relationship (if this lead is associated with a user account)
   userId: int("user_id").references(() => userSchema.id),
 });
 
