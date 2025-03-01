@@ -97,12 +97,16 @@ export class LeadController {
       const leadId = Number(c.req.param("id"));
       const lead = await this.service.getLead(leadId);
 
-      if (!lead || lead.userId !== user.id) {
-        return serveNotFound(c);
+      if (!lead) {
+        return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
 
       const body = await c.req.json();
-      await this.service.updateLead(leadId, body);
+      await this.service.updateLead(leadId, {
+        ...body,
+        event_date: new Date(body.event_date),
+        start_time: new Date(body.start_time),
+      });
 
       return c.json({ message: "Lead updated successfully" });
     } catch (error) {

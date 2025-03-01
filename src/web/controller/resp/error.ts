@@ -32,9 +32,10 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
-  USER_EXISTS: 'User already exists',
-  USER_NOT_FOUND: 'User not found',
-  INVALID_TOKEN: 'Ops, your code is invalid, please try again',
+  USER_EXISTS: "User already exists",
+  USER_NOT_FOUND: "User not found",
+  INVALID_TOKEN: "Ops, your code is invalid, please try again",
+  LEAD_NOT_FOUND: "Ops, this lead does not exist, please check",
 };
 
 export {
