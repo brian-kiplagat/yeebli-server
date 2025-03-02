@@ -32,10 +32,10 @@ export const leadSchema = mysqlTable("leads", {
   name: varchar("name", { length: 100 }),
   email: varchar("email", { length: 100 }),
   phone: varchar("phone", { length: 100 }),
-  event_id: int("event_id").notNull(),
+  event_id: int("event_id").references(() => eventSchema.id).notNull(),
   membership_active: boolean("membership_active").default(false),
   form_identifier: varchar("form_identifier", { length: 100 }),
-  host_id: int("host_id").references(() => userSchema.id),
+  host_id: int("host_id").references(() => userSchema.id).notNull(),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   status_identifier: mysqlEnum("status_identifier", [
@@ -63,9 +63,6 @@ export const eventSchema = mysqlTable("events", {
   video_url: varchar("video_url", { length: 255 }),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
-  lead_id: int("lead_id")
-    .references(() => leadSchema.id)
-    .notNull(),
   host_id: int("host_id")
     .references(() => userSchema.id)
     .notNull(),
@@ -79,14 +76,10 @@ export const leadRelations = relations(leadSchema, ({ one }) => ({
   }),
 }));
 
-export const eventRelations = relations(eventSchema, ({ one }) => ({
-  lead: one(leadSchema, {
-    fields: [eventSchema.lead_id],
-    references: [leadSchema.id],
-  }),
-}));
 
-export type Lead = typeof leadSchema.$inferSelect;
+export type Lead = typeof leadSchema.$inferSelect & {
+  event?: Event | null;
+};
 export type NewLead = typeof leadSchema.$inferInsert;
 export type Event = typeof eventSchema.$inferSelect;
 export type NewEvent = typeof eventSchema.$inferInsert;
