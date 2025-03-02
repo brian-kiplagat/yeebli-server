@@ -27,6 +27,9 @@ export class LeadRepository {
   public async findByUserId(userId: number) {
     return db.query.leadSchema.findMany({
       where: eq(leadSchema.userId, userId),
+      with: {
+        event: true,
+      },
     });
   }
 
