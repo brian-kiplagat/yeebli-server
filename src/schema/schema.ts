@@ -7,6 +7,7 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/mysql-core";
+import { relations } from "drizzle-orm";
 
 export const userSchema = mysqlTable("user", {
   id: serial("id").primaryKey(),
@@ -69,6 +70,21 @@ export const eventSchema = mysqlTable("events", {
     .references(() => userSchema.id)
     .notNull(),
 });
+
+// Define the relations
+export const leadRelations = relations(leadSchema, ({ one }) => ({
+  event: one(eventSchema, {
+    fields: [leadSchema.event_id],
+    references: [eventSchema.id],
+  }),
+}));
+
+export const eventRelations = relations(eventSchema, ({ one }) => ({
+  lead: one(leadSchema, {
+    fields: [eventSchema.lead_id],
+    references: [leadSchema.id],
+  }),
+}));
 
 export type Lead = typeof leadSchema.$inferSelect;
 export type NewLead = typeof leadSchema.$inferInsert;
