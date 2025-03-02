@@ -71,8 +71,7 @@ export class LeadController {
 
       await this.service.createLead({
         ...body,
-        event_date: new Date(body.event_date),
-        start_time: new Date(body.start_time),
+        host_id: user.id,
         userId: user.id,
       });
 
