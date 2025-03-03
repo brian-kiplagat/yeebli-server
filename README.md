@@ -145,7 +145,7 @@ Once the migration is complete, and you've run:
 pnpm run db:generate
 pnpm run db:migrate
 ```
-Confirm that MySQL works on the WSL Ubuntu command line using the credentials from your `.env` file.
+Confirm that MySQL inside the container works on the WSL Ubuntu command line using the credentials from your `.env` file.
 
 To connect to MySQL using the `.env` credentials you provided (`DB_USER=user`, `DB_PASSWORD=password`), follow these steps:
 
@@ -195,6 +195,8 @@ To exit the MySQL shell, type:
 ```sql
 EXIT;
 ```
+![image](https://github.com/user-attachments/assets/f0878660-3184-4591-b7f2-ccda11a506dd)
+
 
 ---
 
