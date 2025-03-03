@@ -2,7 +2,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 
 export const eventValidator = zValidator(
-  "json",
+  'json',
   z.object({
     event_name: z.string().min(1),
     event_description: z.string(),
@@ -10,5 +10,5 @@ export const eventValidator = zValidator(
     start_time: z.string(),
     end_time: z.string(),
     video_url: z.string().optional(),
-  })
+  }),
 );

@@ -6,17 +6,19 @@ import { jwt } from 'hono/jwt';
 import env from '../lib/env.js';
 import { logger } from '../lib/logger.js';
 import { connection } from '../lib/queue.js';
+import { AdminRepository } from '../repository/admin.js';
+import { EventRepository } from '../repository/event.ts';
 import { LeadRepository } from '../repository/lead.js';
 import { UserRepository } from '../repository/user.js';
+import { AdminService } from '../service/admin.js';
+import { EventService } from '../service/event.ts';
 import { LeadService } from '../service/lead.js';
 import { UserService } from '../service/user.js';
 import { Tasker } from '../task/tasker.js';
+import { AdminController } from './controller/admin.js';
 import { AuthController } from './controller/auth.js';
-import { LeadController } from './controller/lead.ts';
-
-import { EventRepository } from '../repository/event.ts';
-import { EventService } from '../service/event.ts';
 import { EventController } from './controller/event.ts';
+import { LeadController } from './controller/lead.ts';
 import { serveInternalServerError, serveNotFound } from './controller/resp/error.js';
 import { eventValidator } from './validator/event.ts';
 import { leadValidator } from './validator/lead.ts';
@@ -65,11 +67,13 @@ export class Server {
     const userRepo = new UserRepository();
     const leadRepo = new LeadRepository();
     const eventRepo = new EventRepository();
+    const adminRepo = new AdminRepository();
 
     // Setup services
     const userService = new UserService(userRepo);
     const leadService = new LeadService(leadRepo);
     const eventService = new EventService(eventRepo);
+    const adminService = new AdminService(adminRepo);
 
     // Setup worker
     this.registerWorker(userService);
@@ -78,11 +82,13 @@ export class Server {
     const authController = new AuthController(userService);
     const leadController = new LeadController(leadService, userService);
     const eventController = new EventController(eventService, userService);
+    const adminController = new AdminController(adminService, userService);
 
     // Register routes
     this.registerUserRoutes(api, authController);
     this.registerLeadRoutes(api, leadController);
     this.registerEventRoutes(api, eventController);
+    this.registerAdminRoutes(api, adminController);
   }
 
   private registerUserRoutes(api: Hono, authCtrl: AuthController) {
@@ -123,6 +129,17 @@ export class Server {
     event.delete('/:id', authCheck, eventCtrl.deleteEvent);
 
     api.route('/event', event);
+  }
+
+  private registerAdminRoutes(api: Hono, adminCtrl: AdminController) {
+    const admin = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    admin.get('/users', authCheck, adminCtrl.getUsers);
+    admin.get('/leads', authCheck, adminCtrl.getLeads);
+    admin.get('/events', authCheck, adminCtrl.getEvents);
+
+    api.route('/admin', admin);
   }
 
   private registerWorker(userService: UserService) {
