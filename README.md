@@ -83,3 +83,138 @@ And the JSON doc will be generated.
 pnpm drizzle-kit studio
 open https://local.drizzle.studio/
 ```
+
+## Docker for local development
+To install Docker on Windows, you'll need to install **Docker Desktop** and **WSL 2** (Windows Subsystem for Linux). Below are the step-by-step instructions:
+
+---
+
+## **1. Enable WSL 2 and Install a Linux Distribution**
+WSL 2 is required for Docker to run on Windows efficiently.
+
+### **Step 1: Enable WSL**
+1. Open **PowerShell as Administrator** and run the following command to enable WSL:
+   ```powershell
+   wsl --install
+   ```
+   This will install the default Linux distribution (Ubuntu) and enable WSL 2.
+
+2. Restart your computer after installation.
+
+---
+
+## **2. Install Docker Desktop**
+### **Step: Download Docker Desktop**
+- Visit the [official Docker website](https://www.docker.com/products/docker-desktop) and download **Docker Desktop for Windows**.
+
+### **Step: Install Docker Desktop**
+1. Run the **Docker Desktop Installer.exe** file.
+2. In the installation settings:
+   - Ensure **"Use WSL 2 instead of Hyper-V"** is checked.
+   - Click **Install** and wait for the process to complete.
+
+3. Once the installation is done, click **Close and restart**.
+
+---
+
+## **3. Configure Docker to Use WSL 2**
+1. Open Docker Desktop.
+2. Go to **Settings** > **General**.
+3. Check **"Use the WSL 2 based engine"**.
+4. Click **Apply & Restart**.
+
+---
+
+## **4. Verify Installation**
+1. Open **PowerShell** or **Command Prompt** and run:
+   ```powershell
+   docker --version
+   ```
+   This should return the installed Docker version.
+
+2. Run the **hello-world** container to test:
+   ```powershell
+   docker run hello-world
+   ```
+   If everything is set up correctly, you will see a message confirming that Docker is working.
+
+---
+### **Optional: Confirm MySQL Works**
+Once the migration is complete, and you've run:
+```bash
+pnpm run db:generate
+pnpm run db:migrate
+```
+Confirm that MySQL works on the WSL Ubuntu command line using the credentials from your `.env` file.
+
+To connect to MySQL using the `.env` credentials you provided (`DB_USER=user`, `DB_PASSWORD=password`), follow these steps:
+
+---
+
+### **1. Open Ubuntu in WSL**
+Run the following in **PowerShell** or **Command Prompt**:
+```powershell
+wsl
+```
+
+---
+
+### **2. List Running Docker Containers**
+Inside Ubuntu, check if MySQL is running in Docker:
+```bash
+docker ps
+```
+Look for the **CONTAINER ID** of the MySQL container.
+
+---
+
+### **3. Access MySQL Inside the Container**
+Now, use the **CONTAINER ID** to execute MySQL:
+```bash
+sudo docker exec -it <CONTAINER_ID> mysql -u user -p
+```
+Replace `<CONTAINER_ID>` with the actual ID from `docker ps`. When prompted, enter the **password** (`password` from `.env`).
+
+---
+
+### **4. Verify Database Access**
+Once inside MySQL, check if the database exists:
+```sql
+SHOW DATABASES;
+```
+To use a specific database:
+```sql
+USE your_database_name;
+SHOW TABLES;
+```
+
+---
+
+### **5. Exit MySQL**
+To exit the MySQL shell, type:
+```sql
+EXIT;
+```
+
+---
+
+### **Troubleshooting**
+- If the container is not running, start it:
+  ```bash
+  docker start <CONTAINER_ID>
+  ```
+- If you don’t see the container in `docker ps`, check all containers:
+  ```bash
+  docker ps -a
+  ```
+- If MySQL is not installed in Docker, check the logs:
+  ```bash
+  docker logs <CONTAINER_ID>
+  ```
+
+This ensures that MySQL is running correctly within the Docker container on WSL! 🚀
+
+
+
+### **Conclusion**
+Now you have **Docker** installed with **WSL 2** support. You can run Linux-based Docker containers efficiently on Windows! 🚀
