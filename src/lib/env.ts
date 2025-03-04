@@ -15,9 +15,9 @@ const envSchema = z.object({
   REDIS_PORT: z.string().default("6379"),
   BREVO_API_KEY: z.string(),
   AWS_REGION: z.string(),
-  AWS_ACCESS_KEY_ID: z.string(),
-  AWS_SECRET_ACCESS_KEY: z.string(),
-  AWS_S3_BUCKET: z.string(),
+  AWS_ACCESS_KEY: z.string(),
+  AWS_SECRET_KEY: z.string(),
+  S3_BUCKET_NAME: z.string(),
 });
 
 export default envSchema.parse(process.env);

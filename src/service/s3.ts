@@ -10,11 +10,11 @@ export class S3Service {
     this.client = new S3Client({
       region: env.AWS_REGION,
       credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: env.AWS_ACCESS_KEY,
+        secretAccessKey: env.AWS_SECRET_KEY,
       },
     });
-    this.bucket = env.AWS_S3_BUCKET;
+    this.bucket = env.S3_BUCKET_NAME;
   }
 
   async generatePresignedUrl(key: string, contentType: string) {
