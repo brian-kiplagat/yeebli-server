@@ -1,27 +1,30 @@
-import { serveStatic } from '@hono/node-server/serve-static';
-import { swaggerUI } from '@hono/swagger-ui';
-import type { Worker } from 'bullmq';
-import { Hono } from 'hono';
-import { jwt } from 'hono/jwt';
-import env from '../lib/env.js';
-import { logger } from '../lib/logger.js';
-import { connection } from '../lib/queue.js';
-import { AdminRepository } from '../repository/admin.js';
-import { EventRepository } from '../repository/event.ts';
-import { LeadRepository } from '../repository/lead.js';
-import { UserRepository } from '../repository/user.js';
-import { AdminService } from '../service/admin.js';
-import { EventService } from '../service/event.ts';
-import { LeadService } from '../service/lead.js';
-import { UserService } from '../service/user.js';
-import { Tasker } from '../task/tasker.js';
-import { AdminController } from './controller/admin.js';
-import { AuthController } from './controller/auth.js';
-import { EventController } from './controller/event.ts';
-import { LeadController } from './controller/lead.ts';
-import { serveInternalServerError, serveNotFound } from './controller/resp/error.js';
-import { eventValidator } from './validator/event.ts';
-import { leadValidator } from './validator/lead.ts';
+import { serveStatic } from "@hono/node-server/serve-static";
+import { swaggerUI } from "@hono/swagger-ui";
+import type { Worker } from "bullmq";
+import { Hono } from "hono";
+import { jwt } from "hono/jwt";
+import env from "../lib/env.js";
+import { logger } from "../lib/logger.js";
+import { connection } from "../lib/queue.js";
+import { AdminRepository } from "../repository/admin.js";
+import { EventRepository } from "../repository/event.ts";
+import { LeadRepository } from "../repository/lead.js";
+import { UserRepository } from "../repository/user.js";
+import { AdminService } from "../service/admin.js";
+import { EventService } from "../service/event.ts";
+import { LeadService } from "../service/lead.js";
+import { UserService } from "../service/user.js";
+import { Tasker } from "../task/tasker.js";
+import { AdminController } from "./controller/admin.js";
+import { AuthController } from "./controller/auth.js";
+import { EventController } from "./controller/event.ts";
+import { LeadController } from "./controller/lead.ts";
+import {
+  serveInternalServerError,
+  serveNotFound,
+} from "./controller/resp/error.js";
+import { eventValidator } from "./validator/event.ts";
+import { leadValidator } from "./validator/lead.ts";
 import {
   emailVerificationValidator,
   loginValidator,
@@ -29,7 +32,9 @@ import {
   registrationValidator,
   requestResetPasswordValidator,
   resetPasswordValidator,
-} from './validator/user.js';
+} from "./validator/user.js";
+import { S3Service } from "../service/s3.js";
+import { S3Controller } from "./controller/s3.js";
 
 export class Server {
   private app: Hono;
@@ -41,15 +46,15 @@ export class Server {
 
   public configure() {
     // Index path
-    this.app.get('/', (c) => {
-      return c.text('Ok');
+    this.app.get("/", (c) => {
+      return c.text("Ok");
     });
 
     // Static files
-    this.app.use('/static/*', serveStatic({ root: './' }));
+    this.app.use("/static/*", serveStatic({ root: "./" }));
 
     // API Doc
-    this.app.get('/doc', swaggerUI({ url: '/static/openapi.yaml' }));
+    this.app.get("/doc", swaggerUI({ url: "/static/openapi.yaml" }));
 
     // Universal catchall
     this.app.notFound((c) => {
@@ -61,7 +66,7 @@ export class Server {
       return serveInternalServerError(c, err);
     });
 
-    const api = this.app.basePath('/v1');
+    const api = this.app.basePath("/v1");
 
     // Setup repos
     const userRepo = new UserRepository();
@@ -84,69 +89,95 @@ export class Server {
     const eventController = new EventController(eventService, userService);
     const adminController = new AdminController(adminService, userService);
 
+    // Setup S3 service
+    const s3Service = new S3Service();
+    const s3Controller = new S3Controller(s3Service);
+
     // Register routes
     this.registerUserRoutes(api, authController);
     this.registerLeadRoutes(api, leadController);
     this.registerEventRoutes(api, eventController);
     this.registerAdminRoutes(api, adminController);
+    this.registerS3Routes(api, s3Controller);
   }
 
   private registerUserRoutes(api: Hono, authCtrl: AuthController) {
     const user = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    user.get('/me', authCheck, authCtrl.me);
-    user.post('/login', loginValidator, authCtrl.login);
-    user.post('/register', registrationValidator, authCtrl.register);
-    user.post('/send-token', emailVerificationValidator, authCtrl.sendToken);
-    user.post('/verify-registration', registerTokenValidator, authCtrl.verifyRegistrationToken);
-    user.post('/request-reset-password', requestResetPasswordValidator, authCtrl.requestResetPassword);
-    user.post('/reset-password', resetPasswordValidator, authCtrl.resetPassword);
-    api.route('/user', user);
+    user.get("/me", authCheck, authCtrl.me);
+    user.post("/login", loginValidator, authCtrl.login);
+    user.post("/register", registrationValidator, authCtrl.register);
+    user.post("/send-token", emailVerificationValidator, authCtrl.sendToken);
+    user.post(
+      "/verify-registration",
+      registerTokenValidator,
+      authCtrl.verifyRegistrationToken
+    );
+    user.post(
+      "/request-reset-password",
+      requestResetPasswordValidator,
+      authCtrl.requestResetPassword
+    );
+    user.post(
+      "/reset-password",
+      resetPasswordValidator,
+      authCtrl.resetPassword
+    );
+
+    api.route("/user", user);
   }
 
   private registerLeadRoutes(api: Hono, leadCtrl: LeadController) {
     const lead = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    lead.get('/', authCheck, leadCtrl.getLeads);
-    lead.get('/:id', authCheck, leadCtrl.getLead);
-    lead.post('/', authCheck, leadValidator, leadCtrl.createLead);
-    lead.put('/:id', authCheck, leadValidator, leadCtrl.updateLead);
-    lead.delete('/:id', authCheck, leadCtrl.deleteLead);
+    lead.get("/", authCheck, leadCtrl.getLeads);
+    lead.get("/:id", authCheck, leadCtrl.getLead);
+    lead.post("/", authCheck, leadValidator, leadCtrl.createLead);
+    lead.put("/:id", authCheck, leadValidator, leadCtrl.updateLead);
+    lead.delete("/:id", authCheck, leadCtrl.deleteLead);
 
-    api.route('/lead', lead);
+    api.route("/lead", lead);
   }
 
   private registerEventRoutes(api: Hono, eventCtrl: EventController) {
     const event = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    event.get('/', authCheck, eventCtrl.getEvents);
-    event.get('/:id', authCheck, eventCtrl.getEvent);
-    event.post('/', authCheck, eventValidator, eventCtrl.createEvent);
-    event.put('/:id', authCheck, eventValidator, eventCtrl.updateEvent);
-    event.delete('/:id', authCheck, eventCtrl.deleteEvent);
+    event.get("/", authCheck, eventCtrl.getEvents);
+    event.get("/:id", authCheck, eventCtrl.getEvent);
+    event.post("/", authCheck, eventValidator, eventCtrl.createEvent);
+    event.put("/:id", authCheck, eventValidator, eventCtrl.updateEvent);
+    event.delete("/:id", authCheck, eventCtrl.deleteEvent);
 
-    api.route('/event', event);
+    api.route("/event", event);
   }
 
   private registerAdminRoutes(api: Hono, adminCtrl: AdminController) {
     const admin = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    admin.get('/users', authCheck, adminCtrl.getUsers);
-    admin.get('/leads', authCheck, adminCtrl.getLeads);
-    admin.get('/events', authCheck, adminCtrl.getEvents);
+    admin.get("/users", authCheck, adminCtrl.getUsers);
+    admin.get("/leads", authCheck, adminCtrl.getLeads);
+    admin.get("/events", authCheck, adminCtrl.getEvents);
 
-    api.route('/admin', admin);
+    api.route("/admin", admin);
+  }
+
+  private registerS3Routes(api: Hono, s3Ctrl: S3Controller) {
+    const s3 = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    s3.post("/presigned-url", authCheck, s3Ctrl.generatePresignedUrl);
+    api.route("/s3", s3);
   }
 
   private registerWorker(userService: UserService) {
     const tasker = new Tasker(userService);
     const worker = tasker.setup();
     if (worker.isRunning()) {
-      logger.info('Worker is running');
+      logger.info("Worker is running");
     }
     this.worker = worker;
   }
