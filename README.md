@@ -36,9 +36,9 @@ pnpm install -g typescript
 pnpm install -g pino-pretty
 ```
 
-## Migration
+## Spin docker for developement
 
-Create a new file `.env` in the root folder and copy contents from the `.env.template` file.
+Create a new file `.env` in the root folder and copy contents from the `.env.template` file and run this command. You must have docker installed on your computer. If not, skip to `Install Docker Desktop` then return here once done
 
 ```bash
 docker compose up -d
