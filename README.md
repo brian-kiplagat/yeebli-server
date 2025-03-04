@@ -38,7 +38,7 @@ pnpm install -g pino-pretty
 
 ## Spin docker for developement
 
-Create a new file `.env` in the root folder and copy contents from the `.env.template` file and run this command. You must have docker installed on your computer. If not, skip to `Install Docker Desktop` then return here once done
+Create a new file `.env` in the root folder and copy contents from the `.env.template` file and run this command. You must have docker installed on your computer. If not, skip to `Install Docker Desktop` then return here once done. Ideally for local developemnt you only need to run this step once to install require dependencies like mysql. Subsequently you can just turn the container on or off at will in Docker desktop
 
 ```bash
 docker compose up -d
