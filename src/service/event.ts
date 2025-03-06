@@ -28,7 +28,7 @@ export class EventService {
     if (asset?.asset_url) {
       const presignedUrl = await this.s3Service.generateGetUrl(
         this.getKeyFromUrl(asset.asset_url),
-        this.getContentType(asset.asset_type),
+        this.getContentType(asset.asset_type as string),
         86400 // 24 hours
       );
       return {
