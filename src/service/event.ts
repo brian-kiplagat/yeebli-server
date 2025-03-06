@@ -25,6 +25,7 @@ export class EventService {
     if (!result) return undefined;
 
     const { event, asset } = result;
+    console.log({ event, asset });
     if (asset?.asset_url) {
       const presignedUrl = await this.s3Service.generateGetUrl(
         this.getKeyFromUrl(asset.asset_url),

@@ -79,11 +79,11 @@ export class Server {
     const assetRepo = new AssetRepository();
 
     // Setup services
+    const s3Service = new S3Service();
     const userService = new UserService(userRepo);
     const leadService = new LeadService(leadRepo);
-    const eventService = new EventService(eventRepo);
+    const eventService = new EventService(eventRepo, s3Service);
     const adminService = new AdminService(adminRepo);
-    const s3Service = new S3Service();
     const assetService = new AssetService(assetRepo, s3Service);
 
     // Setup worker
