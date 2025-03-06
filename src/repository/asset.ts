@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "../lib/database.js";
 import { assetsSchema } from "../schema/schema.js";
 import type { Asset, NewAsset } from "../schema/schema.js";
@@ -21,7 +21,8 @@ export class AssetRepository {
     return db
       .select()
       .from(assetsSchema)
-      .where(eq(assetsSchema.user_id, userId));
+      .where(eq(assetsSchema.user_id, userId))
+      .orderBy(desc(assetsSchema.created_at));
   }
 
   async delete(id: number): Promise<void> {
