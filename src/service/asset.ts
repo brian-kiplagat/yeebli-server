@@ -47,10 +47,49 @@ export class AssetService {
   }
 
   async getAsset(id: number) {
-    return this.repository.find(id);
+    const asset = await this.repository.find(id);
+    if (!asset || !asset.asset_url) return undefined;
+
+    const presignedUrl = await this.s3Service.generateGetUrl(
+      this.getKeyFromUrl(asset.asset_url),
+      this.getContentType(asset.asset_type as string),
+      86400
+    );
+
+    return {
+      ...asset,
+      presignedUrl,
+    };
   }
 
   async deleteAsset(id: number) {
-    return this.repository.delete(id);
+    const asset = await this.repository.find(id);
+    if (!asset || !asset.asset_url) return;
+
+    // Delete from S3 first
+    await this.s3Service.deleteObject(this.getKeyFromUrl(asset.asset_url));
+
+    // Then delete from database
+    await this.repository.delete(id);
+  }
+
+  private getContentType(assetType: string): string {
+    switch (assetType) {
+      case "image":
+        return "image/jpeg";
+      case "video":
+        return "video/mp4";
+      case "audio":
+        return "audio/mpeg";
+      case "document":
+        return "application/pdf";
+      default:
+        return "application/octet-stream";
+    }
+  }
+
+  private getKeyFromUrl(url: string): string {
+    const urlParts = url.split(".amazonaws.com/");
+    return urlParts[1] || "";
   }
 }

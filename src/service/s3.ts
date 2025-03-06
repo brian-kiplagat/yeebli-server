@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import env from "../lib/env.js";
 
@@ -32,5 +37,26 @@ export class S3Service {
       presignedUrl,
       url: `https://${this.bucket}.s3.${env.AWS_REGION}.amazonaws.com/${key}`,
     };
+  }
+
+  async generateGetUrl(key: string, contentType: string, expiresIn: number = 3600) {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      ResponseContentType: contentType,
+    });
+
+    return getSignedUrl(this.client, command, {
+      expiresIn,
+    });
+  }
+
+  async deleteObject(key: string) {
+    const command = new DeleteObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+
+    await this.client.send(command);
   }
 }
