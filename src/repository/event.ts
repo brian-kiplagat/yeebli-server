@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "../lib/database.js";
 import { eventSchema, assetsSchema } from "../schema/schema.js";
 import type { Event, NewEvent } from "../schema/schema.js";
@@ -23,13 +23,15 @@ export class EventRepository {
   }
 
   public async findAll() {
-    return db.query.eventSchema.findMany();
+    return db.select().from(eventSchema).orderBy(desc(eventSchema.created_at));
   }
 
   public async findByUserId(userId: number) {
-    return db.query.eventSchema.findMany({
-      where: eq(eventSchema.host_id, userId),
-    });
+    return db
+      .select()
+      .from(eventSchema)
+      .where(eq(eventSchema.host_id, userId))
+      .orderBy(desc(eventSchema.created_at));
   }
 
   public async update(id: number, event: Partial<Event>) {
