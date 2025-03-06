@@ -9,6 +9,7 @@ export const eventValidator = zValidator(
     event_date: z.string(),
     start_time: z.string(),
     end_time: z.string(),
-    video_url: z.string().optional(),
+    asset_id: z.string(),
+
   }),
 );

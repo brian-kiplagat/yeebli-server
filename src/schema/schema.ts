@@ -52,7 +52,8 @@ export const eventSchema = mysqlTable('events', {
   event_date: varchar('event_date', { length: 50 }).notNull(), // Format: MM/DD/YYYY
   start_time: varchar('start_time', { length: 50 }).notNull(), // Format: HH:MM
   end_time: varchar('end_time', { length: 50 }).notNull(), // Format: HH:MM
-  video_url: varchar('video_url', { length: 255 }),
+  asset_id: int('asset_id')
+    .references(() => assetsSchema.id),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
   host_id: int('host_id')

@@ -71,13 +71,12 @@ export class EventController {
       const eventId = await this.service.createEvent({
         ...body,
         host_id: user.id,
-        lead_id: body.lead_id,
       });
 
       return c.json(
         {
           message: 'Event created successfully',
-          link: `https://yeebli-e10656.webflow.io/eventpage?eventId=${eventId}`,
+          link: `https://yeebli-e10656.webflow.io/eventpage?code=${eventId}`,
         },
         201,
       );

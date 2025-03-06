@@ -43,6 +43,13 @@
       "when": 1741288461278,
       "tag": "0006_cute_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1741294535556,
+      "tag": "0007_fantastic_banshee",
+      "breakpoints": true
     }
   ]
 }
