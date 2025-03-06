@@ -1,7 +1,7 @@
-import { eq } from 'drizzle-orm';
-import { db } from '../lib/database.js';
-import { eventSchema } from '../schema/schema.js';
-import type { Event, NewEvent } from '../schema/schema.js';
+import { eq } from "drizzle-orm";
+import { db } from "../lib/database.js";
+import { eventSchema, assetsSchema } from "../schema/schema.js";
+import type { Event, NewEvent } from "../schema/schema.js";
 
 export class EventRepository {
   public async create(event: NewEvent) {
@@ -9,9 +9,17 @@ export class EventRepository {
   }
 
   public async find(id: number) {
-    return db.query.eventSchema.findFirst({
-      where: eq(eventSchema.id, id),
-    });
+    const result = await db
+      .select({
+        event: eventSchema,
+        asset: assetsSchema,
+      })
+      .from(eventSchema)
+      .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
+      .where(eq(eventSchema.id, id))
+      .limit(1);
+
+    return result[0];
   }
 
   public async findAll() {
