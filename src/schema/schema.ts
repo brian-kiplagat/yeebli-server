@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, int, mysqlEnum, mysqlTable, serial, timestamp, varchar } from 'drizzle-orm/mysql-core';
+import { boolean, int, mysqlEnum, mysqlTable, serial, text, timestamp, varchar } from 'drizzle-orm/mysql-core';
 
 export const userSchema = mysqlTable('user', {
   id: serial('id').primaryKey(),
@@ -60,6 +60,18 @@ export const eventSchema = mysqlTable('events', {
     .notNull(),
 });
 
+export const assetsSchema = mysqlTable("assets", {
+  id: serial("id").primaryKey(),
+  asset_name: varchar("asset_name", { length: 255 }).notNull(),
+  asset_type: mysqlEnum("asset_type", ["image", "video", "audio", "document"]).default("image"),
+  asset_url: text("asset_url"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+  user_id: int("user_id")
+    .references(() => userSchema.id)
+    .notNull(),
+});
+
 // Define the relations
 export const leadRelations = relations(leadSchema, ({ one }) => ({
   event: one(eventSchema, {
@@ -74,3 +86,5 @@ export type Lead = typeof leadSchema.$inferSelect & {
 export type NewLead = typeof leadSchema.$inferInsert;
 export type Event = typeof eventSchema.$inferSelect;
 export type NewEvent = typeof eventSchema.$inferInsert;
+export type Asset = typeof assetsSchema.$inferSelect;
+export type NewAsset = typeof assetsSchema.$inferInsert;

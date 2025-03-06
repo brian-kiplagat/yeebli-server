@@ -7,15 +7,18 @@ import env from "../lib/env.js";
 import { logger } from "../lib/logger.js";
 import { connection } from "../lib/queue.js";
 import { AdminRepository } from "../repository/admin.js";
+import { AssetRepository } from "../repository/asset.js";
 import { EventRepository } from "../repository/event.ts";
 import { LeadRepository } from "../repository/lead.js";
 import { UserRepository } from "../repository/user.js";
 import { AdminService } from "../service/admin.js";
+import { AssetService } from "../service/asset.js";
 import { EventService } from "../service/event.ts";
 import { LeadService } from "../service/lead.js";
 import { UserService } from "../service/user.js";
 import { Tasker } from "../task/tasker.js";
 import { AdminController } from "./controller/admin.js";
+import { AssetController } from "./controller/asset.js";
 import { AuthController } from "./controller/auth.js";
 import { EventController } from "./controller/event.ts";
 import { LeadController } from "./controller/lead.ts";
@@ -73,12 +76,15 @@ export class Server {
     const leadRepo = new LeadRepository();
     const eventRepo = new EventRepository();
     const adminRepo = new AdminRepository();
+    const assetRepo = new AssetRepository();
 
     // Setup services
     const userService = new UserService(userRepo);
     const leadService = new LeadService(leadRepo);
     const eventService = new EventService(eventRepo);
     const adminService = new AdminService(adminRepo);
+    const s3Service = new S3Service();
+    const assetService = new AssetService(assetRepo, s3Service);
 
     // Setup worker
     this.registerWorker(userService);
@@ -88,10 +94,8 @@ export class Server {
     const leadController = new LeadController(leadService, userService);
     const eventController = new EventController(eventService, userService);
     const adminController = new AdminController(adminService, userService);
-
-    // Setup S3 service
-    const s3Service = new S3Service();
     const s3Controller = new S3Controller(s3Service);
+    const assetController = new AssetController(assetService, userService);
 
     // Register routes
     this.registerUserRoutes(api, authController);
@@ -99,6 +103,7 @@ export class Server {
     this.registerEventRoutes(api, eventController);
     this.registerAdminRoutes(api, adminController);
     this.registerS3Routes(api, s3Controller);
+    this.registerAssetRoutes(api, assetController);
   }
 
   private registerUserRoutes(api: Hono, authCtrl: AuthController) {
@@ -171,6 +176,18 @@ export class Server {
 
     s3.post("/presigned-url", authCheck, s3Ctrl.generatePresignedUrl);
     api.route("/s3", s3);
+  }
+
+  private registerAssetRoutes(api: Hono, assetCtrl: AssetController) {
+    const asset = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    asset.get("/", authCheck, assetCtrl.getAssets);
+    asset.get("/:id", authCheck, assetCtrl.getAsset);
+    asset.post("/", authCheck, assetCtrl.createAsset);
+    asset.delete("/:id", authCheck, assetCtrl.deleteAsset);
+
+    api.route("/asset", asset);
   }
 
   private registerWorker(userService: UserService) {
