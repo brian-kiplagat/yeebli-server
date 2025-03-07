@@ -28,4 +28,8 @@ export class UserService {
   public async update(id: number, user: Partial<User>) {
     return this.repo.update(id, user);
   }
+
+  public async delete(id: number) {
+    return this.repo.delete(id);
+  }
 }

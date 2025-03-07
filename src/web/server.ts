@@ -166,6 +166,7 @@ export class Server {
     admin.get("/users", authCheck, adminCtrl.getUsers);
     admin.get("/leads", authCheck, adminCtrl.getLeads);
     admin.get("/events", authCheck, adminCtrl.getEvents);
+    admin.delete("/user/:id", authCheck, adminCtrl.deleteUser);
 
     api.route("/admin", admin);
   }

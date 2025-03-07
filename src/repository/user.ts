@@ -22,4 +22,8 @@ export class UserRepository {
   public async update(id: number, user: Partial<User>) {
     return db.update(userSchema).set(user).where(eq(userSchema.id, id));
   }
+
+  public async delete(id: number) {
+    return db.delete(userSchema).where(eq(userSchema.id, id));
+  }
 }

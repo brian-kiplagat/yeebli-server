@@ -72,4 +72,22 @@ export class AdminController {
       return serveInternalServerError(c, error);
     }
   };
+
+  public deleteUser = async (c: Context) => {
+    try {
+      const user = await this.checkAdminAccess(c);
+      if (!user) return;
+
+      const id = c.req.param('id');
+      const foundUser = await this.userService.find(Number(id));
+      if (!foundUser) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      const result = await this.userService.delete(Number(id));
+      return c.json({ message: 'User deleted successfully' });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
 }
