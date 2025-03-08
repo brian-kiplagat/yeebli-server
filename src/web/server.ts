@@ -39,6 +39,7 @@ import {
 import { S3Service } from "../service/s3.js";
 import { S3Controller } from "./controller/s3.js";
 import { eventQueryValidator } from "./validator/event.ts";
+import { assetQueryValidator } from "./validator/asset.ts";
 
 export class Server {
   private app: Hono;
@@ -184,7 +185,7 @@ export class Server {
     const asset = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    asset.get("/", authCheck, assetCtrl.getAssets);
+    asset.get("/", authCheck, assetQueryValidator, assetCtrl.getAssets);
     asset.get("/:id", authCheck, assetCtrl.getAsset);
     asset.post("/", authCheck, assetCtrl.createAsset);
     asset.delete("/:id", authCheck, assetCtrl.deleteAsset);

@@ -1,6 +1,7 @@
 import type { AssetRepository } from "../repository/asset.js";
 import type { NewAsset } from "../schema/schema.js";
 import type { S3Service } from "./s3.js";
+import type { AssetQuery } from "../web/validator/asset.js";
 
 export class AssetService {
   private repository: AssetRepository;
@@ -42,8 +43,28 @@ export class AssetService {
     };
   }
 
-  async getAssetsByUser(userId: number) {
-    return this.repository.findByUserId(userId);
+  async getAssetsByUser(userId: number, query?: AssetQuery) {
+    const { assets, total } = await this.repository.findByUserId(userId, query);
+
+    // Add presigned URLs to all assets
+    const assetsWithUrls = await Promise.all(
+      assets.map(async (asset) => {
+        if (!asset.asset_url) return asset;
+
+        const presignedUrl = await this.s3Service.generateGetUrl(
+          this.getKeyFromUrl(asset.asset_url),
+          this.getContentType(asset.asset_type as string),
+          86400
+        );
+
+        return {
+          ...asset,
+          presignedUrl,
+        };
+      })
+    );
+
+    return { assets: assetsWithUrls, total };
   }
 
   async getAsset(id: number) {

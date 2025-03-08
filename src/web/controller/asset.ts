@@ -9,6 +9,7 @@ import {
   serveNotFound,
 } from "./resp/error.js";
 import { z } from "zod";
+import type { AssetQuery } from "../validator/asset.js";
 
 const createAssetSchema = z.object({
   fileName: z.string(),
@@ -62,7 +63,14 @@ export class AssetController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const assets = await this.service.getAssetsByUser(user.id);
+      const { page, limit, search, asset_type } = c.req.query();
+      const query: AssetQuery = {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        search,
+        asset_type: asset_type as AssetQuery["asset_type"],
+      };
+      const assets = await this.service.getAssetsByUser(user.id, query);
       return c.json(assets);
     } catch (error) {
       logger.error(error);
