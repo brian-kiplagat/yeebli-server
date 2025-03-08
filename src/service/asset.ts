@@ -16,7 +16,8 @@ export class AssetService {
     userId: number,
     fileName: string,
     contentType: string,
-    assetType: "image" | "video" | "audio" | "document"
+    assetType: "image" | "video" | "audio" | "document",
+    fileSize: number
   ) {
     // Generate a unique key for the file
     const key = `assets/${assetType}/${Date.now()}-${fileName}`;
@@ -30,6 +31,7 @@ export class AssetService {
     // Create asset record in database
     const asset: NewAsset = {
       asset_name: fileName,
+      asset_size: fileSize,
       asset_type: assetType,
       asset_url: url,
       user_id: userId,

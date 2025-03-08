@@ -66,6 +66,7 @@ export const assetsSchema = mysqlTable("assets", {
   asset_name: varchar("asset_name", { length: 255 }).notNull(),
   asset_type: mysqlEnum("asset_type", ["image", "video", "audio", "document"]).default("image"),
   asset_url: text("asset_url"),
+  asset_size: int("asset_size"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   user_id: int("user_id")

@@ -57,6 +57,13 @@
       "when": 1741433716819,
       "tag": "0008_wealthy_bastion",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1741444722860,
+      "tag": "0009_lovely_colossus",
+      "breakpoints": true
     }
   ]
 }
