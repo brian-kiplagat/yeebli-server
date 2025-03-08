@@ -1,7 +1,13 @@
-import { eq, desc } from "drizzle-orm";
+import { and, desc, eq, like, or } from "drizzle-orm";
 import { db } from "../lib/database.js";
 import { eventSchema, assetsSchema } from "../schema/schema.js";
 import type { Event, NewEvent } from "../schema/schema.js";
+
+export interface EventQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
 
 export class EventRepository {
   public async create(event: NewEvent) {
@@ -26,12 +32,34 @@ export class EventRepository {
     return db.select().from(eventSchema).orderBy(desc(eventSchema.created_at));
   }
 
-  public async findByUserId(userId: number) {
-    return db
+  public async findByUserId(userId: number, query?: EventQuery) {
+    const { page = 1, limit = 10, search } = query || {};
+    const offset = (page - 1) * limit;
+
+    const whereConditions = search
+      ? and(
+          eq(eventSchema.host_id, userId),
+          or(
+            like(eventSchema.event_name, `%${search}%`),
+            like(eventSchema.event_description, `%${search}%`)
+          )
+        )
+      : eq(eventSchema.host_id, userId);
+
+    const events = await db
       .select()
       .from(eventSchema)
-      .where(eq(eventSchema.host_id, userId))
+      .where(whereConditions)
+      .limit(limit)
+      .offset(offset)
       .orderBy(desc(eventSchema.created_at));
+
+    const total = await db
+      .select({ count: eventSchema.id })
+      .from(eventSchema)
+      .where(whereConditions);
+
+    return { events, total: total.length };
   }
 
   public async update(id: number, event: Partial<Event>) {
