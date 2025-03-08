@@ -5,9 +5,9 @@ export const userSchema = mysqlTable('user', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 50 }).notNull(),
   email: varchar('email', { length: 100 }).notNull().unique(),
-  password: varchar('password', { length: 65 }).notNull(),
-  reset_token: varchar('reset_token', { length: 100 }),
-  email_token: varchar('email_token', { length: 100 }),
+  password: varchar('password', { length: 255 }).notNull(),
+  reset_token: varchar('reset_token', { length: 255 }),
+  email_token: varchar('email_token', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   role: mysqlEnum('role', ['master', 'owner', 'host', 'user']).default('user'),
@@ -48,7 +48,7 @@ export const leadSchema = mysqlTable('leads', {
 export const eventSchema = mysqlTable('events', {
   id: serial('id').primaryKey(),
   event_name: varchar('event_name', { length: 255 }).notNull(),
-  event_description: varchar('event_description', { length: 255 }),
+  event_description: text('event_description'),
   event_date: varchar('event_date', { length: 50 }).notNull(), // Format: MM/DD/YYYY
   start_time: varchar('start_time', { length: 50 }).notNull(), // Format: HH:MM
   end_time: varchar('end_time', { length: 50 }).notNull(), // Format: HH:MM

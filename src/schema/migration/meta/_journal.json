@@ -50,6 +50,13 @@
       "when": 1741294535556,
       "tag": "0007_fantastic_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1741433716819,
+      "tag": "0008_wealthy_bastion",
+      "breakpoints": true
     }
   ]
 }

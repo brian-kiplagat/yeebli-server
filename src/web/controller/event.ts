@@ -27,7 +27,7 @@ export class EventController {
       }
 
       if (user.role === 'master') {
-        const events = await this.service.getAllEvents();
+        const events = await this.service.getEventsByUser(user.id);
         return c.json(events);
       }
 
