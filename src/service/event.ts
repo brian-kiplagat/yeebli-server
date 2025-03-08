@@ -1,4 +1,4 @@
-import type { EventRepository } from "../repository/event.ts";
+import type { EventQuery, EventRepository } from "../repository/event.ts";
 import type { Event, NewEvent, Asset } from "../schema/schema.js";
 import type { S3Service } from "./s3.js";
 
@@ -51,8 +51,11 @@ export class EventService {
     return this.repository.findAll();
   }
 
-  public async getEventsByUser(userId: number): Promise<Event[]> {
-    return this.repository.findByUserId(userId);
+  public async getEventsByUser(
+    userId: number,
+    query?: EventQuery
+  ): Promise<{ events: Event[]; total: number }> {
+    return this.repository.findByUserId(userId, query);
   }
 
   public async updateEvent(id: number, event: Partial<Event>): Promise<void> {

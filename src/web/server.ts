@@ -38,6 +38,7 @@ import {
 } from "./validator/user.js";
 import { S3Service } from "../service/s3.js";
 import { S3Controller } from "./controller/s3.js";
+import { eventQueryValidator } from "./validator/event.ts";
 
 export class Server {
   private app: Hono;
@@ -150,7 +151,7 @@ export class Server {
     const event = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    event.get("/", authCheck, eventCtrl.getEvents);
+    event.get("/", authCheck, eventQueryValidator, eventCtrl.getEvents);
     event.get("/:id", authCheck, eventCtrl.getEvent);
     event.post("/", authCheck, eventValidator, eventCtrl.createEvent);
     event.put("/:id", authCheck, updateEventValidator, eventCtrl.updateEvent);
