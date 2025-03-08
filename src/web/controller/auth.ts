@@ -176,12 +176,12 @@ export class AuthController {
         subject: 'Reset password',
         title: 'Reset password',
         subtitle: `${token}`,
-        body: `Please click this link to reset your password: https://yeebli-e10656.webflow.io/onboarding/forgotten?token=${token}&email=${user.email}`,
-        cta_url: `https://yeebli-e10656.webflow.io/onboarding/forgotten?token=${token}&email=${user.email}`,
+        body: `Please click this link to reset your password: https://yeebli-e10656.webflow.io/onboarding/reset?token=${token}&email=${user.email}`,
+        cta_url: `https://yeebli-e10656.webflow.io/onboarding/reset?token=${token}&email=${user.email}`,
       });
       return serveData(c, {
         success: true,
-        message: 'Reset password code sent successfully',
+        message: 'Reset password link sent successfully',
       });
     } catch (err) {
       logger.error(err);
