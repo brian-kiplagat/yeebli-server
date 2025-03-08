@@ -1,6 +1,6 @@
-import type { User } from '../lib/database.ts';
-import { encrypt } from '../lib/encryption.js';
-import type { UserRepository } from '../repository/user.js';
+import type { User } from "../lib/database.ts";
+import { encrypt } from "../lib/encryption.js";
+import type { UserRepository } from "../repository/user.js";
 
 export class UserService {
   private repo: UserRepository;
@@ -12,7 +12,12 @@ export class UserService {
     this.findByEmail = this.findByEmail.bind(this);
   }
 
-  public async create(name: string, email: string, password: string, role: 'master' | 'owner' | 'host' | 'user') {
+  public async create(
+    name: string,
+    email: string,
+    password: string,
+    role: "master" | "owner" | "host" | "user"
+  ) {
     const hashedPassword = encrypt(password);
     await this.repo.create({ name, email, password: hashedPassword, role });
   }
@@ -26,6 +31,9 @@ export class UserService {
   }
 
   public async update(id: number, user: Partial<User>) {
+    if (user.password) {
+      user.password = encrypt(user.password);
+    }
     return this.repo.update(id, user);
   }
 
