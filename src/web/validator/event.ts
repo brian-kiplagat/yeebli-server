@@ -1,9 +1,6 @@
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-
-export const eventValidator = zValidator(
-  'json',
-  z.object({
+const eventSchema = z.object({
     event_name: z.string().min(1),
     event_description: z.string(),
     event_date: z.string(),
@@ -11,5 +8,15 @@ export const eventValidator = zValidator(
     end_time: z.string(),
     asset_id: z.string(),
 
-  }),
+  });
+  
+export const eventValidator = zValidator(
+  'json',
+  eventSchema
 );
+const updateEventSchema = eventSchema.partial();
+export const updateEventValidator = zValidator(
+  'json',
+  updateEventSchema,
+);
+
