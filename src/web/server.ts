@@ -27,7 +27,7 @@ import {
   serveNotFound,
 } from "./controller/resp/error.js";
 import { eventValidator } from "./validator/event.ts";
-import { leadValidator } from "./validator/lead.ts";
+import { leadValidator, updateLeadValidator } from "./validator/lead.ts";
 import {
   emailVerificationValidator,
   loginValidator,
@@ -140,7 +140,7 @@ export class Server {
     lead.get("/", authCheck, leadCtrl.getLeads);
     lead.get("/:id", authCheck, leadCtrl.getLead);
     lead.post("/", authCheck, leadValidator, leadCtrl.createLead);
-    lead.put("/:id", authCheck, leadValidator, leadCtrl.updateLead);
+    lead.put("/:id", authCheck, updateLeadValidator, leadCtrl.updateLead);
     lead.delete("/:id", authCheck, leadCtrl.deleteLead);
 
     api.route("/lead", lead);

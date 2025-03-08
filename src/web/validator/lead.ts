@@ -14,8 +14,10 @@ const leadSchema = z.object({
   user_id: z.number().optional(),
 });
 
+const updateLeadSchema = leadSchema.partial();
+
 type LeadBody = z.infer<typeof leadSchema>;
 
 export const leadValidator = zValidator('json', leadSchema);
-
+export const updateLeadValidator = zValidator('json', updateLeadSchema);
 export type { LeadBody };
