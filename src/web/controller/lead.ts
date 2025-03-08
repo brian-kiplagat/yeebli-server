@@ -1,9 +1,14 @@
-import type { Context } from 'hono';
-import { logger } from '../../lib/logger.ts';
-import type { LeadService } from '../../service/lead.js';
-import type { UserService } from '../../service/user.ts';
-import { LeadBody } from '../validator/lead.ts';
-import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
+import type { Context } from "hono";
+import { logger } from "../../lib/logger.ts";
+import type { LeadService } from "../../service/lead.js";
+import type { UserService } from "../../service/user.ts";
+import { LeadBody } from "../validator/lead.ts";
+import {
+  ERRORS,
+  serveBadRequest,
+  serveInternalServerError,
+  serveNotFound,
+} from "./resp/error.js";
 
 export class LeadController {
   private service: LeadService;
@@ -15,7 +20,7 @@ export class LeadController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get('jwtPayload').email;
+    const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -26,12 +31,15 @@ export class LeadController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      if (user.role == 'master') {
-        //get all leads in db
-        const leads = await this.service.getAllLeads();
-        return c.json(leads);
-      }
-      const leads = await this.service.getLeadsByUser(user.id);
+
+      const { page, limit, search } = c.req.query();
+      const query = {
+        page: page ? parseInt(page) : undefined,
+        limit: limit ? parseInt(limit) : undefined,
+        search,
+      };
+
+      const leads = await this.service.findByUserId(user.id, query);
       return c.json(leads);
     } catch (error) {
       logger.error(error);
@@ -46,11 +54,10 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = Number(c.req.param('id'));
-      const lead = await this.service.getLead(leadId);
-
-      if (!lead) {
-        return serveNotFound(c);
+      const leadId = Number(c.req.param("id"));
+      const lead = await this.service.find(leadId);
+      if (!lead || lead.userId !== user.id) {
+        return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
 
       return c.json(lead);
@@ -66,16 +73,10 @@ export class LeadController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      console.log({ user });
+
       const body = await c.req.json();
-
-      await this.service.createLead({
-        ...body,
-        host_id: user.id,
-        userId: user.id,
-      });
-
-      return c.json({ message: 'Lead created successfully' }, 201);
+      const lead = await this.service.create({ ...body, userId: user.id });
+      return c.json(lead, 201);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -88,21 +89,16 @@ export class LeadController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      const leadId = Number(c.req.param('id'));
-      const lead = await this.service.getLead(leadId);
 
-      if (!lead) {
+      const leadId = Number(c.req.param("id"));
+      const lead = await this.service.find(leadId);
+      if (!lead || lead.userId !== user.id) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
 
       const body = await c.req.json();
-      await this.service.updateLead(leadId, {
-        ...body,
-        event_date: new Date(body.event_date),
-        start_time: new Date(body.start_time),
-      });
-
-      return c.json({ message: 'Lead updated successfully' });
+      await this.service.update(leadId, body);
+      return c.json({ message: "Lead updated successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -115,15 +111,15 @@ export class LeadController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      const leadId = Number(c.req.param('id'));
-      const lead = await this.service.getLead(leadId);
 
+      const leadId = Number(c.req.param("id"));
+      const lead = await this.service.find(leadId);
       if (!lead || lead.userId !== user.id) {
-        return serveNotFound(c);
+        return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
 
-      await this.service.deleteLead(leadId);
-      return c.json({ message: 'Lead deleted successfully' });
+      await this.service.delete(leadId);
+      return c.json({ message: "Lead deleted successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

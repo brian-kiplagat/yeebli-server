@@ -1,5 +1,5 @@
-import type { LeadRepository } from '../repository/lead.js';
-import type { Lead, NewLead } from '../schema/schema.js';
+import type { Lead } from "../lib/database.js";
+import type { LeadRepository, LeadQuery } from "../repository/lead.js";
 
 export class LeadService {
   private repository: LeadRepository;
@@ -8,27 +8,27 @@ export class LeadService {
     this.repository = repository;
   }
 
-  public async createLead(lead: NewLead): Promise<void> {
-    await this.repository.create(lead);
+  public async create(lead: Lead) {
+    return this.repository.create(lead);
   }
 
-  public async getLead(id: number): Promise<Lead | undefined> {
+  public async find(id: number) {
     return this.repository.find(id);
   }
 
-  public async getAllLeads(): Promise<Lead[]> {
+  public async findAll() {
     return this.repository.findAll();
   }
 
-  public async getLeadsByUser(userId: number): Promise<Lead[]> {
-    return this.repository.findByUserId(userId);
+  public async findByUserId(userId: number, query?: LeadQuery) {
+    return this.repository.findByUserId(userId, query);
   }
 
-  public async updateLead(id: number, lead: Partial<Lead>): Promise<void> {
-    await this.repository.update(id, lead);
+  public async update(id: number, lead: Partial<Lead>) {
+    return this.repository.update(id, lead);
   }
 
-  public async deleteLead(id: number): Promise<void> {
-    await this.repository.delete(id);
+  public async delete(id: number) {
+    return this.repository.delete(id);
   }
 }
