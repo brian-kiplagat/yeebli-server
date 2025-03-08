@@ -19,7 +19,9 @@ const createAssetSchema = z.object({
 });
 
 const renameAssetSchema = z.object({
-  fileName: z.string(),
+  fileName: z.string().refine((val) => /\.[a-zA-Z0-9]+$/.test(val), {
+    message: "File name must include an extension",
+  }),
 });
 
 export class AssetController {
@@ -130,7 +132,21 @@ export class AssetController {
       }
 
       const assetId = Number(c.req.param("id"));
+      const asset = await this.service.getAsset(assetId);
+      if (!asset) {
+        return serveNotFound(c);
+      }
+
       const { fileName } = renameAssetSchema.parse(await c.req.json());
+      const originalExt = asset.asset_name.split(".").pop()?.toLowerCase();
+      const newExt = fileName.split(".").pop()?.toLowerCase();
+
+      if (originalExt !== newExt) {
+        return serveBadRequest(
+          c,
+          `New file name must have the same extension: .${originalExt}`
+        );
+      }
 
       await this.service.renameAsset(assetId, fileName);
       return c.json({ message: "Asset renamed successfully" });
