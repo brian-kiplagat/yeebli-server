@@ -55,4 +55,8 @@ export class AssetRepository {
   async delete(id: number): Promise<void> {
     await db.delete(assetsSchema).where(eq(assetsSchema.id, id));
   }
+
+  async update(id: number, asset: Partial<Asset>): Promise<void> {
+    await db.update(assetsSchema).set(asset).where(eq(assetsSchema.id, id));
+  }
 }

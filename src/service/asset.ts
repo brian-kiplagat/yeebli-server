@@ -96,6 +96,31 @@ export class AssetService {
     await this.repository.delete(id);
   }
 
+  async renameAsset(id: number, newFileName: string) {
+    const asset = await this.repository.find(id);
+    if (!asset || !asset.asset_url) return;
+
+    // Get the old key and generate new key with same timestamp but new filename
+    const oldKey = this.getKeyFromUrl(asset.asset_url);
+    const [prefix, timestamp] = oldKey.split("-");
+    const newKey = `${prefix}-${Date.now()}-${newFileName}`;
+
+    // Copy the object with new key
+    await this.s3Service.copyObject(oldKey, newKey);
+
+    // Delete the old object
+    await this.s3Service.deleteObject(oldKey);
+
+    // Get the new URL
+    const newUrl = asset.asset_url.replace(oldKey, newKey);
+
+    // Update database
+    await this.repository.update(id, {
+      asset_name: newFileName,
+      asset_url: newUrl,
+    });
+  }
+
   private getContentType(assetType: string): string {
     switch (assetType) {
       case "image":

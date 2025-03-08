@@ -188,6 +188,7 @@ export class Server {
     asset.get("/", authCheck, assetQueryValidator, assetCtrl.getAssets);
     asset.get("/:id", authCheck, assetCtrl.getAsset);
     asset.post("/", authCheck, assetCtrl.createAsset);
+    asset.put("/:id/rename", authCheck, assetCtrl.renameAsset);
     asset.delete("/:id", authCheck, assetCtrl.deleteAsset);
 
     api.route("/asset", asset);

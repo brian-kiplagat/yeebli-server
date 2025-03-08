@@ -18,6 +18,10 @@ const createAssetSchema = z.object({
   fileSize: z.number(),
 });
 
+const renameAssetSchema = z.object({
+  fileName: z.string(),
+});
+
 export class AssetController {
   private service: AssetService;
   private userService: UserService;
@@ -112,6 +116,24 @@ export class AssetController {
       await this.service.deleteAsset(assetId);
 
       return c.json({ message: "Asset deleted successfully" });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public renameAsset = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const assetId = Number(c.req.param("id"));
+      const { fileName } = renameAssetSchema.parse(await c.req.json());
+
+      await this.service.renameAsset(assetId, fileName);
+      return c.json({ message: "Asset renamed successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

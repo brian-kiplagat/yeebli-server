@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  CopyObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import env from "../lib/env.js";
@@ -39,7 +40,11 @@ export class S3Service {
     };
   }
 
-  async generateGetUrl(key: string, contentType: string, expiresIn: number = 3600) {
+  async generateGetUrl(
+    key: string,
+    contentType: string,
+    expiresIn: number = 3600
+  ) {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
@@ -55,6 +60,16 @@ export class S3Service {
     const command = new DeleteObjectCommand({
       Bucket: this.bucket,
       Key: key,
+    });
+
+    await this.client.send(command);
+  }
+
+  async copyObject(sourceKey: string, destinationKey: string) {
+    const command = new CopyObjectCommand({
+      Bucket: this.bucket,
+      CopySource: `${this.bucket}/${sourceKey}`,
+      Key: destinationKey,
     });
 
     await this.client.send(command);
