@@ -176,7 +176,7 @@ export class AuthController {
         subject: 'Reset password',
         title: 'Reset password',
         subtitle: `${token}`,
-        body: `Reset password code is ${token}`,
+        body: `Please click this link to reset your password: https://yeebli-e10656.webflow.io/onboarding/forgotten?token=${token}&email=${user.email}`,
         cta_url: `https://yeebli-e10656.webflow.io/onboarding/forgotten?token=${token}&email=${user.email}`,
       });
       return serveData(c, {
