@@ -4,6 +4,11 @@ import { assetsSchema } from "../schema/schema.js";
 import type { Asset, NewAsset } from "../schema/schema.js";
 import type { AssetQuery } from "../web/validator/asset.js";
 
+export interface AssetSearchQuery {
+  asset_type?: "image" | "video" | "audio" | "document";
+  processing_status?: "pending" | "processing" | "completed" | "failed";
+}
+
 export class AssetRepository {
   async create(asset: NewAsset): Promise<void> {
     await db.insert(assetsSchema).values(asset);
@@ -58,5 +63,29 @@ export class AssetRepository {
 
   async update(id: number, asset: Partial<Asset>): Promise<void> {
     await db.update(assetsSchema).set(asset).where(eq(assetsSchema.id, id));
+  }
+
+  async findByQuery(
+    query: AssetSearchQuery
+  ): Promise<{ assets: Asset[]; total: number }> {
+    const whereConditions = [];
+
+    if (query.asset_type) {
+      whereConditions.push(eq(assetsSchema.asset_type, query.asset_type));
+    }
+
+    if (query.processing_status) {
+      whereConditions.push(
+        eq(assetsSchema.processing_status, query.processing_status)
+      );
+    }
+
+    const assets = await db
+      .select()
+      .from(assetsSchema)
+      .where(and(...whereConditions))
+      .orderBy(desc(assetsSchema.created_at));
+
+    return { assets, total: assets.length };
   }
 }

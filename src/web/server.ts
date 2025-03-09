@@ -16,12 +16,15 @@ import { AssetService } from "../service/asset.js";
 import { EventService } from "../service/event.ts";
 import { LeadService } from "../service/lead.js";
 import { UserService } from "../service/user.js";
+import { HLSService } from "../service/hls.js";
+import { startHLSWorker } from "../worker/hls.js";
 import { Tasker } from "../task/tasker.js";
 import { AdminController } from "./controller/admin.js";
 import { AssetController } from "./controller/asset.js";
 import { AuthController } from "./controller/auth.js";
 import { EventController } from "./controller/event.ts";
 import { LeadController } from "./controller/lead.ts";
+import { HLSController } from "./controller/hls.js";
 import {
   serveInternalServerError,
   serveNotFound,
@@ -44,6 +47,7 @@ import { assetQueryValidator } from "./validator/asset.ts";
 export class Server {
   private app: Hono;
   private worker?: Worker;
+  private hlsWorker?: Worker;
 
   constructor(app: Hono) {
     this.app = app;
@@ -87,9 +91,11 @@ export class Server {
     const eventService = new EventService(eventRepo, s3Service);
     const adminService = new AdminService(adminRepo);
     const assetService = new AssetService(assetRepo, s3Service);
+    const hlsService = new HLSService(s3Service, assetService);
 
-    // Setup worker
+    // Setup workers
     this.registerWorker(userService);
+    this.hlsWorker = startHLSWorker();
 
     // Setup controllers
     const authController = new AuthController(userService);
@@ -98,6 +104,11 @@ export class Server {
     const adminController = new AdminController(adminService, userService);
     const s3Controller = new S3Controller(s3Service);
     const assetController = new AssetController(assetService, userService);
+    const hlsController = new HLSController(
+      hlsService,
+      userService,
+      assetService
+    );
 
     // Register routes
     this.registerUserRoutes(api, authController);
@@ -106,6 +117,7 @@ export class Server {
     this.registerAdminRoutes(api, adminController);
     this.registerS3Routes(api, s3Controller);
     this.registerAssetRoutes(api, assetController);
+    this.registerHLSRoutes(api, hlsController);
   }
 
   private registerUserRoutes(api: Hono, authCtrl: AuthController) {
@@ -194,6 +206,15 @@ export class Server {
     api.route("/asset", asset);
   }
 
+  private registerHLSRoutes(api: Hono, hlsCtrl: HLSController) {
+    const hls = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    hls.post("/process", authCheck, hlsCtrl.processVideo);
+    hls.post("/process-pending", authCheck, hlsCtrl.processPendingVideos);
+    api.route("/hls", hls);
+  }
+
   private registerWorker(userService: UserService) {
     const tasker = new Tasker(userService);
     const worker = tasker.setup();
@@ -205,6 +226,7 @@ export class Server {
 
   public async shutDownWorker() {
     await this.worker?.close();
+    await this.hlsWorker?.close();
     await connection.quit();
   }
 }

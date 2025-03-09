@@ -74,4 +74,16 @@ export class S3Service {
 
     await this.client.send(command);
   }
+
+  async uploadFile(key: string, content: string | Buffer, contentType: string) {
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: content,
+      ContentType: contentType,
+    });
+
+    await this.client.send(command);
+    return `https://${this.bucket}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
+  }
 }

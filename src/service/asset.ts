@@ -1,5 +1,5 @@
 import type { AssetRepository } from "../repository/asset.js";
-import type { NewAsset } from "../schema/schema.js";
+import type { NewAsset, Asset } from "../schema/schema.js";
 import type { S3Service } from "./s3.js";
 import type { AssetQuery } from "../web/validator/asset.js";
 
@@ -121,6 +121,19 @@ export class AssetService {
     });
   }
 
+  async updateAsset(id: number, update: Partial<Asset>) {
+    await this.repository.update(id, update);
+  }
+
+  async findUnprocessedVideos() {
+    const { assets } = await this.repository.findByQuery({
+      asset_type: "video",
+      processing_status: "pending",
+    });
+
+    return assets.filter((asset) => asset.asset_url); // Only return assets that have been uploaded
+  }
+
   private getContentType(assetType: string): string {
     switch (assetType) {
       case "image":
@@ -136,7 +149,7 @@ export class AssetService {
     }
   }
 
-  private getKeyFromUrl(url: string): string {
+  public getKeyFromUrl(url: string): string {
     const urlParts = url.split(".amazonaws.com/");
     return urlParts[1] || "";
   }
