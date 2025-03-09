@@ -45,13 +45,15 @@ export class LeadRepository {
         )
       : eq(leadSchema.userId, userId);
 
-    const leads = await db
-      .select()
-      .from(leadSchema)
-      .where(whereConditions)
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(leadSchema.created_at));
+    const leads = await db.query.leadSchema.findMany({
+      where: whereConditions,
+      limit: limit,
+      offset: offset,
+      with: {
+        event: true,
+      },
+      orderBy: desc(leadSchema.created_at),
+    });
 
     const total = await db
       .select({ count: leadSchema.id })
