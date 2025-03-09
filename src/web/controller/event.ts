@@ -56,7 +56,7 @@ export class EventController {
       const eventId = Number(c.req.param("id"));
       const event = await this.service.getEvent(eventId);
 
-      if (!event || (user.role !== "master" && event.host_id !== user.id)) {
+      if (!event) {
         return serveNotFound(c);
       }
 
