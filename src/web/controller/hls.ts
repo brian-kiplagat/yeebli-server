@@ -75,7 +75,7 @@ export class HLSController {
           results.push({
             videoId: video.id,
             status: "failed",
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
           });
           continue;
         }
