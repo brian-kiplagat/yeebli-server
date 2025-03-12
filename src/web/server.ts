@@ -101,7 +101,13 @@ export class Server {
     const authController = new AuthController(userService);
     const leadController = new LeadController(leadService, userService);
     const eventController = new EventController(eventService, userService);
-    const adminController = new AdminController(adminService, userService);
+    const adminController = new AdminController(
+      adminService,
+      userService,
+      eventService,
+      leadService,
+      assetService
+    );
     const s3Controller = new S3Controller(s3Service);
     const assetController = new AssetController(assetService, userService);
     const hlsController = new HLSController(
@@ -182,7 +188,7 @@ export class Server {
     admin.get("/leads", authCheck, adminCtrl.getLeads);
     admin.get("/events", authCheck, adminCtrl.getEvents);
     admin.delete("/user/:id", authCheck, adminCtrl.deleteUser);
-    
+
     api.route("/admin", admin);
   }
 

@@ -2,10 +2,14 @@ import type { Context } from "hono";
 import { logger } from "../../lib/logger.js";
 import type { AdminService } from "../../service/admin.js";
 import type { UserService } from "../../service/user.js";
+import type { AssetService } from "../../service/asset.js";
+import type { EventService } from "../../service/event.js";
+import type { LeadService } from "../../service/lead.js";
 import {
   adminEventQuerySchema,
   adminLeadQuerySchema,
   adminUserQuerySchema,
+  adminUserDetailsQuerySchema,
 } from "../validator/admin.js";
 import {
   ERRORS,
@@ -16,10 +20,22 @@ import {
 export class AdminController {
   private service: AdminService;
   private userService: UserService;
+  private eventService: EventService;
+  private leadService: LeadService;
+  private assetService: AssetService;
 
-  constructor(service: AdminService, userService: UserService) {
+  constructor(
+    service: AdminService,
+    userService: UserService,
+    eventService: EventService,
+    leadService: LeadService,
+    assetService: AssetService
+  ) {
     this.service = service;
     this.userService = userService;
+    this.eventService = eventService;
+    this.leadService = leadService;
+    this.assetService = assetService;
   }
 
   private async getUser(c: Context) {
@@ -59,13 +75,43 @@ export class AdminController {
       if (!admin) return;
 
       const userId = Number(c.req.param("id"));
-      const user = await this.userService.find(userId);
+      const query = adminUserDetailsQuerySchema.parse(c.req.query());
 
+      // Get base user data
+      const user = await this.userService.find(userId);
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      return c.json(user);
+      // Prepare response object
+      const response: any = { ...user };
+
+      // Use existing service methods instead of duplicating repository queries
+      if (query.include_events) {
+        const events = await this.eventService.getEventsByUser(userId, {
+          page: query.page,
+          limit: query.limit,
+        });
+        response.events = events;
+      }
+
+      if (query.include_leads) {
+        const leads = await this.leadService.findByUserId(userId, {
+          page: query.page,
+          limit: query.limit,
+        });
+        response.leads = leads;
+      }
+
+      if (query.include_assets) {
+        const assets = await this.assetService.getAssetsByUser(userId, {
+          page: query.page,
+          limit: query.limit,
+        });
+        response.assets = assets;
+      }
+
+      return c.json(response);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

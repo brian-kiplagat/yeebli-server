@@ -1,7 +1,11 @@
-import { and, asc, desc, eq, like, or } from 'drizzle-orm';
-import { db } from '../lib/database.js';
-import { eventSchema, leadSchema, userSchema } from '../schema/schema.js';
-import type { AdminEventQuery, AdminLeadQuery, AdminUserQuery } from '../web/validator/admin.js';
+import { and, asc, desc, eq, like, or } from "drizzle-orm";
+import { db } from "../lib/database.js";
+import { eventSchema, leadSchema, userSchema } from "../schema/schema.js";
+import type {
+  AdminEventQuery,
+  AdminLeadQuery,
+  AdminUserQuery,
+} from "../web/validator/admin.js";
 
 export class AdminRepository {
   async getUsers(query: AdminUserQuery) {
@@ -11,7 +15,12 @@ export class AdminRepository {
     const whereClause = [];
     if (role) whereClause.push(eq(userSchema.role, role));
     if (search) {
-      whereClause.push(or(like(userSchema.name, `%${search}%`), like(userSchema.email, `%${search}%`)));
+      whereClause.push(
+        or(
+          like(userSchema.name, `%${search}%`),
+          like(userSchema.email, `%${search}%`)
+        )
+      );
     }
 
     const users = await db
@@ -36,14 +45,15 @@ export class AdminRepository {
 
     const whereClause = [];
     if (status) whereClause.push(eq(leadSchema.status_identifier, status));
-    if (membership_level) whereClause.push(eq(leadSchema.membership_level, membership_level));
+    if (membership_level)
+      whereClause.push(eq(leadSchema.membership_level, membership_level));
     if (search) {
       whereClause.push(
         or(
           like(leadSchema.name, `%${search}%`),
           like(leadSchema.email, `%${search}%`),
-          like(leadSchema.phone, `%${search}%`),
-        ),
+          like(leadSchema.phone, `%${search}%`)
+        )
       );
     }
 
@@ -70,12 +80,18 @@ export class AdminRepository {
     const whereClause = [];
     if (search) {
       whereClause.push(
-        or(like(eventSchema.event_name, `%${search}%`), like(eventSchema.event_description, `%${search}%`)),
+        or(
+          like(eventSchema.event_name, `%${search}%`),
+          like(eventSchema.event_description, `%${search}%`)
+        )
       );
     }
     if (date_range) {
       whereClause.push(
-        and(like(eventSchema.event_date, `%${date_range.start}%`), like(eventSchema.event_date, `%${date_range.end}%`)),
+        and(
+          like(eventSchema.event_date, `%${date_range.start}%`),
+          like(eventSchema.event_date, `%${date_range.end}%`)
+        )
       );
     }
 
