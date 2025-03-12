@@ -64,6 +64,20 @@
       "when": 1741444722860,
       "tag": "0009_lovely_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1741756091200,
+      "tag": "0010_numerous_sauron",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1741756198097,
+      "tag": "0011_foamy_gateway",
+      "breakpoints": true
     }
   ]
 }

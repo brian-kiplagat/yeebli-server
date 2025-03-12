@@ -14,6 +14,7 @@ export const userSchema = mysqlTable("user", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 50 }).notNull(),
   email: varchar("email", { length: 100 }).notNull().unique(),
+  phone: varchar("phone", { length: 100 }).notNull().default(""),
   password: varchar("password", { length: 255 }).notNull(),
   reset_token: varchar("reset_token", { length: 255 }),
   email_token: varchar("email_token", { length: 255 }),

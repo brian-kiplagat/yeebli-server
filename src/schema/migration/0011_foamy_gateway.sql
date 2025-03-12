@@ -1,0 +1,1 @@
+ALTER TABLE `user` MODIFY COLUMN `phone` varchar(100) NOT NULL DEFAULT '';
