@@ -10,6 +10,7 @@ import {
   adminLeadQuerySchema,
   adminUserQuerySchema,
   adminUserDetailsQuerySchema,
+  adminUpdateUserSchema,
 } from "../validator/admin.js";
 import {
   ERRORS,
@@ -112,6 +113,39 @@ export class AdminController {
       }
 
       return c.json(response);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public updateParticularUser = async (c: Context) => {
+    try {
+      const admin = await this.checkAdminAccess(c);
+      if (!admin) return;
+
+      const userId = Number(c.req.param("id"));
+
+      // Check if user exists
+      const user = await this.userService.find(userId);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      // Validate update data
+      const body = await c.req.json();
+      const updateData = adminUpdateUserSchema.parse(body);
+
+      // Use existing user service to update
+      await this.userService.update(userId, updateData);
+
+      // Get updated user data
+      const updatedUser = await this.userService.find(userId);
+
+      return c.json({
+        message: "User updated successfully",
+        user: updatedUser,
+      });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

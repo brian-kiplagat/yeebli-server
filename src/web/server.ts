@@ -184,6 +184,7 @@ export class Server {
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     admin.get("/user/:id", authCheck, adminCtrl.getParticularUser);
+    admin.put("/user/:id", authCheck, adminCtrl.updateParticularUser);
     admin.get("/users", authCheck, adminCtrl.getUsers);
     admin.get("/leads", authCheck, adminCtrl.getLeads);
     admin.get("/events", authCheck, adminCtrl.getEvents);

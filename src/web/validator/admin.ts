@@ -37,7 +37,17 @@ export const adminUserDetailsQuerySchema = z.object({
     limit: z.coerce.number().optional().default(100)
 });
 
+export const adminUpdateUserSchema = z.object({
+    name: z.string().optional(),
+    phone: z.string().optional(),
+    email: z.string().email().optional(),
+    role: z.enum(["master", "owner", "host", "user"]).optional(),
+}).refine(data => Object.keys(data).length > 0, {
+    message: "At least one field must be provided for update"
+});
+
 export type AdminUserQuery = z.infer<typeof adminUserQuerySchema>;
 export type AdminLeadQuery = z.infer<typeof adminLeadQuerySchema>;
 export type AdminEventQuery = z.infer<typeof adminEventQuerySchema>;
 export type AdminUserDetailsQuery = z.infer<typeof adminUserDetailsQuerySchema>;
+export type AdminUpdateUser = z.infer<typeof adminUpdateUserSchema>;
