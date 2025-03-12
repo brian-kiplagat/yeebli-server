@@ -177,11 +177,12 @@ export class Server {
     const admin = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
+    admin.get("/user/:id", authCheck, adminCtrl.getParticularUser);
     admin.get("/users", authCheck, adminCtrl.getUsers);
     admin.get("/leads", authCheck, adminCtrl.getLeads);
     admin.get("/events", authCheck, adminCtrl.getEvents);
     admin.delete("/user/:id", authCheck, adminCtrl.deleteUser);
-
+    
     api.route("/admin", admin);
   }
 

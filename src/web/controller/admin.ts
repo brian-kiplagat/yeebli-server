@@ -1,9 +1,17 @@
-import type { Context } from 'hono';
-import { logger } from '../../lib/logger.js';
-import type { AdminService } from '../../service/admin.js';
-import type { UserService } from '../../service/user.js';
-import { adminEventQuerySchema, adminLeadQuerySchema, adminUserQuerySchema } from '../validator/admin.js';
-import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
+import type { Context } from "hono";
+import { logger } from "../../lib/logger.js";
+import type { AdminService } from "../../service/admin.js";
+import type { UserService } from "../../service/user.js";
+import {
+  adminEventQuerySchema,
+  adminLeadQuerySchema,
+  adminUserQuerySchema,
+} from "../validator/admin.js";
+import {
+  ERRORS,
+  serveBadRequest,
+  serveInternalServerError,
+} from "./resp/error.js";
 
 export class AdminController {
   private service: AdminService;
@@ -15,7 +23,7 @@ export class AdminController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get('jwtPayload').email;
+    const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -25,8 +33,8 @@ export class AdminController {
     if (!user) {
       return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
     }
-    if (user.role !== 'master') {
-      return serveBadRequest(c, 'Unauthorized: Admin access required');
+    if (user.role !== "master") {
+      return serveBadRequest(c, "Unauthorized: Admin access required");
     }
     return user;
   }
@@ -39,6 +47,25 @@ export class AdminController {
       const query = adminUserQuerySchema.parse(c.req.query());
       const result = await this.service.getUsers(query);
       return c.json(result);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public getParticularUser = async (c: Context) => {
+    try {
+      const admin = await this.checkAdminAccess(c);
+      if (!admin) return;
+
+      const userId = Number(c.req.param("id"));
+      const user = await this.userService.find(userId);
+
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      return c.json(user);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -78,13 +105,13 @@ export class AdminController {
       const user = await this.checkAdminAccess(c);
       if (!user) return;
 
-      const id = c.req.param('id');
+      const id = c.req.param("id");
       const foundUser = await this.userService.find(Number(id));
       if (!foundUser) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
       const result = await this.userService.delete(Number(id));
-      return c.json({ message: 'User deleted successfully' });
+      return c.json({ message: "User deleted successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
