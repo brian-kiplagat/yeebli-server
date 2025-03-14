@@ -28,8 +28,31 @@ export class EventRepository {
     return result[0];
   }
 
-  public async findAll() {
-    return db.select().from(eventSchema).orderBy(desc(eventSchema.created_at));
+  public async findAll(query?: EventQuery) {
+    const { page = 1, limit = 10, search } = query || {};
+    const offset = (page - 1) * limit;
+
+    const whereConditions = search
+      ? or(
+          like(eventSchema.event_name, `%${search}%`),
+          like(eventSchema.event_description, `%${search}%`)
+        )
+      : undefined;
+
+    const events = await db
+      .select()
+      .from(eventSchema)
+      .where(whereConditions)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(eventSchema.created_at));
+
+    const total = await db
+      .select({ count: eventSchema.id })
+      .from(eventSchema)
+      .where(whereConditions);
+
+    return { events, total: total.length };
   }
 
   public async findByUserId(userId: number, query?: EventQuery) {

@@ -31,10 +31,15 @@ export class EventController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const query = c.req.query();
+      const { page, limit, search } = c.req.query();
+      const query = {
+        page: page ? parseInt(page) : undefined,
+        limit: limit ? parseInt(limit) : undefined,
+        search,
+      };
 
       if (user.role === "master" || user.role === "owner") {
-        const events = await this.service.getAllEvents();
+        const events = await this.service.getAllEvents(query);
         return c.json(events);
       }
 

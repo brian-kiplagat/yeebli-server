@@ -16,8 +16,8 @@ export class LeadService {
     return this.repository.find(id);
   }
 
-  public async findAll() {
-    return this.repository.findAll();
+  public async findAll(query?: LeadQuery) {
+    return this.repository.findAll(query);
   }
 
   public async findByUserId(userId: number, query?: LeadQuery) {

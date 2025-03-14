@@ -47,8 +47,10 @@ export class EventService {
     };
   }
 
-  public async getAllEvents(): Promise<Event[]> {
-    return this.repository.findAll();
+  public async getAllEvents(
+    query?: EventQuery
+  ): Promise<{ events: Event[]; total: number }> {
+    return this.repository.findAll(query);
   }
 
   public async getEventsByUser(
