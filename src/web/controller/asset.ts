@@ -16,6 +16,7 @@ const createAssetSchema = z.object({
   contentType: z.string(),
   assetType: z.enum(["image", "video", "audio", "document"]),
   fileSize: z.number(),
+  duration: z.number(),
 });
 
 const renameAssetSchema = z.object({
@@ -47,7 +48,7 @@ export class AssetController {
       }
 
       const body = await c.req.json();
-      const { fileName, contentType, assetType, fileSize } =
+      const { fileName, contentType, assetType, fileSize, duration } =
         createAssetSchema.parse(body);
 
       const result = await this.service.createAsset(
@@ -55,7 +56,8 @@ export class AssetController {
         fileName,
         contentType,
         assetType,
-        fileSize
+        fileSize,
+        duration
       );
       return c.json(result, 201);
     } catch (error) {

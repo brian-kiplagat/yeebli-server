@@ -20,7 +20,8 @@ export class AssetService {
     fileName: string,
     contentType: string,
     assetType: "image" | "video" | "audio" | "document",
-    fileSize: number
+    fileSize: number,
+    duration: number
   ) {
     // Generate a unique key for the file
     const key = `assets/${assetType}/${Date.now()}-${fileName}`;
@@ -38,6 +39,7 @@ export class AssetService {
       asset_type: assetType,
       asset_url: url,
       user_id: userId,
+      duration: duration,
     };
 
     await this.repository.create(asset);
