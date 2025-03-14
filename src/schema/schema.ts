@@ -85,6 +85,7 @@ export const assetsSchema = mysqlTable("assets", {
   ]).default("image"),
   asset_url: text("asset_url"),
   asset_size: int("asset_size"),
+  duration: int("duration"),
   hls_url: text("hls_url"),
   processing_status: mysqlEnum("processing_status", [
     "pending",
