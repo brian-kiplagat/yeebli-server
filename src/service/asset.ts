@@ -2,6 +2,9 @@ import type { AssetRepository } from "../repository/asset.js";
 import type { NewAsset, Asset } from "../schema/schema.js";
 import type { S3Service } from "./s3.js";
 import type { AssetQuery } from "../web/validator/asset.js";
+import { like, eq, and, desc } from "drizzle-orm";
+import { db } from "../lib/database.js";
+import { assetsSchema } from "../schema/schema.js";
 
 export class AssetService {
   private repository: AssetRepository;
@@ -132,6 +135,52 @@ export class AssetService {
     });
 
     return assets.filter((asset) => asset.asset_url); // Only return assets that have been uploaded
+  }
+
+  async getAllAssets(query?: AssetQuery) {
+    const { page = 1, limit = 10, search, asset_type } = query || {};
+    const offset = (page - 1) * limit;
+
+    const whereConditions = [];
+    if (search) {
+      whereConditions.push(like(assetsSchema.asset_name, `%${search}%`));
+    }
+    if (asset_type) {
+      whereConditions.push(eq(assetsSchema.asset_type, asset_type));
+    }
+
+    const assets = await db
+      .select()
+      .from(assetsSchema)
+      .where(whereConditions.length ? and(...whereConditions) : undefined)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(assetsSchema.created_at));
+
+    const total = await db
+      .select({ count: assetsSchema.id })
+      .from(assetsSchema)
+      .where(whereConditions.length ? and(...whereConditions) : undefined);
+
+    // Add presigned URLs to all assets
+    const assetsWithUrls = await Promise.all(
+      assets.map(async (asset: Asset) => {
+        if (!asset.asset_url) return asset;
+
+        const presignedUrl = await this.s3Service.generateGetUrl(
+          this.getKeyFromUrl(asset.asset_url),
+          this.getContentType(asset.asset_type as string),
+          86400
+        );
+
+        return {
+          ...asset,
+          presignedUrl,
+        };
+      })
+    );
+
+    return { assets: assetsWithUrls, total: total.length };
   }
 
   private getContentType(assetType: string): string {

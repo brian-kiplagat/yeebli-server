@@ -38,6 +38,11 @@ export class LeadController {
         limit: limit ? parseInt(limit) : undefined,
         search,
       };
+      
+      if (user.role === "master" || user.role === "owner") {
+        const leads = await this.service.findAll();
+        return c.json(leads);
+      }
 
       const leads = await this.service.findByUserId(user.id, query);
       return c.json(leads);

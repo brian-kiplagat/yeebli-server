@@ -33,8 +33,8 @@ export class EventController {
 
       const query = c.req.query();
 
-      if (user.role === "master") {
-        const events = await this.service.getEventsByUser(user.id, query);
+      if (user.role === "master" || user.role === "owner") {
+        const events = await this.service.getAllEvents();
         return c.json(events);
       }
 

@@ -78,7 +78,13 @@ export class AssetController {
         search,
         asset_type: asset_type as AssetQuery["asset_type"],
       };
-      const assets = await this.service.getAssetsByUser(user.id, query);
+
+      let assets;
+      if (user.role === "master" || user.role === "owner") {
+        assets = await this.service.getAllAssets(query);
+      } else {
+        assets = await this.service.getAssetsByUser(user.id, query);
+      }
       return c.json(assets);
     } catch (error) {
       logger.error(error);
