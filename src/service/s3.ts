@@ -66,9 +66,10 @@ export class S3Service {
   }
 
   async copyObject(sourceKey: string, destinationKey: string) {
+    const encodedSourceKey = encodeURIComponent(sourceKey);
     const command = new CopyObjectCommand({
       Bucket: this.bucket,
-      CopySource: encodeURIComponent(`${this.bucket}/${sourceKey}`),
+      CopySource: `${this.bucket}/${encodedSourceKey}`,
       Key: destinationKey,
     });
 
