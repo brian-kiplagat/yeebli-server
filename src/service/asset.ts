@@ -5,7 +5,7 @@ import type { AssetQuery } from "../web/validator/asset.js";
 
 export class AssetService {
   private repository: AssetRepository;
-  private s3Service: S3Service;
+  s3Service: S3Service;
 
   constructor(repository: AssetRepository, s3Service: S3Service) {
     this.repository = repository;
@@ -134,7 +134,12 @@ export class AssetService {
     return assets.filter((asset) => asset.asset_url); // Only return assets that have been uploaded
   }
 
-  private getContentType(assetType: string): string {
+  async findAll() {
+    const { assets } = await this.repository.findByQuery({});
+    return assets;
+  }
+
+  getContentType(assetType: string): string {
     switch (assetType) {
       case "image":
         return "image/jpeg";
@@ -149,7 +154,7 @@ export class AssetService {
     }
   }
 
-  public getKeyFromUrl(url: string): string {
+  getKeyFromUrl(url: string): string {
     const urlParts = url.split(".amazonaws.com/");
     return urlParts[1] || "";
   }

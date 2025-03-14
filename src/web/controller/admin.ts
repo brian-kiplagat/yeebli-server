@@ -11,6 +11,7 @@ import {
   adminUserQuerySchema,
   adminUserDetailsQuerySchema,
   adminUpdateUserSchema,
+  adminAssetQuerySchema,
 } from "../validator/admin.js";
 import {
   ERRORS,
@@ -158,8 +159,10 @@ export class AdminController {
       if (!user) return;
 
       const query = adminLeadQuerySchema.parse(c.req.query());
-      const result = await this.service.getLeads(query);
-      return c.json(result);
+
+      // For admin/master, get all leads using findAll
+      const leads = await this.leadService.findAll();
+      return c.json({ leads, total: leads.length });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -172,8 +175,45 @@ export class AdminController {
       if (!user) return;
 
       const query = adminEventQuerySchema.parse(c.req.query());
-      const result = await this.service.getEvents(query);
-      return c.json(result);
+
+      // For admin/master, get all events using getAllEvents
+      const events = await this.eventService.getAllEvents();
+      return c.json({ events, total: events.length });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public getAssets = async (c: Context) => {
+    try {
+      const user = await this.checkAdminAccess(c);
+      if (!user) return;
+
+      const query = adminAssetQuerySchema.parse(c.req.query());
+
+      // For admin/master, get all assets using findAll
+      const assets = await this.assetService.findAll();
+
+      // Add presigned URLs to all assets
+      const assetsWithUrls = await Promise.all(
+        assets.map(async (asset) => {
+          if (!asset.asset_url) return asset;
+
+          const presignedUrl = await this.assetService.s3Service.generateGetUrl(
+            this.assetService.getKeyFromUrl(asset.asset_url),
+            this.assetService.getContentType(asset.asset_type as string),
+            86400
+          );
+
+          return {
+            ...asset,
+            presignedUrl,
+          };
+        })
+      );
+
+      return c.json({ assets: assetsWithUrls, total: assetsWithUrls.length });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

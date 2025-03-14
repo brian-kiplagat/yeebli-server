@@ -33,11 +33,13 @@ export class EventController {
 
       const query = c.req.query();
 
+      // If master role, return all events
       if (user.role === "master") {
-        const events = await this.service.getEventsByUser(user.id, query);
-        return c.json(events);
+        const events = await this.service.getAllEvents();
+        return c.json({ events, total: events.length });
       }
 
+      // For non-master users, return only their events
       const events = await this.service.getEventsByUser(user.id, query);
       return c.json(events);
     } catch (error) {
