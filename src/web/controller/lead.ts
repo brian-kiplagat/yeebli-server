@@ -41,7 +41,7 @@ export class LeadController {
 
       if (user.role === "master" || user.role === "owner") {
         const leads = await this.service.findAll(query);
-        return c.json(leads);
+        return c.json({ leads: leads, total: 0 });
       }
 
       const leads = await this.service.findByUserId(user.id, query);
