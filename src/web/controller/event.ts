@@ -89,6 +89,7 @@ export class EventController {
         {
           message: "Event created successfully",
           link: `https://yeebli-e10656.webflow.io/eventpage?code=${eventId}`,
+          eventId,
         },
         201
       );
