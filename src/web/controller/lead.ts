@@ -161,7 +161,7 @@ export class LeadController {
         {
           success: true,
           message: "Registration successful",
-          lead: createdLead,
+          leadId: createdLead[0].insertId,
         },
         201
       );
