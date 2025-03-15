@@ -2,13 +2,19 @@ import type { Context } from "hono";
 import { logger } from "../../lib/logger.ts";
 import type { LeadService } from "../../service/lead.js";
 import type { UserService } from "../../service/user.ts";
-import { LeadBody } from "../validator/lead.ts";
+import {
+  LeadBody,
+  ExternalFormBody,
+  externalFormValidator,
+} from "../validator/lead.ts";
+import type { NewLead } from "../../schema/schema.js";
 import {
   ERRORS,
   serveBadRequest,
   serveInternalServerError,
   serveNotFound,
 } from "./resp/error.js";
+import { externalFormSchema } from "../validator/lead.ts";
 
 export class LeadController {
   private service: LeadService;
@@ -128,6 +134,46 @@ export class LeadController {
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
+    }
+  };
+
+  public handleExternalForm = async (c: Context) => {
+    try {
+      const formData = await c.req.parseBody();
+      const validatedData = externalFormSchema.parse(formData);
+
+      const lead: NewLead = {
+        name: validatedData.lead_form_name,
+        email: validatedData.lead_form_email,
+        phone: validatedData.lead_form_phone,
+        event_id: validatedData.event_id,
+        host_id: validatedData.host_id,
+        membership_level: "Silver",
+        membership_active: false,
+        form_identifier: "external_form",
+        status_identifier: "Form",
+        userId: validatedData.host_id,
+      };
+
+      const createdLead = await this.service.create(lead);
+
+      return c.json(
+        {
+          success: true,
+          message: "Registration successful",
+          lead: createdLead,
+        },
+        201
+      );
+    } catch (error) {
+      logger.error(error);
+      return c.json(
+        {
+          success: false,
+          message: "Registration failed. Please try again.",
+        },
+        400
+      );
     }
   };
 }

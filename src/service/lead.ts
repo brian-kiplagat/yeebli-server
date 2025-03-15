@@ -1,5 +1,6 @@
 import type { Lead } from "../lib/database.js";
 import type { LeadRepository, LeadQuery } from "../repository/lead.js";
+import type { NewLead } from "../schema/schema.js";
 
 export class LeadService {
   private repository: LeadRepository;
@@ -8,7 +9,7 @@ export class LeadService {
     this.repository = repository;
   }
 
-  public async create(lead: Lead) {
+  public async create(lead: NewLead) {
     return this.repository.create(lead);
   }
 

@@ -30,7 +30,11 @@ import {
   serveNotFound,
 } from "./controller/resp/error.js";
 import { eventValidator, updateEventValidator } from "./validator/event.ts";
-import { leadValidator, updateLeadValidator } from "./validator/lead.ts";
+import {
+  leadValidator,
+  updateLeadValidator,
+  externalFormValidator,
+} from "./validator/lead.ts";
 import {
   emailVerificationValidator,
   loginValidator,
@@ -162,6 +166,13 @@ export class Server {
     lead.post("/", authCheck, leadValidator, leadCtrl.createLead);
     lead.put("/:id", authCheck, updateLeadValidator, leadCtrl.updateLead);
     lead.delete("/:id", authCheck, leadCtrl.deleteLead);
+
+    // New external form endpoint - no auth required
+    lead.post(
+      "/external-form",
+      externalFormValidator,
+      leadCtrl.handleExternalForm
+    );
 
     api.route("/lead", lead);
   }
