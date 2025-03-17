@@ -29,7 +29,6 @@ const externalFormSchema = z.object({
     .min(1, "Name is required")
     .max(256, "Name is too long")
     .transform((val) => val.trim()),
-  source_url: z.string().min(1, "Source URL is required"),
   lead_form_email: z
     .string()
     .email("Invalid email address")
