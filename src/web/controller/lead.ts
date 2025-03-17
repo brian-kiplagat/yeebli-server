@@ -153,6 +153,7 @@ export class LeadController {
         form_identifier: "external_form",
         status_identifier: "Form",
         userId: validatedData.host_id,
+        source_url: c.req.header("Referer") || "direct",
       };
 
       const createdLead = await this.service.create(lead);
