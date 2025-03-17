@@ -64,6 +64,9 @@ export class EventController {
       if (!event) {
         return serveNotFound(c);
       }
+      if (!event.asset) {
+        return serveBadRequest(c, ERRORS.ASSET_NOT_FOUND);
+      }
 
       return c.json(event);
     } catch (error) {
