@@ -1,0 +1,1 @@
+ALTER TABLE `leads` ADD `source_url` text;

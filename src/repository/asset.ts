@@ -27,7 +27,7 @@ export class AssetRepository {
     userId: number,
     query?: AssetQuery
   ): Promise<{ assets: Asset[]; total: number }> {
-    const { page = 1, limit = 10, search, asset_type } = query || {};
+    const { page = 1, limit = 50, search, asset_type } = query || {};
     const offset = (page - 1) * limit;
 
     const whereConditions = [];

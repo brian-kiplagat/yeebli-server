@@ -23,7 +23,7 @@ export class LeadRepository {
   }
 
   public async findAll(query?: LeadQuery) {
-    const { page = 1, limit = 10, search } = query || {};
+    const { page = 1, limit = 100, search } = query || {};
     const offset = (page - 1) * limit;
 
     const whereConditions = search
@@ -53,7 +53,7 @@ export class LeadRepository {
   }
 
   public async findByUserId(userId: number, query?: LeadQuery) {
-    const { page = 1, limit = 10, search } = query || {};
+    const { page = 1, limit = 50, search } = query || {};
     const offset = (page - 1) * limit;
 
     const whereConditions = search

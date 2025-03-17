@@ -9,7 +9,7 @@ import type {
 
 export class AdminRepository {
   async getUsers(query: AdminUserQuery) {
-    const { page = 1, limit = 10, role, search } = query;
+    const { page = 1, limit = 50, role, search } = query;
     const offset = (page - 1) * limit;
 
     const whereClause = [];
@@ -40,7 +40,7 @@ export class AdminRepository {
   }
 
   async getLeads(query: AdminLeadQuery) {
-    const { page = 1, limit = 10, status, membership_level, search } = query;
+    const { page = 1, limit = 50, status, membership_level, search } = query;
     const offset = (page - 1) * limit;
 
     const whereClause = [];
@@ -74,7 +74,7 @@ export class AdminRepository {
   }
 
   async getEvents(query: AdminEventQuery) {
-    const { page = 1, limit = 10, search, date_range } = query;
+    const { page = 1, limit = 50, search, date_range } = query;
     const offset = (page - 1) * limit;
 
     const whereClause = [];
