@@ -4,11 +4,11 @@ import type { S3Service } from "./s3.js";
 
 type EventWithAsset = Event & {
   asset?: (Asset & { presignedUrl: string }) | null;
-  host: {
+  host?: {
     name: string;
     email: string;
-    profile_image: string;
-  };
+    profile_image: string | null;
+  } | null;
 };
 
 export class EventService {
@@ -29,7 +29,7 @@ export class EventService {
     const result = await this.repository.find(id);
     if (!result) return undefined;
 
-    const { event, asset } = result;
+    const { event, asset, host } = result;
     console.log({ event, asset });
     if (asset?.asset_url) {
       const presignedUrl = await this.s3Service.generateGetUrl(
@@ -43,12 +43,14 @@ export class EventService {
           ...asset,
           presignedUrl,
         },
+        host,
       };
     }
 
     return {
       ...event,
       asset: null,
+      host,
     };
   }
 
