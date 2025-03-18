@@ -1,6 +1,6 @@
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { db } from "../lib/database.js";
-import { eventSchema, assetsSchema } from "../schema/schema.js";
+import { eventSchema, assetsSchema, userSchema } from "../schema/schema.js";
 import type { Event, NewEvent } from "../schema/schema.js";
 
 export interface EventQuery {
@@ -19,9 +19,15 @@ export class EventRepository {
       .select({
         event: eventSchema,
         asset: assetsSchema,
+        host: {
+          name: userSchema.name,
+          email: userSchema.email,
+          profile_image: userSchema.profile_picture,
+        },
       })
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
+      .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
       .where(eq(eventSchema.id, id))
       .limit(1);
 
