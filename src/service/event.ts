@@ -4,6 +4,11 @@ import type { S3Service } from "./s3.js";
 
 type EventWithAsset = Event & {
   asset?: (Asset & { presignedUrl: string }) | null;
+  host: {
+    name: string;
+    email: string;
+    profile_image: string;
+  };
 };
 
 export class EventService {
