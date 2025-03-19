@@ -264,21 +264,31 @@ export class HLSService {
       );
 
       // Upload variant playlists and segments
+      const uploadPromises: Promise<any>[] = [];
+
       for (let i = 0; i < allowList.length; i++) {
         const streamDir = join(outputDir, `stream_${i}`);
         const files = await fs.readdir(streamDir);
 
         for (const file of files) {
           const filePath = join(streamDir, file);
-          const content = await fs.readFile(filePath);
           const s3Key = `${s3BasePath}/stream_${i}/${file}`;
           const contentType = file.endsWith(".m3u8")
             ? "application/x-mpegURL"
             : "video/MP2T";
 
-          await this.s3Service.uploadFile(s3Key, content, contentType);
+          uploadPromises.push(
+            fs
+              .readFile(filePath)
+              .then((content) =>
+                this.s3Service.uploadFile(s3Key, content, contentType)
+              )
+          );
         }
       }
+
+      // Wait for all uploads to complete
+      await Promise.all(uploadPromises);
 
       // Generate HLS URL
       const hlsUrl = `https://${env.S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${s3BasePath}/master.m3u8`;
