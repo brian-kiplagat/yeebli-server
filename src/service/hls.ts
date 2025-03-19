@@ -182,10 +182,10 @@ export class HLSService {
             [v1]scale=w=1920:h=1080[v1out]; \
             [v2]scale=w=1280:h=720[v2out]; \
             [v3]scale=w=640:h=360[v3out]" \
-            -map "[v1out]" -c:v:0 h264 -b:v:0 5000k -preset fast -crf 23 -g 60 \
-            -map "[v2out]" -c:v:1 h264 -b:v:1 2500k -preset fast -crf 23 -g 60 \
-            -map "[v3out]" -c:v:2 h264 -b:v:2 1000k -preset fast -crf 23 -g 60 \
-            -map a:0 -c:a aac -b:a 128k \
+            -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -preset fast -crf 23 -g 60 \
+            -map "[v2out]" -c:v:1 libx264 -b:v:1 2500k -preset fast -crf 23 -g 60 \
+            -map "[v3out]" -c:v:2 libx264 -b:v:2 1000k -preset fast -crf 23 -g 60 \
+            -map 0:a -c:a aac -b:a 128k \
             -f hls \
             -hls_time 5 \
             -hls_playlist_type vod \
@@ -200,9 +200,9 @@ export class HLSService {
             [v1]scale=w=1920:h=1080[v1out]; \
             [v2]scale=w=1280:h=720[v2out]; \
             [v3]scale=w=640:h=360[v3out]" \
-            -map "[v1out]" -c:v:0 h264 -b:v:0 5000k -preset fast -crf 23 -g 60 \
-            -map "[v2out]" -c:v:1 h264 -b:v:1 2500k -preset fast -crf 23 -g 60 \
-            -map "[v3out]" -c:v:2 h264 -b:v:2 1000k -preset fast -crf 23 -g 60 \
+            -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -preset fast -crf 23 -g 60 \
+            -map "[v2out]" -c:v:1 libx264 -b:v:1 2500k -preset fast -crf 23 -g 60 \
+            -map "[v3out]" -c:v:2 libx264 -b:v:2 1000k -preset fast -crf 23 -g 60 \
             -f hls \
             -hls_time 5 \
             -hls_playlist_type vod \
