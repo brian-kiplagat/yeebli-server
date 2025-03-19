@@ -177,8 +177,41 @@ export class HLSService {
 
       // Convert to HLS using FFmpeg with conditional audio mapping
       const ffmpegCommand = hasAudio
-        ? `ffmpeg -i "${inputPath}" -c:v h264 -c:a aac -f hls -hls_time 10 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "${outputDir}/segment_%03d.ts" -master_pl_name master.m3u8 -var_stream_map "v:0,a:0" "${outputDir}/stream_%v.m3u8"`
-        : `ffmpeg -i "${inputPath}" -c:v h264 -f hls -hls_time 10 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "${outputDir}/segment_%03d.ts" -master_pl_name master.m3u8 -var_stream_map "v:0" "${outputDir}/stream_%v.m3u8"`;
+        ? `ffmpeg -i "${inputPath}" -filter_complex \
+            "[0:v]split=3[v1][v2][v3]; \
+            [v1]scale=w=1920:h=1080[v1out]; \
+            [v2]scale=w=1280:h=720[v2out]; \
+            [v3]scale=w=640:h=360[v3out]" \
+            -map "[v1out]" -c:v:0 h264 -b:v:0 5000k -preset fast -crf 23 -g 60 \
+            -map "[v2out]" -c:v:1 h264 -b:v:1 2500k -preset fast -crf 23 -g 60 \
+            -map "[v3out]" -c:v:2 h264 -b:v:2 1000k -preset fast -crf 23 -g 60 \
+            -map a:0 -c:a aac -b:a 128k \
+            -f hls \
+            -hls_time 5 \
+            -hls_playlist_type vod \
+            -hls_flags independent_segments+split_by_time \
+            -hls_segment_type mpegts \
+            -hls_segment_filename "${outputDir}/segment_%v_%03d.ts" \
+            -master_pl_name master.m3u8 \
+            -var_stream_map "v:0,a:0 v:1,a:0 v:2,a:0" \
+            "${outputDir}/stream_%v.m3u8"`
+        : `ffmpeg -i "${inputPath}" -filter_complex \
+            "[0:v]split=3[v1][v2][v3]; \
+            [v1]scale=w=1920:h=1080[v1out]; \
+            [v2]scale=w=1280:h=720[v2out]; \
+            [v3]scale=w=640:h=360[v3out]" \
+            -map "[v1out]" -c:v:0 h264 -b:v:0 5000k -preset fast -crf 23 -g 60 \
+            -map "[v2out]" -c:v:1 h264 -b:v:1 2500k -preset fast -crf 23 -g 60 \
+            -map "[v3out]" -c:v:2 h264 -b:v:2 1000k -preset fast -crf 23 -g 60 \
+            -f hls \
+            -hls_time 5 \
+            -hls_playlist_type vod \
+            -hls_flags independent_segments+split_by_time \
+            -hls_segment_type mpegts \
+            -hls_segment_filename "${outputDir}/segment_%v_%03d.ts" \
+            -master_pl_name master.m3u8 \
+            -var_stream_map "v:0 v:1 v:2" \
+            "${outputDir}/stream_%v.m3u8"`;
 
       await execAsync(ffmpegCommand, { maxBuffer: Infinity });
 
