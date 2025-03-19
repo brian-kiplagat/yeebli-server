@@ -181,21 +181,53 @@ export class HLSService {
 
       // Create quality-specific directories
       const streamDir = join(outputDir, `stream_${Date.now()}`);
-      const dirs = {
-        "1080p": join(streamDir, "1080p"),
-        "720p": join(streamDir, "720p"),
-        "360p": join(streamDir, "360p"),
-      };
+      const qualities = ["1080p", "720p", "360p"];
 
       // Create directories
-      for (const dir of Object.values(dirs)) {
-        await mkdir(dir, { recursive: true });
+      for (const quality of qualities) {
+        await mkdir(join(streamDir, quality), { recursive: true });
       }
 
       // Convert to HLS using FFmpeg with proper audio stream mapping and structured output
-      const ffmpegCommand = `ffmpeg -i "${inputPath}" -filter_complex "[0:v]split=3[v1][v2][v3]; [v1]scale=w=1920:h=1080[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]" -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -preset fast -crf 23 -g 60 -map 0:a -c:a:0 aac -b:a:0 128k -map "[v2out]" -c:v:1 libx264 -b:v:1 2500k -preset fast -crf 23 -g 60 -map 0:a -c:a:1 aac -b:a:1 128k -map "[v3out]" -c:v:2 libx264 -b:v:2 1000k -preset fast -crf 23 -g 60 -map 0:a -c:a:2 aac -b:a:2 128k -f hls -hls_time 5 -hls_playlist_type vod -hls_flags independent_segments+split_by_time -hls_segment_type mpegts -hls_segment_filename "${streamDir}/%v/segment_%03d.ts" -master_pl_name "${streamDir}/master.m3u8" -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" "${streamDir}/%v/playlist.m3u8"`;
+      const ffmpegCommand = `ffmpeg -i "${inputPath}" \
+        -filter_complex "[0:v]split=3[v1][v2][v3]; \
+        [v1]scale=w=1920:h=1080[v1out]; \
+        [v2]scale=w=1280:h=720[v2out]; \
+        [v3]scale=w=640:h=360[v3out]" \
+        -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -preset fast -crf 23 -g 60 \
+        -map "[v2out]" -c:v:1 libx264 -b:v:1 2500k -preset fast -crf 23 -g 60 \
+        -map "[v3out]" -c:v:2 libx264 -b:v:2 1000k -preset fast -crf 23 -g 60 \
+        -map 0:a -c:a aac -b:a 128k \
+        -f hls \
+        -hls_time 5 \
+        -hls_playlist_type vod \
+        -hls_flags independent_segments+split_by_time \
+        -hls_segment_type mpegts \
+        -hls_list_size 0 \
+        -master_pl_name master.m3u8 \
+        -hls_segment_filename "${streamDir}/1080p/segment_%03d.ts" \
+        -var_stream_map "v:0,a:0" \
+        "${streamDir}/1080p/playlist.m3u8" \
+        -hls_segment_filename "${streamDir}/720p/segment_%03d.ts" \
+        -var_stream_map "v:1,a:0" \
+        "${streamDir}/720p/playlist.m3u8" \
+        -hls_segment_filename "${streamDir}/360p/segment_%03d.ts" \
+        -var_stream_map "v:2,a:0" \
+        "${streamDir}/360p/playlist.m3u8"`;
 
       await execAsync(ffmpegCommand, { maxBuffer: Infinity });
+
+      // Create master playlist manually
+      const masterPlaylistContent = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-STREAM-INF:BANDWIDTH=5500000,RESOLUTION=1920x1080
+1080p/playlist.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720
+720p/playlist.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=1500000,RESOLUTION=640x360
+360p/playlist.m3u8`;
+
+      await writeFile(join(streamDir, "master.m3u8"), masterPlaylistContent);
 
       // Create ZIP file using archiver
       const archive = archiver("zip", {
