@@ -11,9 +11,7 @@ import env from "../lib/env.js";
 import { mkdir, writeFile, rm } from "fs/promises";
 import { join } from "path";
 import { createWriteStream } from "fs";
-import { createReadStream } from "fs";
-import { createGzip } from "zlib";
-import { pipeline } from "stream/promises";
+import archiver from "archiver";
 
 const execAsync = promisify(exec);
 
@@ -169,23 +167,37 @@ export class HLSService {
       const inputPath = join(tempDir, file.name);
       await writeFile(inputPath, Buffer.from(buffer));
 
-      // Convert to HLS using FFmpeg
-      const ffmpegCommand = `ffmpeg -i ${inputPath} -c:v h264 -c:a aac -f hls -hls_time 10 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename ${outputDir}/segment_%03d.ts -master_pl_name master.m3u8 -var_stream_map "v:0,a:0" ${outputDir}/stream_%v.m3u8`;
+      // First, check if the video has audio
+      const { stdout } = await execAsync(
+        `ffprobe -i "${inputPath}" -show_streams -select_streams a`
+      );
+      const hasAudio = stdout.includes("codec_type=audio");
 
-      await execAsync(ffmpegCommand);
+      // Convert to HLS using FFmpeg with conditional audio mapping
+      const ffmpegCommand = hasAudio
+        ? `ffmpeg -i "${inputPath}" -c:v h264 -c:a aac -f hls -hls_time 10 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "${outputDir}/segment_%03d.ts" -master_pl_name master.m3u8 -var_stream_map "v:0,a:0" "${outputDir}/stream_%v.m3u8"`
+        : `ffmpeg -i "${inputPath}" -c:v h264 -f hls -hls_time 10 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "${outputDir}/segment_%03d.ts" -master_pl_name master.m3u8 -var_stream_map "v:0" "${outputDir}/stream_%v.m3u8"`;
 
-      // Create ZIP file
+      await execAsync(ffmpegCommand, { maxBuffer: Infinity });
+
+      // Create ZIP file using archiver
+      const archive = archiver("zip", {
+        zlib: { level: 9 }, // Maximum compression
+        store: true, // Store files without compression if they're already compressed
+      });
+
       const writeStream = createWriteStream(zipPath);
-      const gzip = createGzip();
-      const readStream = createReadStream(outputDir);
-
-      await pipeline(readStream, gzip, writeStream);
+      archive.pipe(writeStream);
+      archive.directory(outputDir, false);
+      await archive.finalize();
 
       return { zipPath };
     } catch (error) {
+      logger.error("Error processing upload:", error);
+      throw error;
+    } finally {
       // Clean up temp files
       await rm(tempDir, { recursive: true, force: true });
-      throw error;
     }
   }
 }
