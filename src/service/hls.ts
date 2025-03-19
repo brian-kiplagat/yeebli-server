@@ -194,7 +194,7 @@ export class HLSService {
 
       // Process each quality variant separately
       for (const quality of qualities) {
-        const outputDir = join(streamDir, quality.name);
+        const qualityOutputDir = join(streamDir, quality.name);
         const ffmpegCommand = `ffmpeg -i "${inputPath}" \
           -vf "scale=w=${quality.width}:h=${quality.height}" \
           -c:v libx264 -b:v ${quality.bitrate} -preset fast -crf 23 \
@@ -205,8 +205,8 @@ export class HLSService {
           -hls_flags split_by_time \
           -hls_segment_type mpegts \
           -hls_list_size 0 \
-          -hls_segment_filename "${outputDir}/segment_%03d.ts" \
-          "${outputDir}/playlist.m3u8"`;
+          -hls_segment_filename \\"${qualityOutputDir}/segment_%03d.ts\\" \
+          \\"${qualityOutputDir}/playlist.m3u8\\"`;
 
         await execAsync(ffmpegCommand, { maxBuffer: Infinity });
       }
@@ -231,7 +231,7 @@ export class HLSService {
 
       const writeStream = createWriteStream(zipPath);
       archive.pipe(writeStream);
-      archive.directory(outputDir, false);
+      archive.directory(streamDir, false);
 
       // Wait for the archive to finish writing
       await new Promise<void>((resolve, reject) => {

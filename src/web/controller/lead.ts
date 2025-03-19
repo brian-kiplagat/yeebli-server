@@ -67,7 +67,7 @@ export class LeadController {
 
       const leadId = Number(c.req.param("id"));
       const lead = await this.service.find(leadId);
-      if (!lead || lead.userId !== user.id) {
+      if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
 
