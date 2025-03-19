@@ -160,35 +160,34 @@ export class HLSService {
     const zipPath = join(tempDir, "hls_output.zip");
 
     try {
-      // Create temp directories
-      await mkdir(tempDir, { recursive: true });
-      await mkdir(outputDir, { recursive: true });
+      // Create directories in parallel
+      await Promise.all([
+        mkdir(tempDir, { recursive: true }),
+        mkdir(outputDir, { recursive: true }),
+      ]);
 
       // Save uploaded file
-      const buffer = await file.arrayBuffer();
+      const buffer = Buffer.from(await file.arrayBuffer());
       const inputPath = join(tempDir, file.name);
-      await writeFile(inputPath, Buffer.from(buffer));
+      await writeFile(inputPath, buffer);
 
-      // First, check if the video has audio
-      const { stdout } = await execAsync(
-        `ffprobe -i "${inputPath}" -show_streams -select_streams a`
-      );
-      const hasAudio = stdout.includes("codec_type=audio");
-
-      if (!hasAudio) {
-        throw new Error("Video must contain audio track");
+      // Check if video has audio
+      const ffprobeCmd = `ffprobe -i "${inputPath}" -show_streams -select_streams a`;
+      const { stdout } = await execAsync(ffprobeCmd);
+      if (!stdout.includes("codec_type=audio")) {
+        throw new Error("Video must contain an audio track");
       }
 
-      // Convert to HLS using FFmpeg
+      // Optimize FFmpeg command for speed
       const ffmpegCommand = `ffmpeg -i "${inputPath}" \
         -filter_complex \
           "[0:v]split=3[v1][v2][v3]; \
            [v1]scale=w=1920:h=1080[v1out]; \
            [v2]scale=w=1280:h=720[v2out]; \
            [v3]scale=w=854:h=480[v3out]" \
-        -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -maxrate:v:0 5350k -bufsize:v:0 7500k \
-        -map "[v2out]" -c:v:1 libx264 -b:v:1 2800k -maxrate:v:1 2996k -bufsize:v:1 4200k \
-        -map "[v3out]" -c:v:2 libx264 -b:v:2 1400k -maxrate:v:2 1498k -bufsize:v:2 2100k \
+        -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -maxrate:v:0 5350k -bufsize:v:0 7500k -preset ultrafast \
+        -map "[v2out]" -c:v:1 libx264 -b:v:1 2800k -maxrate:v:1 2996k -bufsize:v:1 4200k -preset ultrafast \
+        -map "[v3out]" -c:v:2 libx264 -b:v:2 1400k -maxrate:v:2 1498k -bufsize:v:2 2100k -preset ultrafast \
         -map a:0 -c:a aac -b:a:0 192k -ac 2 \
         -map a:0 -c:a aac -b:a:1 128k -ac 2 \
         -map a:0 -c:a aac -b:a:2 96k -ac 2 \
@@ -202,9 +201,10 @@ export class HLSService {
         -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" \
         "${outputDir}/stream_%v/playlist.m3u8"`;
 
-      await execAsync(ffmpegCommand, { maxBuffer: Infinity });
+      // Execute FFmpeg with increased buffer size
+      await execAsync(ffmpegCommand, { maxBuffer: 1024 * 1024 * 500 });
 
-      // Create ZIP file using archiver
+      // Create ZIP file using archiver with optimized settings
       const archive = archiver("zip", {
         zlib: { level: 9 },
         store: true,
@@ -214,15 +214,12 @@ export class HLSService {
       archive.pipe(writeStream);
       archive.directory(outputDir, false);
 
-      // Wait for the archive to finish writing
+      // Wait for the archive to complete
       await new Promise<void>((resolve, reject) => {
-        writeStream.on("close", () => resolve());
-        writeStream.on("error", (err) => reject(err));
+        writeStream.on("close", resolve);
+        writeStream.on("error", reject);
         archive.finalize();
       });
-
-      // Verify the ZIP file exists
-      await fs.access(zipPath);
 
       return { zipPath, tempDir };
     } catch (error) {
