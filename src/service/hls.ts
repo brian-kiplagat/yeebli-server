@@ -12,6 +12,7 @@ import { mkdir, writeFile, rm } from "fs/promises";
 import { join } from "path";
 import { Resolution } from "../web/validator/hls.ts";
 import { v4 as uuidv4 } from "uuid";
+import { createReadStream } from "fs";
 const execAsync = promisify(exec);
 
 export class HLSService {
@@ -147,13 +148,22 @@ export class HLSService {
             ? "application/x-mpegURL"
             : "video/MP2T";
 
-          uploadPromises.push(
-            fs
-              .readFile(filePath)
-              .then((content) =>
-                this.s3Service.uploadFile(s3Key, content, contentType)
+          if (file.endsWith(".m3u8")) {
+            // For playlist files, read the content first
+            const content = await fs.readFile(filePath, "utf8");
+            uploadPromises.push(
+              this.s3Service.uploadFile(s3Key, content, contentType)
+            );
+          } else {
+            // For video segments, use streaming upload
+            uploadPromises.push(
+              this.s3Service.uploadFile(
+                s3Key,
+                createReadStream(filePath),
+                contentType
               )
-          );
+            );
+          }
         }
       }
 

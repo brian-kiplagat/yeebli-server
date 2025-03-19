@@ -7,6 +7,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import env from "../lib/env.js";
+import { Readable } from "stream";
 
 export class S3Service {
   private client: S3Client;
@@ -76,7 +77,11 @@ export class S3Service {
     await this.client.send(command);
   }
 
-  async uploadFile(key: string, content: string | Buffer, contentType: string) {
+  async uploadFile(
+    key: string,
+    content: string | Buffer | Readable,
+    contentType: string
+  ) {
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
