@@ -3,6 +3,7 @@ import { logger } from "../../lib/logger.js";
 import type { HLSService } from "../../service/hls.js";
 import type { UserService } from "../../service/user.js";
 import type { AssetService } from "../../service/asset.js";
+import { Resolution } from "../validator/hls.js";
 import {
   ERRORS,
   serveBadRequest,
@@ -48,6 +49,7 @@ export class HLSController {
 
       const formData = await c.req.formData();
       const file = formData.get("file") as File;
+      const resolutions = formData.getAll("resolutions") as Resolution[];
 
       if (!file || !file.name.endsWith(".mp4")) {
         return serveBadRequest(
@@ -56,7 +58,10 @@ export class HLSController {
         );
       }
 
-      const { zipPath, tempDir } = await this.service.processUpload(file);
+      const { zipPath, tempDir } = await this.service.processUpload(
+        file,
+        resolutions || ["720p", "480p"]
+      );
 
       // Set headers for ZIP download
       c.header("Content-Type", "application/zip");

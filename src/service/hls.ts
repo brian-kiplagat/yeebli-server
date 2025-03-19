@@ -12,6 +12,7 @@ import { mkdir, writeFile, rm } from "fs/promises";
 import { join } from "path";
 import { createWriteStream } from "fs";
 import archiver from "archiver";
+import { Resolution } from "../web/validator/hls.ts";
 
 const execAsync = promisify(exec);
 
@@ -153,7 +154,8 @@ export class HLSService {
   }
 
   public async processUpload(
-    file: File
+    file: File,
+    allowList: Resolution[]
   ): Promise<{ zipPath: string; tempDir: string }> {
     const tempDir = join(process.cwd(), "temp", Date.now().toString());
     const outputDir = join(tempDir, "output");
@@ -170,9 +172,6 @@ export class HLSService {
       const buffer = Buffer.from(await file.arrayBuffer());
       const inputPath = join(tempDir, file.name);
       await writeFile(inputPath, buffer);
-
-      type Resolution = "1080p" | "720p" | "480p" | "360p";
-      const allowList: Resolution[] = ["720p", "480p"]; // Allowed resolutions
 
       const resolutions = {
         "1080p": {
