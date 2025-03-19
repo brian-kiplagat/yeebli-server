@@ -136,8 +136,16 @@ export class EventController {
       const eventId = Number(c.req.param("id"));
       const event = await this.service.getEvent(eventId);
 
-      if (!event || (user.role !== "master" && event.host_id !== user.id)) {
+      if (!event) {
         return serveNotFound(c);
+      }
+      //only and master role or admin or the owner of the lead
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        event.host_id !== user.id
+      ) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       await this.service.deleteEvent(eventId);

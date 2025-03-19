@@ -53,6 +53,7 @@ const ERRORS = {
   LEAD_NOT_FOUND: "Ops, this lead does not exist, please check",
   EVENT_NOT_FOUND: "Ops, this event does not exist, please check",
   ASSET_NOT_FOUND: "Ops, we could not find the associated asset for this event",
+  NOT_ALLOWED: "Ops, you are not allowed to do this action.",
 };
 
 export {

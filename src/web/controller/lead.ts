@@ -128,6 +128,14 @@ export class LeadController {
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
+      //only and master role or admin or the owner of the lead
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        lead.userId !== user.id
+      ) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
+      }
 
       await this.service.delete(leadId);
       return c.json({ message: "Lead deleted successfully" });
