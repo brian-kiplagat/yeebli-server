@@ -3,7 +3,7 @@ import { logger } from "../../lib/logger.js";
 import type { HLSService } from "../../service/hls.js";
 import type { UserService } from "../../service/user.js";
 import type { AssetService } from "../../service/asset.js";
-import { Resolution } from "../validator/hls.js";
+import { HLSUploadBody, Resolution } from "../validator/hls.js";
 import {
   ERRORS,
   serveBadRequest,
@@ -47,16 +47,16 @@ export class HLSController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const formData = await c.req.formData();
-      const file = formData.get("file") as File;
-      const resolutions = formData.getAll("resolutions") as Resolution[];
+      const body: HLSUploadBody = await c.req.json();
+      const { base64, resolutions } = body;
 
-      if (!file || !file.name.endsWith(".mp4")) {
-        return serveBadRequest(
-          c,
-          "Invalid file format. Only MP4 files are supported."
-        );
+      if (!base64 || !resolutions) {
+        return serveBadRequest(c, "Missing base64 string or resolutions array");
       }
+
+      // Convert base64 to File object
+      const buffer = Buffer.from(base64, "base64");
+      const file = new File([buffer], "input.mp4", { type: "video/mp4" });
 
       const { zipPath, tempDir } = await this.service.processUpload(
         file,

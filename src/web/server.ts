@@ -47,6 +47,7 @@ import { S3Service } from "../service/s3.js";
 import { S3Controller } from "./controller/s3.js";
 import { eventQueryValidator } from "./validator/event.ts";
 import { assetQueryValidator } from "./validator/asset.ts";
+import { hlsUploadValidator } from "./validator/hls.ts";
 
 export class Server {
   private app: Hono;
@@ -229,7 +230,7 @@ export class Server {
     const hls = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    hls.post("/upload", authCheck, hlsCtrl.upload);
+    hls.post("/upload", authCheck, hlsUploadValidator, hlsCtrl.upload);
     hls.post("/process", authCheck, hlsCtrl.processVideo);
     hls.post("/process-pending", authCheck, hlsCtrl.processPendingVideos);
     api.route("/hls", hls);

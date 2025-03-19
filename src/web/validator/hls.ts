@@ -6,17 +6,20 @@ const MAX_FILE_SIZE = 1024 * 1024 * 500; // 500MB
 export const resolutionSchema = z.enum(["1080p", "720p", "480p", "360p"]);
 
 export const hlsUploadSchema = z.object({
-  file: z.object({
-    name: z
-      .string()
-      .endsWith(".mp4", { message: "Only MP4 files are supported" }),
-    size: z.number().max(MAX_FILE_SIZE, {
-      message: `File size must not exceed ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
-    }),
-    type: z.string().refine((type) => type === "video/mp4", {
-      message: "Content type must be video/mp4",
-    }),
-  }),
+  base64: z
+    .string()
+    .min(1, "Base64 string is required")
+    .refine(
+      (val) => {
+        try {
+          const buffer = Buffer.from(val, "base64");
+          return buffer.length <= MAX_FILE_SIZE;
+        } catch {
+          return false;
+        }
+      },
+      `File size must not exceed ${MAX_FILE_SIZE / (1024 * 1024)}MB`
+    ),
   resolutions: z
     .array(resolutionSchema)
     .min(1, { message: "At least one resolution must be selected" })
@@ -24,9 +27,7 @@ export const hlsUploadSchema = z.object({
     .default(["720p", "480p"]),
 });
 
-export const hlsUploadValidator = zValidator("form", hlsUploadSchema);
+export const hlsUploadValidator = zValidator("json", hlsUploadSchema);
 
-export type HLSUploadRequest = z.infer<typeof hlsUploadSchema>;
-
-
+export type HLSUploadBody = z.infer<typeof hlsUploadSchema>;
 export type Resolution = z.infer<typeof resolutionSchema>;
