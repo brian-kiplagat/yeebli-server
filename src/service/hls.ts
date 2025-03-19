@@ -8,6 +8,12 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import path from "path";
 import env from "../lib/env.js";
+import { mkdir, writeFile, rm } from "fs/promises";
+import { join } from "path";
+import { createWriteStream } from "fs";
+import { createReadStream } from "fs";
+import { createGzip } from "zlib";
+import { pipeline } from "stream/promises";
 
 const execAsync = promisify(exec);
 
@@ -144,6 +150,41 @@ export class HLSService {
       await this.assetService.updateAsset(videoId, {
         processing_status: "failed",
       });
+      throw error;
+    }
+  }
+
+  public async processUpload(file: File): Promise<{ zipPath: string }> {
+    const tempDir = join(process.cwd(), "temp", Date.now().toString());
+    const outputDir = join(tempDir, "output");
+    const zipPath = join(tempDir, "hls_output.zip");
+
+    try {
+      // Create temp directories
+      await mkdir(tempDir, { recursive: true });
+      await mkdir(outputDir, { recursive: true });
+
+      // Save uploaded file
+      const buffer = await file.arrayBuffer();
+      const inputPath = join(tempDir, file.name);
+      await writeFile(inputPath, Buffer.from(buffer));
+
+      // Convert to HLS using FFmpeg
+      const ffmpegCommand = `ffmpeg -i ${inputPath} -c:v h264 -c:a aac -f hls -hls_time 10 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename ${outputDir}/segment_%03d.ts -master_pl_name master.m3u8 -var_stream_map "v:0,a:0" ${outputDir}/stream_%v.m3u8`;
+
+      await execAsync(ffmpegCommand);
+
+      // Create ZIP file
+      const writeStream = createWriteStream(zipPath);
+      const gzip = createGzip();
+      const readStream = createReadStream(outputDir);
+
+      await pipeline(readStream, gzip, writeStream);
+
+      return { zipPath };
+    } catch (error) {
+      // Clean up temp files
+      await rm(tempDir, { recursive: true, force: true });
       throw error;
     }
   }

@@ -229,6 +229,7 @@ export class Server {
     const hls = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
+    hls.post("/upload", authCheck, hlsCtrl.upload);
     hls.post("/process", authCheck, hlsCtrl.processVideo);
     hls.post("/process-pending", authCheck, hlsCtrl.processPendingVideos);
     api.route("/hls", hls);

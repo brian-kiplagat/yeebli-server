@@ -10,6 +10,8 @@ import {
   serveNotFound,
 } from "./resp/error.js";
 import { z } from "zod";
+import { createReadStream } from "fs";
+import { statSync } from "fs";
 
 const processVideoSchema = z.object({
   videoId: z.number(),
@@ -36,6 +38,41 @@ export class HLSController {
     if (!userId) return null;
     return this.userService.find(parseInt(userId));
   }
+
+  public upload = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const formData = await c.req.formData();
+      const file = formData.get("file") as File;
+      logger.info(file);
+      if (!file || !file.name.endsWith(".mp4")) {
+        return serveBadRequest(
+          c,
+          "Invalid file format. Only MP4 files are supported."
+        );
+      }
+
+      const result = await this.service.processUpload(file);
+
+      // Set headers for ZIP download
+      c.header("Content-Type", "application/zip");
+      c.header("Content-Disposition", `attachment; filename="hls_output.zip"`);
+
+      // Stream the ZIP file
+      const fileStream = createReadStream(result.zipPath);
+      const stats = statSync(result.zipPath);
+      c.header("Content-Length", stats.size.toString());
+
+      return new Response(fileStream as any);
+    } catch (error) {
+      logger.error("Upload processing failed:", error);
+      return serveInternalServerError(c, error);
+    }
+  };
 
   public processVideo = async (c: Context) => {
     try {
