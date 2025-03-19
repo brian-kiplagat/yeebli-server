@@ -115,11 +115,7 @@ export class Server {
     );
     const s3Controller = new S3Controller(s3Service);
     const assetController = new AssetController(assetService, userService);
-    const hlsController = new HLSController(
-      hlsService,
-      userService,
-      assetService
-    );
+    const hlsController = new HLSController(hlsService, userService);
 
     // Register routes
     this.registerUserRoutes(api, authController);
@@ -231,8 +227,7 @@ export class Server {
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     hls.post("/upload", authCheck, hlsUploadValidator, hlsCtrl.upload);
-    hls.post("/process", authCheck, hlsCtrl.processVideo);
-    hls.post("/process-pending", authCheck, hlsCtrl.processPendingVideos);
+
     api.route("/hls", hls);
   }
 
