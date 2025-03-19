@@ -119,8 +119,8 @@ export class HLSService {
       await execAsync(ffmpegCommand, { maxBuffer: 1024 * 1024 * 500 });
 
       // Generate a unique key for the HLS files
-      const timestamp = Date.now();
-      const s3BasePath = `assets/hls/${timestamp}`;
+      const key = uuidv4();
+      const s3BasePath = `assets/hls/${key}`;
 
       // Upload master playlist
       const masterContent = await fs.readFile(
