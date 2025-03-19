@@ -171,13 +171,6 @@ export class HLSService {
       const inputPath = join(tempDir, file.name);
       await writeFile(inputPath, buffer);
 
-      // Check if video has audio
-      const ffprobeCmd = `ffprobe -i "${inputPath}" -show_streams -select_streams a`;
-      const { stdout } = await execAsync(ffprobeCmd);
-      if (!stdout.includes("codec_type=audio")) {
-        throw new Error("Video must contain an audio track");
-      }
-
       // Optimize FFmpeg command for speed
       const ffmpegCommand = `ffmpeg -i "${inputPath}" \
         -filter_complex \
