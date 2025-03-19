@@ -171,7 +171,14 @@ export class HLSService {
       const inputPath = join(tempDir, file.name);
       await writeFile(inputPath, buffer);
 
-      // Optimize FFmpeg command for speed with graceful audio handling
+      // Check if video has audio
+      const ffprobeCmd = `ffprobe -i "${inputPath}" -show_streams -select_streams a`;
+      const { stdout } = await execAsync(ffprobeCmd);
+      if (!stdout.includes("codec_type=audio")) {
+        throw new Error("Video must contain an audio track");
+      }
+
+      // Optimize FFmpeg command for speed
       const ffmpegCommand = `ffmpeg -i "${inputPath}" \
         -filter_complex \
           "[0:v]split=3[v1][v2][v3]; \
@@ -181,9 +188,9 @@ export class HLSService {
         -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -maxrate:v:0 5350k -bufsize:v:0 7500k -preset ultrafast \
         -map "[v2out]" -c:v:1 libx264 -b:v:1 2800k -maxrate:v:1 2996k -bufsize:v:1 4200k -preset ultrafast \
         -map "[v3out]" -c:v:2 libx264 -b:v:2 1400k -maxrate:v:2 1498k -bufsize:v:2 2100k -preset ultrafast \
-        -map a:0? -c:a aac -b:a:0 192k -ac 2 \
-        -map a:0? -c:a aac -b:a:1 128k -ac 2 \
-        -map a:0? -c:a aac -b:a:2 96k -ac 2 \
+        -map a:0 -c:a aac -b:a:0 192k -ac 2 \
+        -map a:0 -c:a aac -b:a:1 128k -ac 2 \
+        -map a:0 -c:a aac -b:a:2 96k -ac 2 \
         -f hls \
         -hls_time 10 \
         -hls_playlist_type vod \
@@ -191,7 +198,7 @@ export class HLSService {
         -hls_segment_type mpegts \
         -hls_segment_filename "${outputDir}/stream_%v/data%03d.ts" \
         -master_pl_name master.m3u8 \
-        -var_stream_map "v:0,a:0? v:1,a:1? v:2,a:2?" \
+        -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" \
         "${outputDir}/stream_%v/playlist.m3u8"`;
 
       // Execute FFmpeg with increased buffer size
