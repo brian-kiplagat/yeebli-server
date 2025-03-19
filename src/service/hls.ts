@@ -225,7 +225,7 @@ export class HLSService {
         .join(" ");
 
       const streamMap = allowList
-        .map((_, index) => `v:${index},a:${index}?`)
+        .map((_, index) => `v:${index},a:${index}`)
         .join(" ");
 
       // Construct FFmpeg command dynamically
