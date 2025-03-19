@@ -189,7 +189,16 @@ export class HLSService {
       const writeStream = createWriteStream(zipPath);
       archive.pipe(writeStream);
       archive.directory(outputDir, false);
-      await archive.finalize();
+
+      // Wait for the archive to finish writing
+      await new Promise<void>((resolve, reject) => {
+        writeStream.on("close", () => resolve());
+        writeStream.on("error", (err) => reject(err));
+        archive.finalize();
+      });
+
+      // Verify the ZIP file exists
+      await fs.access(zipPath);
 
       return { zipPath };
     } catch (error) {
