@@ -179,8 +179,21 @@ export class HLSService {
         throw new Error("Video must contain audio track");
       }
 
-      // Convert to HLS using FFmpeg with proper audio stream mapping
-      const ffmpegCommand = `ffmpeg -i "${inputPath}" -filter_complex "[0:v]split=3[v1][v2][v3]; [v1]scale=w=1920:h=1080[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]" -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -preset fast -crf 23 -g 60 -map 0:a -c:a:0 aac -b:a:0 128k -map "[v2out]" -c:v:1 libx264 -b:v:1 2500k -preset fast -crf 23 -g 60 -map 0:a -c:a:1 aac -b:a:1 128k -map "[v3out]" -c:v:2 libx264 -b:v:2 1000k -preset fast -crf 23 -g 60 -map 0:a -c:a:2 aac -b:a:2 128k -f hls -hls_time 5 -hls_playlist_type vod -hls_flags independent_segments+split_by_time -hls_segment_type mpegts -hls_segment_filename "${outputDir}/segment_%v_%03d.ts" -master_pl_name master.m3u8 -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" "${outputDir}/stream_%v.m3u8"`;
+      // Create quality-specific directories
+      const streamDir = join(outputDir, `stream_${Date.now()}`);
+      const dirs = {
+        "1080p": join(streamDir, "1080p"),
+        "720p": join(streamDir, "720p"),
+        "360p": join(streamDir, "360p"),
+      };
+
+      // Create directories
+      for (const dir of Object.values(dirs)) {
+        await mkdir(dir, { recursive: true });
+      }
+
+      // Convert to HLS using FFmpeg with proper audio stream mapping and structured output
+      const ffmpegCommand = `ffmpeg -i "${inputPath}" -filter_complex "[0:v]split=3[v1][v2][v3]; [v1]scale=w=1920:h=1080[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]" -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -preset fast -crf 23 -g 60 -map 0:a -c:a:0 aac -b:a:0 128k -map "[v2out]" -c:v:1 libx264 -b:v:1 2500k -preset fast -crf 23 -g 60 -map 0:a -c:a:1 aac -b:a:1 128k -map "[v3out]" -c:v:2 libx264 -b:v:2 1000k -preset fast -crf 23 -g 60 -map 0:a -c:a:2 aac -b:a:2 128k -f hls -hls_time 5 -hls_playlist_type vod -hls_flags independent_segments+split_by_time -hls_segment_type mpegts -hls_segment_filename "${streamDir}/%v/segment_%03d.ts" -master_pl_name "${streamDir}/master.m3u8" -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" "${streamDir}/%v/playlist.m3u8"`;
 
       await execAsync(ffmpegCommand, { maxBuffer: Infinity });
 
