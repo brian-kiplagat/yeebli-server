@@ -171,91 +171,19 @@ export class HLSService {
       const inputPath = join(tempDir, file.name);
       await writeFile(inputPath, buffer);
 
-      // Resolution configurations
-      type Resolution = "1080p" | "720p" | "480p" | "360p";
-
-      interface ResolutionConfig {
-        width: number;
-        height: number;
-        bitrate: string;
-        maxrate: string;
-        bufsize: string;
-        audioBitrate: string;
-      }
-
-      const resolutionConfigs: Record<Resolution, ResolutionConfig> = {
-        "1080p": {
-          width: 1920,
-          height: 1080,
-          bitrate: "5000k",
-          maxrate: "5350k",
-          bufsize: "7500k",
-          audioBitrate: "192k",
-        },
-        "720p": {
-          width: 1280,
-          height: 720,
-          bitrate: "2800k",
-          maxrate: "2996k",
-          bufsize: "4200k",
-          audioBitrate: "128k",
-        },
-        "480p": {
-          width: 854,
-          height: 480,
-          bitrate: "1400k",
-          maxrate: "1498k",
-          bufsize: "2100k",
-          audioBitrate: "96k",
-        },
-        "360p": {
-          width: 640,
-          height: 360,
-          bitrate: "800k",
-          maxrate: "856k",
-          bufsize: "1200k",
-          audioBitrate: "64k",
-        },
-      };
-
-      const allowList: Resolution[] = ["720p", "480p"];
-
-      // Generate filter complex string based on allowList
-      const splits = allowList.map((_, i) => `[v${i}]`).join("");
-      const filterComplex =
-        `[0:v]split=${allowList.length}${splits}; ` +
-        allowList
-          .map((res, i) => {
-            const config = resolutionConfigs[res];
-            return `[v${i}]scale=w=${config.width}:h=${config.height}[v${i}out]`;
-          })
-          .join("; ");
-
-      // Generate map strings
-      const videoMaps = allowList
-        .map(
-          (_, i) =>
-            `-map "[v${i}out]" -c:v:${i} libx264 -b:v:${i} ${resolutionConfigs[allowList[i]].bitrate} ` +
-            `-maxrate:v:${i} ${resolutionConfigs[allowList[i]].maxrate} ` +
-            `-bufsize:v:${i} ${resolutionConfigs[allowList[i]].bufsize} -preset ultrafast`
-        )
-        .join(" \\\n        ");
-
-      const audioMaps = allowList
-        .map(
-          (res, i) =>
-            `-map a:0? -c:a aac -b:a:${i} ${resolutionConfigs[res].audioBitrate} -ac 2`
-        )
-        .join(" \\\n        ");
-
-      // Generate var_stream_map
-      const streamMap = allowList.map((_, i) => `v:${i},a:${i}?`).join(" ");
-
-      // Build the complete FFmpeg command
+      // Optimize FFmpeg command for speed
       const ffmpegCommand = `ffmpeg -i "${inputPath}" \
-        -filter_complex "${filterComplex}" \
-        ${videoMaps} \
-        ${audioMaps} \
+        -filter_complex \
+          "[0:v]split=3[v1][v2][v3]; \
+           [v1]scale=w=1920:h=1080[v1out]; \
+           [v2]scale=w=1280:h=720[v2out]; \
+           [v3]scale=w=854:h=480[v3out]" \
+        -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -maxrate:v:0 5350k -bufsize:v:0 7500k -preset ultrafast \
+        -map "[v2out]" -c:v:1 libx264 -b:v:1 2800k -maxrate:v:1 2996k -bufsize:v:1 4200k -preset ultrafast \
+        -map "[v3out]" -c:v:2 libx264 -b:v:2 1400k -maxrate:v:2 1498k -bufsize:v:2 2100k -preset ultrafast \
+        -map a:0 -c:a aac -b:a:0 192k -ac 2 \
+        -map a:0 -c:a aac -b:a:1 128k -ac 2 \
+        -map a:0 -c:a aac -b:a:2 96k -ac 2 \
         -f hls \
         -hls_time 10 \
         -hls_playlist_type vod \
@@ -263,24 +191,11 @@ export class HLSService {
         -hls_segment_type mpegts \
         -hls_segment_filename "${outputDir}/stream_%v/data%03d.ts" \
         -master_pl_name master.m3u8 \
-        -var_stream_map "${streamMap}" \
+        -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" \
         "${outputDir}/stream_%v/playlist.m3u8"`;
 
       // Execute FFmpeg with increased buffer size
       await execAsync(ffmpegCommand, { maxBuffer: 1024 * 1024 * 500 });
-
-      // Create master playlist manually with bandwidth information
-      const masterPlaylistContent = `#EXTM3U
-#EXT-X-VERSION:3
-${allowList
-  .map((res, i) => {
-    const config = resolutionConfigs[res];
-    return `#EXT-X-STREAM-INF:BANDWIDTH=${parseInt(config.bitrate) * 1000},RESOLUTION=${config.width}x${config.height},CODECS="avc1.4d401f,mp4a.40.2"
-stream_${i}/playlist.m3u8`;
-  })
-  .join("\n")}`;
-
-      await writeFile(join(outputDir, "master.m3u8"), masterPlaylistContent);
 
       // Create ZIP file using archiver with optimized settings
       const archive = archiver("zip", {
