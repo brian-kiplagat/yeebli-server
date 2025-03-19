@@ -58,30 +58,12 @@ export class HLSController {
       const buffer = Buffer.from(base64, "base64");
       const file = new File([buffer], "input.mp4", { type: "video/mp4" });
 
-      const { zipPath, tempDir } = await this.service.processUpload(
+      const { hlsUrl } = await this.service.processUpload(
         file,
         resolutions || ["720p", "480p"]
       );
 
-      // Set headers for ZIP download
-      c.header("Content-Type", "application/zip");
-      c.header("Content-Disposition", `attachment; filename="hls_output.zip"`);
-
-      // Stream the ZIP file
-      const fileStream = createReadStream(zipPath);
-      const stats = statSync(zipPath);
-      c.header("Content-Length", stats.size.toString());
-
-      // Clean up after sending the file
-      const response = new Response(fileStream as any);
-      response.headers.set("X-Cleanup-After", "true");
-
-      // Clean up temp directory after response is sent
-      this.service.cleanupTempDir(tempDir).catch((error) => {
-        logger.error("Failed to cleanup temp directory:", error);
-      });
-
-      return response;
+      return c.json({ hlsUrl });
     } catch (error) {
       logger.error("Upload processing failed:", error);
       return serveInternalServerError(c, error);

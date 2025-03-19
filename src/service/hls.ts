@@ -156,10 +156,9 @@ export class HLSService {
   public async processUpload(
     file: File,
     allowList: Resolution[]
-  ): Promise<{ zipPath: string; tempDir: string }> {
+  ): Promise<{ hlsUrl: string }> {
     const tempDir = join(process.cwd(), "temp", Date.now().toString());
     const outputDir = join(tempDir, "output");
-    const zipPath = join(tempDir, "hls_output.zip");
 
     try {
       // Create directories in parallel
@@ -222,11 +221,11 @@ export class HLSService {
         .join(" ");
 
       const audioMaps = allowList
-        .map((_, index) => `-map a:0 -c:a aac -b:a:${index} 128k -ac 2`)
+        .map((_, index) => `-map a:0? -c:a aac -b:a:${index} 128k -ac 2`)
         .join(" ");
 
       const streamMap = allowList
-        .map((_, index) => `v:${index},a:${index}`)
+        .map((_, index) => `v:${index},a:${index}?`)
         .join(" ");
 
       // Construct FFmpeg command dynamically
@@ -249,24 +248,45 @@ export class HLSService {
       // Execute FFmpeg with increased buffer size
       await execAsync(ffmpegCommand, { maxBuffer: 1024 * 1024 * 500 });
 
-      // Create ZIP file using archiver with optimized settings
-      const archive = archiver("zip", {
-        zlib: { level: 9 },
-        store: true,
-      });
+      // Generate a unique key for the HLS files
+      const timestamp = Date.now();
+      const s3BasePath = `assets/hls/${timestamp}`;
 
-      const writeStream = createWriteStream(zipPath);
-      archive.pipe(writeStream);
-      archive.directory(outputDir, false);
+      // Upload master playlist
+      const masterContent = await fs.readFile(
+        join(outputDir, "master.m3u8"),
+        "utf8"
+      );
+      await this.s3Service.uploadFile(
+        `${s3BasePath}/master.m3u8`,
+        masterContent,
+        "application/x-mpegURL"
+      );
 
-      // Wait for the archive to complete
-      await new Promise<void>((resolve, reject) => {
-        writeStream.on("close", resolve);
-        writeStream.on("error", reject);
-        archive.finalize();
-      });
+      // Upload variant playlists and segments
+      for (let i = 0; i < allowList.length; i++) {
+        const streamDir = join(outputDir, `stream_${i}`);
+        const files = await fs.readdir(streamDir);
 
-      return { zipPath, tempDir };
+        for (const file of files) {
+          const filePath = join(streamDir, file);
+          const content = await fs.readFile(filePath);
+          const s3Key = `${s3BasePath}/stream_${i}/${file}`;
+          const contentType = file.endsWith(".m3u8")
+            ? "application/x-mpegURL"
+            : "video/MP2T";
+
+          await this.s3Service.uploadFile(s3Key, content, contentType);
+        }
+      }
+
+      // Generate HLS URL
+      const hlsUrl = `https://${env.S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${s3BasePath}/master.m3u8`;
+
+      // Cleanup temporary files
+      await rm(tempDir, { recursive: true, force: true });
+
+      return { hlsUrl };
     } catch (error) {
       logger.error("Error processing upload:", error);
       throw error;
