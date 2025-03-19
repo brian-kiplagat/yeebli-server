@@ -48,7 +48,7 @@ export class HLSController {
 
       const formData = await c.req.formData();
       const file = formData.get("file") as File;
-      logger.info(file);
+
       if (!file || !file.name.endsWith(".mp4")) {
         return serveBadRequest(
           c,
@@ -56,18 +56,27 @@ export class HLSController {
         );
       }
 
-      const result = await this.service.processUpload(file);
+      const { zipPath, tempDir } = await this.service.processUpload(file);
 
       // Set headers for ZIP download
       c.header("Content-Type", "application/zip");
       c.header("Content-Disposition", `attachment; filename="hls_output.zip"`);
 
       // Stream the ZIP file
-      const fileStream = createReadStream(result.zipPath);
-      const stats = statSync(result.zipPath);
+      const fileStream = createReadStream(zipPath);
+      const stats = statSync(zipPath);
       c.header("Content-Length", stats.size.toString());
 
-      return new Response(fileStream as any);
+      // Clean up after sending the file
+      const response = new Response(fileStream as any);
+      response.headers.set("X-Cleanup-After", "true");
+
+      // Clean up temp directory after response is sent
+      this.service.cleanupTempDir(tempDir).catch((error) => {
+        logger.error("Failed to cleanup temp directory:", error);
+      });
+
+      return response;
     } catch (error) {
       logger.error("Upload processing failed:", error);
       return serveInternalServerError(c, error);

@@ -152,7 +152,9 @@ export class HLSService {
     }
   }
 
-  public async processUpload(file: File): Promise<{ zipPath: string }> {
+  public async processUpload(
+    file: File
+  ): Promise<{ zipPath: string; tempDir: string }> {
     const tempDir = join(process.cwd(), "temp", Date.now().toString());
     const outputDir = join(tempDir, "output");
     const zipPath = join(tempDir, "hls_output.zip");
@@ -200,13 +202,18 @@ export class HLSService {
       // Verify the ZIP file exists
       await fs.access(zipPath);
 
-      return { zipPath };
+      return { zipPath, tempDir };
     } catch (error) {
       logger.error("Error processing upload:", error);
       throw error;
-    } finally {
-      // Clean up temp files
+    }
+  }
+
+  public async cleanupTempDir(tempDir: string): Promise<void> {
+    try {
       await rm(tempDir, { recursive: true, force: true });
+    } catch (error) {
+      logger.error("Error cleaning up temp directory:", error);
     }
   }
 }
