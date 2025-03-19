@@ -181,41 +181,35 @@ export class HLSService {
 
       // Create quality-specific directories
       const streamDir = join(outputDir, `stream_${Date.now()}`);
-      const qualities = ["1080p", "720p", "360p"];
+      const qualities = [
+        { name: "1080p", width: 1920, height: 1080, bitrate: "5000k" },
+        { name: "720p", width: 1280, height: 720, bitrate: "2500k" },
+        { name: "360p", width: 640, height: 360, bitrate: "1000k" },
+      ];
 
       // Create directories
       for (const quality of qualities) {
-        await mkdir(join(streamDir, quality), { recursive: true });
+        await mkdir(join(streamDir, quality.name), { recursive: true });
       }
 
-      // Convert to HLS using FFmpeg with proper audio stream mapping and structured output
-      const ffmpegCommand = `ffmpeg -i "${inputPath}" \
-        -filter_complex "[0:v]split=3[v1][v2][v3]; \
-        [v1]scale=w=1920:h=1080[v1out]; \
-        [v2]scale=w=1280:h=720[v2out]; \
-        [v3]scale=w=640:h=360[v3out]" \
-        -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -preset fast -crf 23 -g 60 \
-        -map "[v2out]" -c:v:1 libx264 -b:v:1 2500k -preset fast -crf 23 -g 60 \
-        -map "[v3out]" -c:v:2 libx264 -b:v:2 1000k -preset fast -crf 23 -g 60 \
-        -map 0:a -c:a aac -b:a 128k \
-        -f hls \
-        -hls_time 5 \
-        -hls_playlist_type vod \
-        -hls_flags independent_segments+split_by_time \
-        -hls_segment_type mpegts \
-        -hls_list_size 0 \
-        -master_pl_name master.m3u8 \
-        -hls_segment_filename "${streamDir}/1080p/segment_%03d.ts" \
-        -var_stream_map "v:0,a:0" \
-        "${streamDir}/1080p/playlist.m3u8" \
-        -hls_segment_filename "${streamDir}/720p/segment_%03d.ts" \
-        -var_stream_map "v:1,a:0" \
-        "${streamDir}/720p/playlist.m3u8" \
-        -hls_segment_filename "${streamDir}/360p/segment_%03d.ts" \
-        -var_stream_map "v:2,a:0" \
-        "${streamDir}/360p/playlist.m3u8"`;
+      // Process each quality variant separately
+      for (const quality of qualities) {
+        const outputDir = join(streamDir, quality.name);
+        const ffmpegCommand = `ffmpeg -i "${inputPath}" \
+          -vf "scale=w=${quality.width}:h=${quality.height}" \
+          -c:v libx264 -b:v ${quality.bitrate} -preset fast -crf 23 \
+          -c:a aac -b:a 128k \
+          -f hls \
+          -hls_time 5 \
+          -hls_playlist_type vod \
+          -hls_flags split_by_time \
+          -hls_segment_type mpegts \
+          -hls_list_size 0 \
+          -hls_segment_filename "${outputDir}/segment_%03d.ts" \
+          "${outputDir}/playlist.m3u8"`;
 
-      await execAsync(ffmpegCommand, { maxBuffer: Infinity });
+        await execAsync(ffmpegCommand, { maxBuffer: Infinity });
+      }
 
       // Create master playlist manually
       const masterPlaylistContent = `#EXTM3U
