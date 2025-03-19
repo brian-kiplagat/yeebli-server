@@ -173,21 +173,15 @@ export class HLSService {
       // Generate HLS URL
       const hlsUrl = `https://${env.S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${s3BasePath}/master.m3u8`;
 
-      // Cleanup temporary files
-      //await rm(tempDir, { recursive: true, force: true });
+      // Cleanup temporary files in the background
+      rm(tempDir, { recursive: true, force: true }).catch((error) => {
+        logger.error("Failed to cleanup temp directory:", error);
+      });
 
       return { hlsUrl };
     } catch (error) {
       logger.error("Error processing upload:", error);
       throw error;
-    }
-  }
-
-  public async cleanupTempDir(tempDir: string): Promise<void> {
-    try {
-      await rm(tempDir, { recursive: true, force: true });
-    } catch (error) {
-      logger.error("Error cleaning up temp directory:", error);
     }
   }
 }
