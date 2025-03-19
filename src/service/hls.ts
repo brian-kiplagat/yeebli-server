@@ -182,9 +182,33 @@ export class HLSService {
       // Create quality-specific directories
       const streamDir = join(outputDir, `stream_${Date.now()}`);
       const qualities = [
-        { name: "1080p", width: 1920, height: 1080, bitrate: "5000k" },
-        { name: "720p", width: 1280, height: 720, bitrate: "2500k" },
-        { name: "360p", width: 640, height: 360, bitrate: "1000k" },
+        {
+          name: "1080p",
+          width: 1920,
+          height: 1080,
+          bitrate: "5000k",
+          maxrate: "5350k",
+          bufsize: "7500k",
+          audioBitrate: "192k",
+        },
+        {
+          name: "720p",
+          width: 1280,
+          height: 720,
+          bitrate: "2800k",
+          maxrate: "2996k",
+          bufsize: "4200k",
+          audioBitrate: "128k",
+        },
+        {
+          name: "480p",
+          width: 854,
+          height: 480,
+          bitrate: "1400k",
+          maxrate: "1498k",
+          bufsize: "2100k",
+          audioBitrate: "96k",
+        },
       ];
 
       // Create directories
@@ -192,34 +216,45 @@ export class HLSService {
         await mkdir(join(streamDir, quality.name), { recursive: true });
       }
 
-      // Process each quality variant separately
-      for (const quality of qualities) {
-        const qualityOutputDir = join(streamDir, quality.name);
-        const ffmpegCommand = `ffmpeg -i "${inputPath}" \
-          -vf "scale=w=${quality.width}:h=${quality.height}" \
-          -c:v libx264 -b:v ${quality.bitrate} -preset fast -crf 23 \
-          -c:a aac -b:a 128k \
-          -f hls \
-          -hls_time 5 \
-          -hls_playlist_type vod \
-          -hls_flags split_by_time \
-          -hls_segment_type mpegts \
-          -hls_list_size 0 \
-          -hls_segment_filename \\"${qualityOutputDir}/segment_%03d.ts\\" \
-          \\"${qualityOutputDir}/playlist.m3u8\\"`;
+      // Build the filter complex string
+      const filterComplex = `[0:v]split=3[v1][v2][v3]; \
+[v1]scale=w=1920:h=1080[v1out]; \
+[v2]scale=w=1280:h=720[v2out]; \
+[v3]scale=w=854:h=480[v3out]`;
 
-        await execAsync(ffmpegCommand, { maxBuffer: Infinity });
-      }
+      // Build the stream mapping string
+      const streamMaps = qualities.map((_, i) => `v:${i},a:${i}`).join(" ");
 
-      // Create master playlist manually
+      // Convert to HLS using FFmpeg with optimized settings
+      const ffmpegCommand = `ffmpeg -i "${inputPath}" \
+        -filter_complex "${filterComplex}" \
+        -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -maxrate:v:0 5350k -bufsize:v:0 7500k \
+        -map "[v2out]" -c:v:1 libx264 -b:v:1 2800k -maxrate:v:1 2996k -bufsize:v:1 4200k \
+        -map "[v3out]" -c:v:2 libx264 -b:v:2 1400k -maxrate:v:2 1498k -bufsize:v:2 2100k \
+        -map a:0 -c:a:0 aac -b:a:0 192k -ac 2 \
+        -map a:0 -c:a:1 aac -b:a:1 128k -ac 2 \
+        -map a:0 -c:a:2 aac -b:a:2 96k -ac 2 \
+        -f hls \
+        -hls_time 10 \
+        -hls_playlist_type vod \
+        -hls_flags independent_segments \
+        -hls_segment_type mpegts \
+        -hls_segment_filename "${streamDir}/%v/segment_%03d.ts" \
+        -master_pl_name master.m3u8 \
+        -var_stream_map "${streamMaps}" \
+        "${streamDir}/%v/playlist.m3u8"`;
+
+      await execAsync(ffmpegCommand, { maxBuffer: Infinity });
+
+      // Create master playlist manually with bandwidth information
       const masterPlaylistContent = `#EXTM3U
 #EXT-X-VERSION:3
-#EXT-X-STREAM-INF:BANDWIDTH=5500000,RESOLUTION=1920x1080
+#EXT-X-STREAM-INF:BANDWIDTH=5500000,RESOLUTION=1920x1080,CODECS="avc1.640028,mp4a.40.2"
 1080p/playlist.m3u8
-#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720
+#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720,CODECS="avc1.4d401f,mp4a.40.2"
 720p/playlist.m3u8
-#EXT-X-STREAM-INF:BANDWIDTH=1500000,RESOLUTION=640x360
-360p/playlist.m3u8`;
+#EXT-X-STREAM-INF:BANDWIDTH=1500000,RESOLUTION=854x480,CODECS="avc1.4d401f,mp4a.40.2"
+480p/playlist.m3u8`;
 
       await writeFile(join(streamDir, "master.m3u8"), masterPlaylistContent);
 
