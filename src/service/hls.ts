@@ -174,7 +174,7 @@ export class HLSService {
       const hlsUrl = `https://${env.S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${s3BasePath}/master.m3u8`;
 
       // Cleanup temporary files
-      await rm(tempDir, { recursive: true, force: true });
+      //await rm(tempDir, { recursive: true, force: true });
 
       return { hlsUrl };
     } catch (error) {
