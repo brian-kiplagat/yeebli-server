@@ -171,28 +171,81 @@ export class HLSService {
       const inputPath = join(tempDir, file.name);
       await writeFile(inputPath, buffer);
 
-      // Optimize FFmpeg command for speed
+      type Resolution = "1080p" | "720p" | "480p" | "360p";
+      const allowList: Resolution[] = ["720p", "480p"]; // Allowed resolutions
+
+      const resolutions = {
+        "1080p": {
+          width: 1920,
+          height: 1080,
+          bitrate: 5000,
+          maxrate: 5350,
+          bufsize: 7500,
+        },
+        "720p": {
+          width: 1280,
+          height: 720,
+          bitrate: 2800,
+          maxrate: 2996,
+          bufsize: 4200,
+        },
+        "480p": {
+          width: 854,
+          height: 480,
+          bitrate: 1400,
+          maxrate: 1498,
+          bufsize: 2100,
+        },
+        "360p": {
+          width: 640,
+          height: 360,
+          bitrate: 800,
+          maxrate: 900,
+          bufsize: 1200,
+        },
+      };
+
+      // Generate filter_complex dynamically
+      const videoFilters = allowList
+        .map(
+          (res, index) =>
+            `[v${index}]scale=w=${resolutions[res].width}:h=${resolutions[res].height}[v${index}out]`
+        )
+        .join("; ");
+
+      // Generate -map and encoding settings dynamically
+      const videoMaps = allowList
+        .map(
+          (res, index) =>
+            `-map "[v${index}out]" -c:v:${index} libx264 -b:v:${index} ${resolutions[res].bitrate}k ` +
+            `-maxrate:v:${index} ${resolutions[res].maxrate}k -bufsize:v:${index} ${resolutions[res].bufsize}k -preset ultrafast`
+        )
+        .join(" ");
+
+      const audioMaps = allowList
+        .map((_, index) => `-map a:0 -c:a aac -b:a:${index} 128k -ac 2`)
+        .join(" ");
+
+      const streamMap = allowList
+        .map((_, index) => `v:${index},a:${index}`)
+        .join(" ");
+
+      // Construct FFmpeg command dynamically
       const ffmpegCommand = `ffmpeg -i "${inputPath}" \
-        -filter_complex \
-          "[0:v]split=3[v1][v2][v3]; \
-           [v1]scale=w=1920:h=1080[v1out]; \
-           [v2]scale=w=1280:h=720[v2out]; \
-           [v3]scale=w=854:h=480[v3out]" \
-        -map "[v1out]" -c:v:0 libx264 -b:v:0 5000k -maxrate:v:0 5350k -bufsize:v:0 7500k -preset ultrafast \
-        -map "[v2out]" -c:v:1 libx264 -b:v:1 2800k -maxrate:v:1 2996k -bufsize:v:1 4200k -preset ultrafast \
-        -map "[v3out]" -c:v:2 libx264 -b:v:2 1400k -maxrate:v:2 1498k -bufsize:v:2 2100k -preset ultrafast \
-        -map a:0 -c:a aac -b:a:0 192k -ac 2 \
-        -map a:0 -c:a aac -b:a:1 128k -ac 2 \
-        -map a:0 -c:a aac -b:a:2 96k -ac 2 \
-        -f hls \
-        -hls_time 10 \
-        -hls_playlist_type vod \
-        -hls_flags independent_segments \
-        -hls_segment_type mpegts \
-        -hls_segment_filename "${outputDir}/stream_%v/data%03d.ts" \
-        -master_pl_name master.m3u8 \
-        -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" \
-        "${outputDir}/stream_%v/playlist.m3u8"`;
+  -filter_complex "[0:v]split=${allowList.length}${allowList.map((_, i) => `[v${i}]`).join("")}; ${videoFilters}" \
+  ${videoMaps} \
+  ${audioMaps} \
+  -f hls \
+  -hls_time 10 \
+  -hls_playlist_type vod \
+  -hls_flags independent_segments \
+  -hls_segment_type mpegts \
+  -hls_segment_filename "${outputDir}/stream_%v/data%03d.ts" \
+  -master_pl_name master.m3u8 \
+  -var_stream_map "${streamMap}" \
+  "${outputDir}/stream_%v/playlist.m3u8"`;
+
+      logger.info(ffmpegCommand);
 
       // Execute FFmpeg with increased buffer size
       await execAsync(ffmpegCommand, { maxBuffer: 1024 * 1024 * 500 });
