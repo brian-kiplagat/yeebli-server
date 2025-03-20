@@ -48,6 +48,7 @@ import { S3Controller } from "./controller/s3.js";
 import { eventQueryValidator } from "./validator/event.ts";
 import { assetQueryValidator } from "./validator/asset.ts";
 import { hlsUploadValidator } from "./validator/hls.ts";
+import { adminCreateUserValidator } from "./validator/admin.ts";
 
 export class Server {
   private app: Hono;
@@ -194,6 +195,12 @@ export class Server {
     admin.get("/user/:id", authCheck, adminCtrl.getParticularUser);
     admin.put("/user/:id", authCheck, adminCtrl.updateParticularUser);
     admin.get("/users", authCheck, adminCtrl.getUsers);
+    admin.post(
+      "/user",
+      authCheck,
+      adminCreateUserValidator,
+      adminCtrl.createUser
+    );
     admin.get("/leads", authCheck, adminCtrl.getLeads);
     admin.get("/events", authCheck, adminCtrl.getEvents);
     admin.delete("/user/:id", authCheck, adminCtrl.deleteUser);

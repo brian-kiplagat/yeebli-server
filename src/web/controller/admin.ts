@@ -11,6 +11,7 @@ import {
   adminUserQuerySchema,
   adminUserDetailsQuerySchema,
   adminUpdateUserSchema,
+  adminCreateUserSchema,
 } from "../validator/admin.js";
 import {
   ERRORS,
@@ -174,6 +175,33 @@ export class AdminController {
       const query = adminEventQuerySchema.parse(c.req.query());
       const result = await this.service.getEvents(query);
       return c.json(result);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public createUser = async (c: Context) => {
+    try {
+      const admin = await this.checkAdminAccess(c);
+      if (!admin) return;
+
+      const body = await c.req.json();
+      const { name, email, role, phone } = adminCreateUserSchema.parse(body);
+
+      // Check if user with email already exists
+      const existingUser = await this.userService.findByEmail(email);
+      if (existingUser) {
+        return serveBadRequest(c, "User with this email already exists");
+      }
+
+      // Create the user using userService
+      const newUser = await this.userService.create(name, email, 'Admin@12356', role, phone);
+
+      return c.json({
+        message: "User created successfully",
+        user: newUser,
+      });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

@@ -1,3 +1,4 @@
+import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
 export const adminUserQuerySchema = z.object({
@@ -30,21 +31,35 @@ export const adminEventQuerySchema = z.object({
 });
 
 export const adminUserDetailsQuerySchema = z.object({
-    include_events: z.coerce.boolean().optional().default(false),
-    include_leads: z.coerce.boolean().optional().default(false),
-    include_assets: z.coerce.boolean().optional().default(false),
-    page: z.coerce.number().optional().default(1),
-    limit: z.coerce.number().optional().default(100)
+  include_events: z.coerce.boolean().optional().default(false),
+  include_leads: z.coerce.boolean().optional().default(false),
+  include_assets: z.coerce.boolean().optional().default(false),
+  page: z.coerce.number().optional().default(1),
+  limit: z.coerce.number().optional().default(100),
 });
 
-export const adminUpdateUserSchema = z.object({
+export const adminUpdateUserSchema = z
+  .object({
     name: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().email().optional(),
     role: z.enum(["master", "owner", "host", "user"]).optional(),
-}).refine(data => Object.keys(data).length > 0, {
-    message: "At least one field must be provided for update"
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided for update",
+  });
+
+export const adminCreateUserSchema = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  role: z.enum(["master", "owner", "host", "user"]),
+  phone: z.string(),
 });
+
+export const adminCreateUserValidator = zValidator(
+  "json",
+  adminCreateUserSchema
+);
 
 export type AdminUserQuery = z.infer<typeof adminUserQuerySchema>;
 export type AdminLeadQuery = z.infer<typeof adminLeadQuerySchema>;

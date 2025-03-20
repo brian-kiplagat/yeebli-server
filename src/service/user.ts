@@ -16,10 +16,11 @@ export class UserService {
     name: string,
     email: string,
     password: string,
-    role: "master" | "owner" | "host" | "user"
+    role: "master" | "owner" | "host" | "user",
+    phone: string
   ) {
     const hashedPassword = encrypt(password);
-    await this.repo.create({ name, email, password: hashedPassword, role });
+    await this.repo.create({ name, email, password: hashedPassword, role, phone });
   }
 
   public async findByEmail(email: string) {
