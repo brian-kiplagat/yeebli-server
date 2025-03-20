@@ -66,3 +66,4 @@ export type AdminLeadQuery = z.infer<typeof adminLeadQuerySchema>;
 export type AdminEventQuery = z.infer<typeof adminEventQuerySchema>;
 export type AdminUserDetailsQuery = z.infer<typeof adminUserDetailsQuerySchema>;
 export type AdminUpdateUser = z.infer<typeof adminUpdateUserSchema>;
+export type AdminCreateUserBody = z.infer<typeof adminCreateUserSchema>;

@@ -12,6 +12,7 @@ import {
   adminUserDetailsQuerySchema,
   adminUpdateUserSchema,
   adminCreateUserSchema,
+  AdminCreateUserBody,
 } from "../validator/admin.js";
 import {
   ERRORS,
@@ -186,7 +187,7 @@ export class AdminController {
       const admin = await this.checkAdminAccess(c);
       if (!admin) return;
 
-      const body = await c.req.json();
+      const body: AdminCreateUserBody = await c.req.json();
       const { name, email, role, phone } = adminCreateUserSchema.parse(body);
 
       // Check if user with email already exists
