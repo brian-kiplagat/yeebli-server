@@ -103,8 +103,16 @@ export class LeadController {
 
       const leadId = Number(c.req.param("id"));
       const lead = await this.service.find(leadId);
-      if (!lead || lead.userId !== user.id) {
+      if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
+      }
+      //only and master role or admin or the owner of the lead
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        lead.userId !== user.id
+      ) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const body = await c.req.json();

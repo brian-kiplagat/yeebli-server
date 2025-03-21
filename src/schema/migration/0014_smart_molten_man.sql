@@ -1,0 +1,1 @@
+ALTER TABLE `events` ADD `status` enum('active','suspended','cancelled') DEFAULT 'active';

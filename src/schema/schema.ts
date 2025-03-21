@@ -69,6 +69,9 @@ export const eventSchema = mysqlTable("events", {
   end_time: varchar("end_time", { length: 50 }).notNull(), // Format: HH:MM
   asset_id: int("asset_id").references(() => assetsSchema.id),
   created_at: timestamp("created_at").defaultNow(),
+  status: mysqlEnum("status", ["active", "suspended", "cancelled"]).default(
+    "active"
+  ),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   host_id: int("host_id")
     .references(() => userSchema.id)

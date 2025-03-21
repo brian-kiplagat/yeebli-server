@@ -8,6 +8,7 @@ const eventSchema = z.object({
   start_time: z.string(),
   end_time: z.string(),
   asset_id: z.string(),
+  status: z.enum(["active", "suspended", "cancelled"]),
 });
 
 export const eventValidator = zValidator("json", eventSchema);
