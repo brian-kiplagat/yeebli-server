@@ -157,6 +157,14 @@ export class AssetController {
       if (!asset) {
         return serveNotFound(c);
       }
+      //only and master role or admin or the owner of the  can update the asset
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        asset.user_id !== user.id
+      ) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
+      }
 
       const { fileName } = renameAssetSchema.parse(await c.req.json());
       const originalExt = asset.asset_name.split(".").pop()?.toLowerCase();

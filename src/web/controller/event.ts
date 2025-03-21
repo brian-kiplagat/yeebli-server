@@ -112,8 +112,16 @@ export class EventController {
       const eventId = Number(c.req.param("id"));
       const event = await this.service.getEvent(eventId);
 
-      if (!event || (user.role !== "master" && event.host_id !== user.id)) {
+      if (!event) {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+      //only and master role or admin or the owner of the event can update the event
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        event.host_id !== user.id
+      ) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const body = await c.req.json();

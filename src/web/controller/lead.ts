@@ -106,7 +106,7 @@ export class LeadController {
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
-      //only and master role or admin or the owner of the lead
+      //only and master role or admin or the owner of the lead can update the lead
       if (
         user.role !== "master" &&
         user.role !== "owner" &&
