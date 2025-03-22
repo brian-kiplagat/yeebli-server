@@ -42,6 +42,7 @@ export const leadSchema = mysqlTable("leads", {
   host_id: int("host_id")
     .references(() => userSchema.id)
     .notNull(),
+  token: varchar("token", { length: 255 }),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   status_identifier: mysqlEnum("status_identifier", [

@@ -2,20 +2,14 @@ import type { Context } from "hono";
 import { logger } from "../../lib/logger.ts";
 import type { LeadService } from "../../service/lead.js";
 import type { UserService } from "../../service/user.ts";
-import {
-  LeadBody,
-  ExternalFormBody,
-  externalFormValidator,
-} from "../validator/lead.ts";
 import type { NewLead } from "../../schema/schema.js";
 import {
   ERRORS,
   serveBadRequest,
   serveInternalServerError,
-  serveNotFound,
 } from "./resp/error.js";
 import { externalFormSchema } from "../validator/lead.ts";
-
+import { v4 as uuidv4 } from "uuid";
 export class LeadController {
   private service: LeadService;
   private userService: UserService;
@@ -169,6 +163,7 @@ export class LeadController {
         form_identifier: "external_form",
         status_identifier: "Form",
         userId: validatedData.host_id,
+        token: uuidv4(),
         source_url: c.req.header("Referer") || "direct",
       };
 
