@@ -51,6 +51,12 @@ export const leadSchema = mysqlTable("leads", {
     "Member",
     "Inactive Member",
   ]).default("Manual"),
+  lead_status: mysqlEnum("lead_status", [
+    "Level 1",
+    "Level 2",
+    "Level 3",
+    "Level 4",
+  ]).default("Level 1"),
   source_url: text("source_url"),
   membership_level: mysqlEnum("membership_level", [
     "Silver",
@@ -65,8 +71,6 @@ export const eventSchema = mysqlTable("events", {
   event_name: varchar("event_name", { length: 255 }).notNull(),
   event_description: text("event_description"),
   event_date: varchar("event_date", { length: 50 }).notNull(), // Format: MM/DD/YYYY
-  start_time: varchar("start_time", { length: 50 }).notNull(), // Format: HH:MM
-  end_time: varchar("end_time", { length: 50 }).notNull(), // Format: HH:MM
   asset_id: int("asset_id").references(() => assetsSchema.id),
   created_at: timestamp("created_at").defaultNow(),
   status: mysqlEnum("status", ["active", "suspended", "cancelled"]).default(

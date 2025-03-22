@@ -5,8 +5,6 @@ const eventSchema = z.object({
   event_name: z.string().min(1),
   event_description: z.string(),
   event_date: z.string(),
-  start_time: z.string(),
-  end_time: z.string(),
   asset_id: z.string(),
   status: z.enum(["active", "suspended", "cancelled"]),
 });
