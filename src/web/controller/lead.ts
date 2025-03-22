@@ -182,7 +182,7 @@ export class LeadController {
 
       const createdLead = await this.service.create(lead);
 
-      const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}`;
+      const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}&token=${token}`;
 
       const eventTimeGMT = new Date(event.event_date).toLocaleString("en-GB", {
         timeZone: "UTC",
