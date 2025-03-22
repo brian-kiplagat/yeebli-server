@@ -182,9 +182,11 @@ export class LeadController {
 
       const createdLead = await this.service.create(lead);
 
-      const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}&token=${token}`;
+      const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
 
-      const eventTimeGMT = new Date(event.event_date).toLocaleString("en-GB", {
+      const eventTimeGMT = new Date(
+        Number(event.event_date) * 1000
+      ).toLocaleString("en-GB", {
         timeZone: "UTC",
         year: "numeric",
         month: "long",
@@ -194,7 +196,6 @@ export class LeadController {
         second: "2-digit",
         hour12: true, // AM/PM format
       });
-
 
       sendTransactionalEmail(
         validatedData.lead_form_email,
