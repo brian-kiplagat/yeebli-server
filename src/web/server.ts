@@ -17,7 +17,6 @@ import { EventService } from "../service/event.ts";
 import { LeadService } from "../service/lead.js";
 import { UserService } from "../service/user.js";
 import { HLSService } from "../service/hls.js";
-import { startHLSWorker } from "../worker/hls.js";
 import { Tasker } from "../task/tasker.js";
 import { AdminController } from "./controller/admin.js";
 import { AssetController } from "./controller/asset.js";
@@ -101,11 +100,14 @@ export class Server {
 
     // Setup workers
     this.registerWorker(userService);
-    this.hlsWorker = startHLSWorker();
 
     // Setup controllers
     const authController = new AuthController(userService);
-    const leadController = new LeadController(leadService, userService);
+    const leadController = new LeadController(
+      leadService,
+      userService,
+      eventService
+    );
     const eventController = new EventController(eventService, userService);
     const adminController = new AdminController(
       adminService,

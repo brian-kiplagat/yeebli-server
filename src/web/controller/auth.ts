@@ -78,7 +78,7 @@ export class AuthController {
   public async register(c: Context) {
     const body: RegistrationBody = await c.req.json();
     try {
-      await this.service.create(body.name, body.email, body.password, "host");
+      await this.service.create(body.name, body.email, body.password, "host", body.phone);
     } catch (err) {
       const e = err as DatabaseError;
       if (e.code === DB_ERRORS.DUPLICATE_KEY) {
@@ -119,7 +119,7 @@ export class AuthController {
         .set({ email_token: token })
         .where(eq(userSchema.id, user.id));
 
-      await sendTransactionalEmail(user, 1, {
+      await sendTransactionalEmail(user.email, user.name, 1, {
         subject: "Your code",
         title: "Thanks for signing up",
         subtitle: `${token}`,
@@ -183,7 +183,7 @@ export class AuthController {
         .update(userSchema)
         .set({ reset_token: token })
         .where(eq(userSchema.id, user.id));
-      await sendTransactionalEmail(user, 1, {
+      await sendTransactionalEmail(user.email, user.name, 1, {
         subject: "Reset password",
         title: "Reset password",
         subtitle: `${token}`,
@@ -215,7 +215,7 @@ export class AuthController {
         .update(userSchema)
         .set({ reset_token: null })
         .where(eq(userSchema.id, user.id));
-      await sendTransactionalEmail(user, 1, {
+      await sendTransactionalEmail(user.email, user.name, 1, {
         subject: "Password reset",
         title: "Password reset",
         subtitle: `Your password has been reset successfully`,

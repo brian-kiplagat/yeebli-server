@@ -10,13 +10,21 @@ import {
 } from "./resp/error.js";
 import { externalFormSchema } from "../validator/lead.ts";
 import { v4 as uuidv4 } from "uuid";
+import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
+import { EventService } from "../../service/event.ts";
 export class LeadController {
   private service: LeadService;
   private userService: UserService;
+  private eventService: EventService;
 
-  constructor(service: LeadService, userService: UserService) {
+  constructor(
+    service: LeadService,
+    userService: UserService,
+    eventService: EventService
+  ) {
     this.service = service;
     this.userService = userService;
+    this.eventService = eventService;
   }
 
   private async getUser(c: Context) {
@@ -151,7 +159,12 @@ export class LeadController {
     try {
       const formData = await c.req.parseBody();
       const validatedData = externalFormSchema.parse(formData);
-
+      let token = uuidv4();
+      //confirm if the event exists
+      const event = await this.eventService.getEvent(validatedData.event_id);
+      if (!event) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
       const lead: NewLead = {
         name: validatedData.lead_form_name,
         email: validatedData.lead_form_email,
@@ -163,12 +176,37 @@ export class LeadController {
         form_identifier: "external_form",
         status_identifier: "Form",
         userId: validatedData.host_id,
-        token: uuidv4(),
+        token: token,
         source_url: c.req.header("Referer") || "direct",
       };
 
       const createdLead = await this.service.create(lead);
 
+      const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}`;
+
+      const eventTimeGMT = new Date(event.event_date).toLocaleString("en-GB", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "long",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true, // AM/PM format
+      });
+
+
+      sendTransactionalEmail(
+        validatedData.lead_form_email,
+        validatedData.lead_form_name,
+        1,
+        {
+          subject: "Welcome to the event",
+          title: "Welcome to the event",
+          subtitle: `You have been registered for the event`,
+          body: `You have been registered for the event. The event starts at ${eventTimeGMT}. Please use this link to access the event: ${eventLink}`,
+        }
+      );
       return c.json(
         {
           success: true,
