@@ -108,7 +108,11 @@ export class Server {
       userService,
       eventService
     );
-    const eventController = new EventController(eventService, userService);
+    const eventController = new EventController(
+      eventService,
+      userService,
+      leadService
+    );
     const adminController = new AdminController(
       adminService,
       userService,
