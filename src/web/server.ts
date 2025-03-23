@@ -28,7 +28,11 @@ import {
   serveInternalServerError,
   serveNotFound,
 } from "./controller/resp/error.js";
-import { cancelEventValidator, eventValidator, updateEventValidator } from "./validator/event.ts";
+import {
+  cancelEventValidator,
+  eventValidator,
+  updateEventValidator,
+} from "./validator/event.ts";
 import {
   leadValidator,
   updateLeadValidator,
@@ -190,7 +194,12 @@ export class Server {
     event.post("/", authCheck, eventValidator, eventCtrl.createEvent);
     event.put("/:id", authCheck, updateEventValidator, eventCtrl.updateEvent);
     event.delete("/:id", authCheck, eventCtrl.deleteEvent);
-    event.put("/cancel", authCheck, cancelEventValidator, eventCtrl.cancelEvent);
+    event.post(
+      "/cancel",
+      authCheck,
+      cancelEventValidator,
+      eventCtrl.cancelEvent
+    );
 
     api.route("/event", event);
   }
