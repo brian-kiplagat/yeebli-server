@@ -22,6 +22,12 @@ export class LeadRepository {
     });
   }
 
+  public async findByEventId(eventId: number) {
+    return db.query.leadSchema.findMany({
+      where: eq(leadSchema.event_id, eventId),
+    });
+  }
+
   public async findAll(query?: LeadQuery) {
     const { page = 1, limit = 100, search } = query || {};
     const offset = (page - 1) * limit;

@@ -17,6 +17,10 @@ export class LeadService {
     return this.repository.find(id);
   }
 
+  public async findByEventId(eventId: number) {
+    return this.repository.findByEventId(eventId);
+  }
+
   public async findAll(query?: LeadQuery) {
     return this.repository.findAll(query);
   }

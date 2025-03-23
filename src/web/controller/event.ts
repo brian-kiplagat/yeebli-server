@@ -8,14 +8,20 @@ import {
   serveInternalServerError,
   serveNotFound,
 } from "./resp/error.js";
-
+import type { LeadService } from "../../service/lead.js";
 export class EventController {
   private service: EventService;
   private userService: UserService;
+  private leadService: LeadService;
 
-  constructor(service: EventService, userService: UserService) {
+  constructor(
+    service: EventService,
+    userService: UserService,
+    leadService: LeadService
+  ) {
     this.service = service;
     this.userService = userService;
+    this.leadService = leadService;
   }
 
   private async getUser(c: Context) {
@@ -154,6 +160,12 @@ export class EventController {
         event.host_id !== user.id
       ) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
+      }
+      const leads = await this.leadService.findByEventId(eventId);
+      if (leads.length > 0) {
+        throw new Error(
+          "Event has leads connected, cannot delete, delete all leads associated with this event"
+        );
       }
 
       await this.service.deleteEvent(eventId);
