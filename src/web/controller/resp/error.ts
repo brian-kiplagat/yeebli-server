@@ -54,6 +54,8 @@ const ERRORS = {
   EVENT_NOT_FOUND: "Ops, this event does not exist, please check",
   ASSET_NOT_FOUND: "Ops, we could not find the associated asset for this event",
   NOT_ALLOWED: "Ops, you are not allowed to do this action.",
+  EVENT_HAS_LEADS_CONNECTED:
+    "Event has leads connected, cannot delete, delete all leads associated with this event",
 };
 
 export {

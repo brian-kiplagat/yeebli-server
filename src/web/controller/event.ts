@@ -163,9 +163,7 @@ export class EventController {
       }
       const leads = await this.leadService.findByEventId(eventId);
       if (leads.length > 0) {
-        throw new Error(
-          "Event has leads connected, cannot delete, delete all leads associated with this event"
-        );
+        return serveBadRequest(c, ERRORS.EVENT_HAS_LEADS_CONNECTED);
       }
 
       await this.service.deleteEvent(eventId);
