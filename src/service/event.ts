@@ -71,6 +71,13 @@ export class EventService {
     await this.repository.update(id, event);
   }
 
+  public async cancelEvent(
+    id: number,
+    status: "cancelled" | "active" | "suspended"
+  ): Promise<void> {
+    await this.repository.cancel(id, status);
+  }
+
   public async deleteEvent(id: number): Promise<void> {
     await this.repository.delete(id);
   }

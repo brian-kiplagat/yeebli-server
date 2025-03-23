@@ -95,6 +95,13 @@ export class EventRepository {
     return db.update(eventSchema).set(event).where(eq(eventSchema.id, id));
   }
 
+  public async cancel(id: number, status: "cancelled" | "active" | "suspended") {
+    return db
+      .update(eventSchema)
+      .set({ status })
+      .where(eq(eventSchema.id, id));
+  }
+
   public async delete(id: number) {
     return db.delete(eventSchema).where(eq(eventSchema.id, id));
   }

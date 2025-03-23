@@ -14,6 +14,13 @@ export const eventValidator = zValidator("json", eventSchema);
 const updateEventSchema = eventSchema.partial();
 export const updateEventValidator = zValidator("json", updateEventSchema);
 
+const cancelEventSchema = z.object({
+  status: z.enum(["cancelled", "active", "suspended"]),
+  id: z.number(),
+});
+
+export const cancelEventValidator = zValidator("json", cancelEventSchema);
+
 export const eventQuerySchema = z.object({
   page: z.coerce.number().optional().default(1),
   limit: z.coerce.number().optional().default(10),
@@ -21,5 +28,4 @@ export const eventQuerySchema = z.object({
 });
 
 export const eventQueryValidator = zValidator("query", eventQuerySchema);
-
 export type EventQuery = z.infer<typeof eventQuerySchema>;

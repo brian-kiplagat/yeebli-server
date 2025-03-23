@@ -140,6 +140,36 @@ export class EventController {
     }
   };
 
+  public cancelEvent = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      const body = await c.req.json();
+      const eventId = body.id;
+      const event = await this.service.getEvent(eventId);
+
+      if (!event) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+      //only and master role or admin or the owner of the event can update the event
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        event.host_id !== user.id
+      ) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
+      }
+
+      await this.service.cancelEvent(eventId, body.status);
+      return c.json({ message: "Event cancelled successfully" });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
   public deleteEvent = async (c: Context) => {
     try {
       const user = await this.getUser(c);
