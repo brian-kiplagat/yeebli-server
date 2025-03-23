@@ -1,13 +1,13 @@
-import { validator } from "hono/validator";
-import { z } from "zod";
-import { validateSchema } from "./validator.js";
+import { validator } from 'hono/validator';
+import { z } from 'zod';
+import { validateSchema } from './validator.js';
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(20),
 });
 
-const loginValidator = validator("json", (value, c) => {
+const loginValidator = validator('json', (value, c) => {
   return validateSchema(c, loginSchema, value);
 });
 
@@ -23,13 +23,12 @@ const registrationSchema = loginSchema.extend({
         return ukPhoneRegex.test(phone);
       },
       {
-        message:
-          "Invalid UK phone number format. Must start with +44, +440, or 07 followed by 9 digits",
-      }
+        message: 'Invalid UK phone number format. Must start with +44, +440, or 07 followed by 9 digits',
+      },
     ),
 });
 
-const registrationValidator = validator("json", (value, c) => {
+const registrationValidator = validator('json', (value, c) => {
   return validateSchema(c, registrationSchema, value);
 });
 
@@ -37,7 +36,7 @@ const emailVerificationSchema = z.object({
   email: z.string().email(),
 });
 
-const emailVerificationValidator = validator("json", (value, c) => {
+const emailVerificationValidator = validator('json', (value, c) => {
   return validateSchema(c, emailVerificationSchema, value);
 });
 
@@ -46,7 +45,7 @@ const registerTokenSchema = z.object({
   id: z.number(),
 });
 
-const registerTokenValidator = validator("json", (value, c) => {
+const registerTokenValidator = validator('json', (value, c) => {
   return validateSchema(c, registerTokenSchema, value);
 });
 
@@ -54,7 +53,7 @@ const requestResetPasswordSchema = z.object({
   email: z.string().email(),
 });
 
-const requestResetPasswordValidator = validator("json", (value, c) => {
+const requestResetPasswordValidator = validator('json', (value, c) => {
   return validateSchema(c, requestResetPasswordSchema, value);
 });
 
@@ -64,7 +63,7 @@ const resetPasswordSchema = z.object({
   password: z.string().min(8).max(20),
 });
 
-const resetPasswordValidator = validator("json", (value, c) => {
+const resetPasswordValidator = validator('json', (value, c) => {
   return validateSchema(c, resetPasswordSchema, value);
 });
 

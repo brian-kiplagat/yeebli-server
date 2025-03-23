@@ -1,18 +1,13 @@
-import type { Context } from "hono";
-import { logger } from "../../lib/logger.js";
-import type { HLSService } from "../../service/hls.js";
-import type { UserService } from "../../service/user.js";
-import type { AssetService } from "../../service/asset.js";
-import { HLSUploadBody, Resolution } from "../validator/hls.js";
-import {
-  ERRORS,
-  serveBadRequest,
-  serveInternalServerError,
-  serveNotFound,
-} from "./resp/error.js";
-import { z } from "zod";
-import { createReadStream } from "fs";
-import { statSync } from "fs";
+import { createReadStream } from 'fs';
+import { statSync } from 'fs';
+import type { Context } from 'hono';
+import { z } from 'zod';
+import { logger } from '../../lib/logger.js';
+import type { AssetService } from '../../service/asset.js';
+import type { HLSService } from '../../service/hls.js';
+import type { UserService } from '../../service/user.js';
+import { type HLSUploadBody, Resolution } from '../validator/hls.js';
+import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
 
 const processVideoSchema = z.object({
   videoId: z.number(),
@@ -29,9 +24,9 @@ export class HLSController {
   }
 
   private async getUser(c: Context) {
-    const userId = c.get("jwtPayload")?.sub;
+    const userId = c.get('jwtPayload')?.sub;
     if (!userId) return null;
-    return this.userService.find(parseInt(userId));
+    return this.userService.find(Number.parseInt(userId));
   }
 
   public upload = async (c: Context) => {
@@ -45,21 +40,18 @@ export class HLSController {
       const { base64, resolutions } = body;
 
       if (!base64 || !resolutions) {
-        return serveBadRequest(c, "Missing base64 string or resolutions array");
+        return serveBadRequest(c, 'Missing base64 string or resolutions array');
       }
 
       // Convert base64 to File object
-      const buffer = Buffer.from(base64, "base64");
-      const file = new File([buffer], "input.mp4", { type: "video/mp4" });
+      const buffer = Buffer.from(base64, 'base64');
+      const file = new File([buffer], 'input.mp4', { type: 'video/mp4' });
 
-      const { hlsUrl } = await this.service.processUpload(
-        file,
-        resolutions || ["720p", "480p"]
-      );
+      const { hlsUrl } = await this.service.processUpload(file, resolutions || ['720p', '480p']);
 
       return c.json({ hlsUrl });
     } catch (error) {
-      logger.error("Upload processing failed:", error);
+      logger.error('Upload processing failed:', error);
       return serveInternalServerError(c, error);
     }
   };

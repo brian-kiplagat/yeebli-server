@@ -1,10 +1,10 @@
-import type { AssetRepository } from "../repository/asset.js";
-import type { NewAsset, Asset } from "../schema/schema.js";
-import type { S3Service } from "./s3.js";
-import type { AssetQuery } from "../web/validator/asset.js";
-import { like, eq, and, desc } from "drizzle-orm";
-import { db } from "../lib/database.js";
-import { assetsSchema } from "../schema/schema.js";
+import { and, desc, eq, like } from 'drizzle-orm';
+import { db } from '../lib/database.js';
+import type { AssetRepository } from '../repository/asset.js';
+import type { Asset, NewAsset } from '../schema/schema.js';
+import { assetsSchema } from '../schema/schema.js';
+import type { AssetQuery } from '../web/validator/asset.js';
+import type { S3Service } from './s3.js';
 
 export class AssetService {
   private repository: AssetRepository;
@@ -19,18 +19,15 @@ export class AssetService {
     userId: number,
     fileName: string,
     contentType: string,
-    assetType: "image" | "video" | "audio" | "document",
+    assetType: 'image' | 'video' | 'audio' | 'document',
     fileSize: number,
-    duration: number
+    duration: number,
   ) {
     // Generate a unique key for the file
     const key = `assets/${assetType}/${Date.now()}-${fileName}`;
 
     // Get presigned URL from S3
-    const { presignedUrl, url } = await this.s3Service.generatePresignedUrl(
-      key,
-      contentType
-    );
+    const { presignedUrl, url } = await this.s3Service.generatePresignedUrl(key, contentType);
 
     // Create asset record in database
     const asset: NewAsset = {
@@ -61,14 +58,14 @@ export class AssetService {
         const presignedUrl = await this.s3Service.generateGetUrl(
           this.getKeyFromUrl(asset.asset_url),
           this.getContentType(asset.asset_type as string),
-          86400
+          86400,
         );
 
         return {
           ...asset,
           presignedUrl,
         };
-      })
+      }),
     );
 
     return { assets: assetsWithUrls, total };
@@ -81,7 +78,7 @@ export class AssetService {
     const presignedUrl = await this.s3Service.generateGetUrl(
       this.getKeyFromUrl(asset.asset_url),
       this.getContentType(asset.asset_type as string),
-      86400
+      86400,
     );
 
     return {
@@ -117,8 +114,8 @@ export class AssetService {
 
   async findUnprocessedVideos() {
     const { assets } = await this.repository.findByQuery({
-      asset_type: "video",
-      processing_status: "pending",
+      asset_type: 'video',
+      processing_status: 'pending',
     });
 
     return assets.filter((asset) => asset.asset_url); // Only return assets that have been uploaded
@@ -157,14 +154,14 @@ export class AssetService {
         const presignedUrl = await this.s3Service.generateGetUrl(
           this.getKeyFromUrl(asset.asset_url),
           this.getContentType(asset.asset_type as string),
-          86400
+          86400,
         );
 
         return {
           ...asset,
           presignedUrl,
         };
-      })
+      }),
     );
 
     return { assets: assetsWithUrls, total: total.length };
@@ -172,21 +169,21 @@ export class AssetService {
 
   private getContentType(assetType: string): string {
     switch (assetType) {
-      case "image":
-        return "image/jpeg";
-      case "video":
-        return "video/mp4";
-      case "audio":
-        return "audio/mpeg";
-      case "document":
-        return "application/pdf";
+      case 'image':
+        return 'image/jpeg';
+      case 'video':
+        return 'video/mp4';
+      case 'audio':
+        return 'audio/mpeg';
+      case 'document':
+        return 'application/pdf';
       default:
-        return "application/octet-stream";
+        return 'application/octet-stream';
     }
   }
 
   public getKeyFromUrl(url: string): string {
-    const urlParts = url.split(".amazonaws.com/");
-    return urlParts[1] || "";
+    const urlParts = url.split('.amazonaws.com/');
+    return urlParts[1] || '';
   }
 }

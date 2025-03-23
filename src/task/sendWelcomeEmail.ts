@@ -1,23 +1,22 @@
-import type { User } from "../lib/database.ts";
-import env from "../lib/env.js";
-import { logger } from "../lib/logger.js";
+import type { User } from '../lib/database.ts';
+import env from '../lib/env.js';
+import { logger } from '../lib/logger.js';
 
-
-const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 const sendTransactionalEmail = async (
   email: string,
   name: string,
   templateId: number,
-  params: Record<string, string>
+  params: Record<string, string>,
 ) => {
   try {
     const response = await fetch(BREVO_API_URL, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "api-key": env.BREVO_API_KEY,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': env.BREVO_API_KEY,
       },
       body: JSON.stringify({
         templateId: templateId,
@@ -34,10 +33,7 @@ const sendTransactionalEmail = async (
     if (!response.ok) {
       const error = await response.json();
 
-      logger.info(
-        `Mailer error to ${email} using template ${templateId}:`,
-        error
-      );
+      logger.info(`Mailer error to ${email} using template ${templateId}:`, error);
       throw new Error(`Email API error: ${error.message}`);
     }
 

@@ -1,6 +1,6 @@
-import type { User } from "../lib/database.ts";
-import { encrypt } from "../lib/encryption.js";
-import type { UserRepository } from "../repository/user.js";
+import type { User } from '../lib/database.ts';
+import { encrypt } from '../lib/encryption.js';
+import type { UserRepository } from '../repository/user.js';
 
 export class UserService {
   private repo: UserRepository;
@@ -16,8 +16,8 @@ export class UserService {
     name: string,
     email: string,
     password: string,
-    role: "master" | "owner" | "host" | "user",
-    phone: string
+    role: 'master' | 'owner' | 'host' | 'user',
+    phone: string,
   ) {
     const hashedPassword = encrypt(password);
     await this.repo.create({ name, email, password: hashedPassword, role, phone });

@@ -1,18 +1,18 @@
-import { Queue } from "bullmq";
-import { connection } from "../lib/queue.js";
-import { S3Service } from "./s3.js";
-import { AssetService } from "./asset.js";
-import { logger } from "../lib/logger.js";
-import { promises as fs } from "fs";
-import { exec } from "child_process";
-import { promisify } from "util";
-import path from "path";
-import env from "../lib/env.js";
-import { mkdir, writeFile, rm } from "fs/promises";
-import { join } from "path";
-import { Resolution } from "../web/validator/hls.ts";
-import { v4 as uuidv4 } from "uuid";
-import { createReadStream } from "fs";
+import { exec } from 'child_process';
+import { promises as fs } from 'fs';
+import { createReadStream } from 'fs';
+import path from 'path';
+import { join } from 'path';
+import { promisify } from 'util';
+import { Queue } from 'bullmq';
+import { mkdir, rm, writeFile } from 'fs/promises';
+import { v4 as uuidv4 } from 'uuid';
+import env from '../lib/env.js';
+import { logger } from '../lib/logger.js';
+import { connection } from '../lib/queue.js';
+import type { Resolution } from '../web/validator/hls.ts';
+import type { AssetService } from './asset.js';
+import type { S3Service } from './s3.js';
 const execAsync = promisify(exec);
 
 export class HLSService {
@@ -24,19 +24,13 @@ export class HLSService {
     this.assetService = assetService;
   }
 
-  public async processUpload(
-    file: File,
-    allowList: Resolution[]
-  ): Promise<{ hlsUrl: string }> {
-    const tempDir = join(process.cwd(), "temp", uuidv4());
-    const outputDir = join(tempDir, "output");
+  public async processUpload(file: File, allowList: Resolution[]): Promise<{ hlsUrl: string }> {
+    const tempDir = join(process.cwd(), 'temp', uuidv4());
+    const outputDir = join(tempDir, 'output');
 
     try {
       // Create directories in parallel
-      await Promise.all([
-        mkdir(tempDir, { recursive: true }),
-        mkdir(outputDir, { recursive: true }),
-      ]);
+      await Promise.all([mkdir(tempDir, { recursive: true }), mkdir(outputDir, { recursive: true })]);
 
       // Save uploaded file
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -44,28 +38,28 @@ export class HLSService {
       await writeFile(inputPath, buffer);
 
       const resolutions = {
-        "1080p": {
+        '1080p': {
           width: 1920,
           height: 1080,
           bitrate: 5000,
           maxrate: 5350,
           bufsize: 7500,
         },
-        "720p": {
+        '720p': {
           width: 1280,
           height: 720,
           bitrate: 2800,
           maxrate: 2996,
           bufsize: 4200,
         },
-        "480p": {
+        '480p': {
           width: 854,
           height: 480,
           bitrate: 1400,
           maxrate: 1498,
           bufsize: 2100,
         },
-        "360p": {
+        '360p': {
           width: 640,
           height: 360,
           bitrate: 800,
@@ -76,32 +70,25 @@ export class HLSService {
 
       // Generate filter_complex dynamically
       const videoFilters = allowList
-        .map(
-          (res, index) =>
-            `[v${index}]scale=w=${resolutions[res].width}:h=${resolutions[res].height}[v${index}out]`
-        )
-        .join("; ");
+        .map((res, index) => `[v${index}]scale=w=${resolutions[res].width}:h=${resolutions[res].height}[v${index}out]`)
+        .join('; ');
 
       // Generate -map and encoding settings dynamically
       const videoMaps = allowList
         .map(
           (res, index) =>
             `-map "[v${index}out]" -c:v:${index} libx264 -b:v:${index} ${resolutions[res].bitrate}k ` +
-            `-maxrate:v:${index} ${resolutions[res].maxrate}k -bufsize:v:${index} ${resolutions[res].bufsize}k -preset ultrafast`
+            `-maxrate:v:${index} ${resolutions[res].maxrate}k -bufsize:v:${index} ${resolutions[res].bufsize}k -preset ultrafast`,
         )
-        .join(" ");
+        .join(' ');
 
-      const audioMaps = allowList
-        .map((_, index) => `-map a:0? -c:a aac -b:a:${index} 128k -ac 2`)
-        .join(" ");
+      const audioMaps = allowList.map((_, index) => `-map a:0? -c:a aac -b:a:${index} 128k -ac 2`).join(' ');
 
-      const streamMap = allowList
-        .map((_, index) => `v:${index},a:${index}`)
-        .join(" ");
+      const streamMap = allowList.map((_, index) => `v:${index},a:${index}`).join(' ');
 
       // Construct FFmpeg command dynamically
       const ffmpegCommand = `ffmpeg -i "${inputPath}" \
-  -filter_complex "[0:v]split=${allowList.length}${allowList.map((_, i) => `[v${i}]`).join("")}; ${videoFilters}" \
+  -filter_complex "[0:v]split=${allowList.length}${allowList.map((_, i) => `[v${i}]`).join('')}; ${videoFilters}" \
   ${videoMaps} \
   ${audioMaps} \
   -f hls \
@@ -124,15 +111,8 @@ export class HLSService {
       const s3BasePath = `assets/hls/${key}`;
 
       // Upload master playlist
-      const masterContent = await fs.readFile(
-        join(outputDir, "master.m3u8"),
-        "utf8"
-      );
-      await this.s3Service.uploadFile(
-        `${s3BasePath}/master.m3u8`,
-        masterContent,
-        "application/x-mpegURL"
-      );
+      const masterContent = await fs.readFile(join(outputDir, 'master.m3u8'), 'utf8');
+      await this.s3Service.uploadFile(`${s3BasePath}/master.m3u8`, masterContent, 'application/x-mpegURL');
 
       // Upload variant playlists and segments
       const uploadPromises: Promise<any>[] = [];
@@ -144,25 +124,15 @@ export class HLSService {
         for (const file of files) {
           const filePath = join(streamDir, file);
           const s3Key = `${s3BasePath}/stream_${i}/${file}`;
-          const contentType = file.endsWith(".m3u8")
-            ? "application/x-mpegURL"
-            : "video/MP2T";
+          const contentType = file.endsWith('.m3u8') ? 'application/x-mpegURL' : 'video/MP2T';
 
-          if (file.endsWith(".m3u8")) {
+          if (file.endsWith('.m3u8')) {
             // For playlist files, read the content first
-            const content = await fs.readFile(filePath, "utf8");
-            uploadPromises.push(
-              this.s3Service.uploadFile(s3Key, content, contentType)
-            );
+            const content = await fs.readFile(filePath, 'utf8');
+            uploadPromises.push(this.s3Service.uploadFile(s3Key, content, contentType));
           } else {
             // For video segments, use streaming upload
-            uploadPromises.push(
-              this.s3Service.uploadFile(
-                s3Key,
-                createReadStream(filePath),
-                contentType
-              )
-            );
+            uploadPromises.push(this.s3Service.uploadFile(s3Key, createReadStream(filePath), contentType));
           }
         }
       }
@@ -175,12 +145,12 @@ export class HLSService {
 
       // Cleanup temporary files in the background
       rm(tempDir, { recursive: true, force: true }).catch((error) => {
-        logger.error("Failed to cleanup temp directory:", error);
+        logger.error('Failed to cleanup temp directory:', error);
       });
 
       return { hlsUrl };
     } catch (error) {
-      logger.error("Error processing upload:", error);
+      logger.error('Error processing upload:', error);
       throw error;
     }
   }

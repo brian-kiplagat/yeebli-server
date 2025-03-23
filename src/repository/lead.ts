@@ -1,6 +1,6 @@
-import { and, desc, eq, like, or } from "drizzle-orm";
-import { type Lead, type NewLead, db } from "../lib/database.js";
-import { leadSchema } from "../schema/schema.js";
+import { and, desc, eq, like, or } from 'drizzle-orm';
+import { type Lead, type NewLead, db } from '../lib/database.js';
+import { leadSchema } from '../schema/schema.js';
 
 export interface LeadQuery {
   page?: number;
@@ -36,7 +36,7 @@ export class LeadRepository {
       ? or(
           like(leadSchema.name, `%${search}%`),
           like(leadSchema.email, `%${search}%`),
-          like(leadSchema.phone, `%${search}%`)
+          like(leadSchema.phone, `%${search}%`),
         )
       : undefined;
 
@@ -50,10 +50,7 @@ export class LeadRepository {
       orderBy: desc(leadSchema.created_at),
     });
 
-    const total = await db
-      .select({ count: leadSchema.id })
-      .from(leadSchema)
-      .where(whereConditions);
+    const total = await db.select({ count: leadSchema.id }).from(leadSchema).where(whereConditions);
 
     return { leads, total: total.length };
   }
@@ -68,8 +65,8 @@ export class LeadRepository {
           or(
             like(leadSchema.name, `%${search}%`),
             like(leadSchema.email, `%${search}%`),
-            like(leadSchema.phone, `%${search}%`)
-          )
+            like(leadSchema.phone, `%${search}%`),
+          ),
         )
       : eq(leadSchema.userId, userId);
 
@@ -83,10 +80,7 @@ export class LeadRepository {
       orderBy: desc(leadSchema.created_at),
     });
 
-    const total = await db
-      .select({ count: leadSchema.id })
-      .from(leadSchema)
-      .where(whereConditions);
+    const total = await db.select({ count: leadSchema.id }).from(leadSchema).where(whereConditions);
 
     return { leads, total: total.length };
   }

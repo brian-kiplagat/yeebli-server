@@ -1,24 +1,20 @@
-import type { Context } from "hono";
-import { logger } from "../../lib/logger.js";
-import type { AdminService } from "../../service/admin.js";
-import type { UserService } from "../../service/user.js";
-import type { AssetService } from "../../service/asset.js";
-import type { EventService } from "../../service/event.js";
-import type { LeadService } from "../../service/lead.js";
+import type { Context } from 'hono';
+import { logger } from '../../lib/logger.js';
+import type { AdminService } from '../../service/admin.js';
+import type { AssetService } from '../../service/asset.js';
+import type { EventService } from '../../service/event.js';
+import type { LeadService } from '../../service/lead.js';
+import type { UserService } from '../../service/user.js';
 import {
+  type AdminCreateUserBody,
+  adminCreateUserSchema,
   adminEventQuerySchema,
   adminLeadQuerySchema,
-  adminUserQuerySchema,
-  adminUserDetailsQuerySchema,
   adminUpdateUserSchema,
-  adminCreateUserSchema,
-  AdminCreateUserBody,
-} from "../validator/admin.js";
-import {
-  ERRORS,
-  serveBadRequest,
-  serveInternalServerError,
-} from "./resp/error.js";
+  adminUserDetailsQuerySchema,
+  adminUserQuerySchema,
+} from '../validator/admin.js';
+import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
 
 export class AdminController {
   private service: AdminService;
@@ -32,7 +28,7 @@ export class AdminController {
     userService: UserService,
     eventService: EventService,
     leadService: LeadService,
-    assetService: AssetService
+    assetService: AssetService,
   ) {
     this.service = service;
     this.userService = userService;
@@ -42,7 +38,7 @@ export class AdminController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get("jwtPayload").email;
+    const email = c.get('jwtPayload').email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -52,8 +48,8 @@ export class AdminController {
     if (!user) {
       return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
     }
-    if (user.role !== "master") {
-      return serveBadRequest(c, "Unauthorized: Admin access required");
+    if (user.role !== 'master') {
+      return serveBadRequest(c, 'Unauthorized: Admin access required');
     }
     return user;
   }
@@ -77,7 +73,7 @@ export class AdminController {
       const admin = await this.checkAdminAccess(c);
       if (!admin) return;
 
-      const userId = Number(c.req.param("id"));
+      const userId = Number(c.req.param('id'));
       const query = adminUserDetailsQuerySchema.parse(c.req.query());
 
       // Get base user data
@@ -126,7 +122,7 @@ export class AdminController {
       const admin = await this.checkAdminAccess(c);
       if (!admin) return;
 
-      const userId = Number(c.req.param("id"));
+      const userId = Number(c.req.param('id'));
 
       // Check if user exists
       const user = await this.userService.find(userId);
@@ -145,7 +141,7 @@ export class AdminController {
       const updatedUser = await this.userService.find(userId);
 
       return c.json({
-        message: "User updated successfully",
+        message: 'User updated successfully',
         user: updatedUser,
       });
     } catch (error) {
@@ -193,14 +189,14 @@ export class AdminController {
       // Check if user with email already exists
       const existingUser = await this.userService.findByEmail(email);
       if (existingUser) {
-        return serveBadRequest(c, "User with this email already exists");
+        return serveBadRequest(c, 'User with this email already exists');
       }
 
       // Create the user using userService
       const newUser = await this.userService.create(name, email, 'Admin@12356', role, phone);
 
       return c.json({
-        message: "User created successfully",
+        message: 'User created successfully',
         user: newUser,
       });
     } catch (error) {
@@ -214,13 +210,13 @@ export class AdminController {
       const user = await this.checkAdminAccess(c);
       if (!user) return;
 
-      const id = c.req.param("id");
+      const id = c.req.param('id');
       const foundUser = await this.userService.find(Number(id));
       if (!foundUser) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
       const result = await this.userService.delete(Number(id));
-      return c.json({ message: "User deleted successfully" });
+      return c.json({ message: 'User deleted successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
