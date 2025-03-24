@@ -305,14 +305,18 @@ export class StripeController {
       const userId = subscription.metadata.userId;
       if (!userId) return;
 
-      // Here you could implement notification logic
-      // For example, sending an email to the user
-      logger.info(`Trial ending soon for user ${userId}`);
-
-      // You might want to update some status or send a notification
-      // await this.userService.update(parseInt(userId), {
-      //   trial_ending_notified: true
-      // });
+      const user = await this.userService.find(parseInt(userId));
+      if (!user) {
+        logger.error(`User ${userId} not found during checkout completion`);
+        return;
+      }
+      // Send welcome email
+      sendTransactionalEmail(user.email, user.name, 1, {
+        subject: "Your trial is ending soon",
+        title: "Your trial is ending soon",
+        subtitle: "Your trial is ending soon",
+        body: "Your trial is ending soon. Not to worry, the process is seamless your card will be charged when the trial ends seamlessly for the next month. You can cancel your subscription at any time. If you need help, please contact us at support@yeebli.com.",
+      });
     } catch (error) {
       logger.error("Error handling trial ending:", error);
       throw error;
