@@ -98,6 +98,11 @@ export const eventSchema = mysqlTable("events", {
   id: serial("id").primaryKey(),
   event_name: varchar("event_name", { length: 255 }).notNull(),
   event_description: text("event_description"),
+  event_type: mysqlEnum("event_type", [
+    "live_venue",
+    "prerecorded",
+    "live_video_call",
+  ]).default("prerecorded"),
   event_date: varchar("event_date", { length: 50 }).notNull(), // Format: MM/DD/YYYY
   asset_id: int("asset_id").references(() => assetsSchema.id),
   created_at: timestamp("created_at").defaultNow(),

@@ -9,6 +9,7 @@ const eventSchema = z.object({
   instructions: z.string().optional(),
   landing_page_url: z.string().optional(),
   asset_id: z.string(),
+  event_type: z.enum(["live_venue", "prerecorded", "live_video_call"]),
   status: z.enum(["active", "suspended", "cancelled"]),
 });
 

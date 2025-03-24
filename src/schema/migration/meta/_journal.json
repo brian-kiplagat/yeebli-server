@@ -162,6 +162,13 @@
       "when": 1742834024569,
       "tag": "0023_misty_vin_gonzales",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1742835837308,
+      "tag": "0024_simple_blue_shield",
+      "breakpoints": true
     }
   ]
 }
