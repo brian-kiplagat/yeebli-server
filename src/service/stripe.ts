@@ -92,10 +92,10 @@ export class StripeService {
     }
   }
 
-  public constructWebhookEvent(payload: any, signature: string) {
+  public constructWebhookEvent(payload: string, signature: string) {
     try {
       return this.stripe.webhooks.constructEvent(
-        JSON.stringify(payload),
+        payload,
         signature,
         env.STRIPE_WEBHOOK_SECRET
       );
