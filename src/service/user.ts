@@ -3,6 +3,7 @@ import { encrypt } from "../lib/encryption.js";
 import { logger } from "../lib/logger.ts";
 import type { UserRepository } from "../repository/user.js";
 import type { StripeService } from "./stripe.ts";
+import { sendTransactionalEmail } from "../task/sendWelcomeEmail.js";
 
 export class UserService {
   private repo: UserRepository;
@@ -63,5 +64,26 @@ export class UserService {
 
   public async delete(id: number) {
     return this.repo.delete(id);
+  }
+
+  public async sendWelcomeEmail(email: string) {
+    try {
+      const user = await this.findByEmail(email);
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      await sendTransactionalEmail(user.email, user.name, 1, {
+        subject: "Welcome to Yeebli",
+        title: "Welcome to Yeebli",
+        subtitle: "Your subscription is now active",
+        body: "Thank you for subscribing to Yeebli. Your subscription is now active and you can start using all our features.",
+      });
+
+      logger.info(`Welcome email sent to ${email}`);
+    } catch (error) {
+      logger.error("Error sending welcome email:", error);
+      throw error;
+    }
   }
 }

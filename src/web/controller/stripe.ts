@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { ERRORS } from "./resp/error.ts";
 import { serveBadRequest } from "./resp/error.ts";
 import { SubscriptionRepository } from "../../repository/subscription.js";
+import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
 
 export class StripeController {
   private stripeService: StripeService;
@@ -180,7 +181,12 @@ export class StripeController {
         case "account.updated":
           await this.handleAccountUpdate(event.data.object);
           break;
+        case "checkout.session.completed":
+          await this.handleCheckoutCompleted(event.data.object);
+          break;
         case "customer.subscription.created":
+          await this.handleSubscriptionUpdate(event.data.object);
+          break;
         case "customer.subscription.updated":
         case "customer.subscription.deleted":
           await this.handleSubscriptionUpdate(event.data.object);
@@ -309,6 +315,42 @@ export class StripeController {
       // });
     } catch (error) {
       logger.error("Error handling trial ending:", error);
+      throw error;
+    }
+  }
+
+  private async handleCheckoutCompleted(session: any) {
+    try {
+      const userId = session.metadata.userId;
+      if (!userId) return;
+
+      const user = await this.userService.find(parseInt(userId));
+      if (!user) {
+        logger.error(`User ${userId} not found during checkout completion`);
+        return;
+      }
+
+      // Run user update and email sending concurrently
+      await Promise.all([
+        // Update user's subscription status to active
+        this.userService.update(parseInt(userId), {
+          subscription_status: "active",
+          subscription_id: session.subscription,
+        }),
+        // Send welcome email
+        sendTransactionalEmail(user.email, user.name, 1, {
+          subject: "You are now subscribed to Yeebli",
+          title: "Welcome to Yeebli",
+          subtitle: "Your subscription is now active",
+          body: "Thank you for subscribing to Yeebli. Your subscription is now active and you can start using all our features.",
+        }),
+      ]);
+
+      logger.info(
+        `User ${userId} completed checkout and subscription is now active`
+      );
+    } catch (error) {
+      logger.error("Error handling checkout completion:", error);
       throw error;
     }
   }
