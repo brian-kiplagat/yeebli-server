@@ -227,28 +227,62 @@ export class StripeController {
       const userId = subscription.metadata.userId;
       if (!userId) return;
 
-      // Get the subscription plan based on the price ID
-      const priceId = subscription.items.data[0].price.id;
-      const plan = await this.subscriptionRepo.findPlanByPriceId(priceId);
+      // Log the subscription event
+      logger.info(
+        `Processing subscription event: ${subscription.status} for user ${userId}`
+      );
 
-      if (!plan) {
-        logger.error(`No plan found for price ID: ${priceId}`);
-        return;
-      }
-
-      // Update user's subscription status and plan
+      // Update user's subscription status
       await this.userService.update(parseInt(userId), {
         subscription_status: subscription.status,
         subscription_id: subscription.id,
-        subscription_plan_id: plan.id,
         trial_ends_at: subscription.trial_end
           ? new Date(subscription.trial_end * 1000)
           : null,
       });
 
-      logger.info(
-        `Updated subscription status for user ${userId} to ${subscription.status}`
-      );
+      // Log subscription details for tracking
+      logger.info({
+        event: "subscription_update",
+        userId,
+        subscriptionId: subscription.id,
+        status: subscription.status,
+        trialEnd: subscription.trial_end
+          ? new Date(subscription.trial_end * 1000)
+          : null,
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      });
+
+      // Handle specific subscription statuses
+      switch (subscription.status) {
+        case "trialing":
+          logger.info(`User ${userId} started trial period`);
+          break;
+        case "active":
+          logger.info(`User ${userId} subscription is now active`);
+          break;
+        case "past_due":
+          logger.warn(`User ${userId} subscription payment is past due`);
+          break;
+        case "canceled":
+          logger.info(`User ${userId} subscription was canceled`);
+          break;
+        case "incomplete":
+          logger.warn(`User ${userId} subscription is incomplete`);
+          break;
+        case "incomplete_expired":
+          logger.warn(
+            `User ${userId} subscription expired due to incomplete payment`
+          );
+          break;
+        case "paused":
+          logger.info(`User ${userId} subscription is paused`);
+          break;
+        case "unpaid":
+          logger.warn(`User ${userId} subscription is unpaid`);
+          break;
+      }
     } catch (error) {
       logger.error("Error handling subscription update:", error);
       throw error;
