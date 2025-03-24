@@ -113,10 +113,7 @@ export class StripeController {
         stripe_oauth_state: state,
       });
 
-      const oauthUrl = this.stripeService.generateOAuthUrl(
-        state,
-        `${c.req.url}/callback`
-      );
+      const oauthUrl = this.stripeService.generateOAuthUrl(state);
 
       return c.json({ url: oauthUrl });
     } catch (error) {
@@ -128,9 +125,13 @@ export class StripeController {
   public handleOAuthCallback = async (c: Context) => {
     try {
       const { code, state } = c.req.query();
-      const userId = c.get("jwtPayload").id;
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
 
-      const user = await this.userService.find(userId);
+      const userId = user.id;
+
       if (!user || state !== user.stripe_oauth_state) {
         return c.json({ error: "Invalid state parameter" }, 400);
       }

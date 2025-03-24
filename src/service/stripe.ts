@@ -5,26 +5,26 @@ import { logger } from "../lib/logger.js";
 export class StripeService {
   private stripe: Stripe;
   private readonly clientId: string;
+  private readonly redirectUri: string;
 
   constructor() {
     this.stripe = new Stripe(env.STRIPE_SECRET_KEY, {
       apiVersion: "2025-02-24.acacia",
     });
     this.clientId = env.STRIPE_CLIENT_ID;
+    this.redirectUri = env.STRIPE_OAUTH_REDIRECT_URI;
   }
 
   // OAuth Methods
-  public generateOAuthUrl(state: string, returnUrl?: string) {
+  public generateOAuthUrl(state: string) {
     const params = new URLSearchParams({
       response_type: "code",
       client_id: this.clientId,
-      scope: "read_write payments_write products_write subscriptions_write",
+      scope: "read_write",
       state: state,
     });
 
-    if (returnUrl) {
-      params.append("redirect_uri", returnUrl);
-    }
+    params.append("redirect_uri", this.redirectUri);
 
     return `https://connect.stripe.com/oauth/authorize?${params.toString()}`;
   }
