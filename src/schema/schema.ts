@@ -100,6 +100,9 @@ export const eventSchema = mysqlTable("events", {
   status: mysqlEnum("status", ["active", "suspended", "cancelled"]).default(
     "active"
   ),
+  instructions: text("instructions"),
+  landing_page_url: text("landing_page_url"),
+  other_dates: json("other_dates"),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   host_id: int("host_id")
     .references(() => userSchema.id)

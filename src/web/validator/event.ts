@@ -5,8 +5,11 @@ const eventSchema = z.object({
   event_name: z.string().min(1),
   event_description: z.string(),
   event_date: z.string(),
+  other_dates: z.array(z.string()).optional(),
+  instructions: z.string().optional(),
+  landing_page_url: z.string().optional(),
   asset_id: z.string(),
-  status: z.enum(['active', 'suspended', 'cancelled']),
+  status: z.enum(["active", "suspended", "cancelled"]),
 });
 
 export const eventValidator = zValidator('json', eventSchema);

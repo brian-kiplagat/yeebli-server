@@ -58,6 +58,7 @@ const ERRORS = {
     "Event has leads connected, cannot delete because there are leads assigned to this event, please cancel event and delete all leads associated with this particular event",
   INVALID_STATE:
     "Invalid state parameter. The state parameter does not match the expected value.",
+  EVENT_DATE_REQUIRED: "Event date is required",
 };
 
 const MAIL_CONTENT = {

@@ -141,6 +141,20 @@
       "when": 1742816177784,
       "tag": "0020_omniscient_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1742832044167,
+      "tag": "0021_early_iceman",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1742833089577,
+      "tag": "0022_nifty_boomerang",
+      "breakpoints": true
     }
   ]
 }
