@@ -48,9 +48,6 @@ export const userSchema = mysqlTable("user", {
     "paused",
     "unpaid",
   ]),
-  subscription_plan_id: int("subscription_plan_id").references(
-    () => subscriptionPlanSchema.id
-  ),
   trial_ends_at: timestamp("trial_ends_at"),
   stripe_oauth_state: varchar("stripe_oauth_state", { length: 255 }),
 });
@@ -133,28 +130,6 @@ export const assetsSchema = mysqlTable("assets", {
   user_id: int("user_id")
     .references(() => userSchema.id)
     .notNull(),
-});
-
-export const subscriptionPlanSchema = mysqlTable("subscription_plans", {
-  id: serial("id").primaryKey(),
-  stripe_price_id: varchar("stripe_price_id", { length: 255 }).notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  billing_interval: mysqlEnum("billing_interval", ["month", "year"]).notNull(),
-  features: json("features").$type<{
-    lead_capacity: number;
-    prerecorded_events: number;
-    live_venue_events: boolean;
-    live_video_events: boolean;
-    membership_access: boolean;
-    email_alerts: boolean;
-    sms_alerts: number;
-    support_level: "email" | "phone";
-    video_asset_limit: number;
-    email_campaign: boolean;
-  }>(),
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
 });
 
 export const subscriptionSchema = mysqlTable("subscription", {

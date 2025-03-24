@@ -79,10 +79,6 @@ export class SubscriptionService {
     }
   }
 
-  public async getAllPlans() {
-    return this.subscriptionRepo.getAllPlans();
-  }
-
   public async cancelSubscription(userId: number) {
     try {
       const user = await this.userService.find(userId);
@@ -105,31 +101,11 @@ export class SubscriptionService {
     }
   }
 
-  public async updateSubscription(userId: number, newPlanId: number) {
+  public async getSubscriptions(userId: number) {
     try {
-      const user = await this.userService.find(userId);
-      if (!user?.subscription_id) {
-        throw new Error("No active subscription found");
-      }
-
-      const plan = await this.subscriptionRepo.findPlan(newPlanId);
-      if (!plan) {
-        throw new Error("Subscription plan not found");
-      }
-
-      const subscription = await this.stripeService.updateSubscription(
-        user.subscription_id,
-        plan.stripe_price_id
-      );
-
-      await this.userService.update(userId, {
-        subscription_status: subscription.status,
-        subscription_plan_id: newPlanId,
-      });
-
-      return subscription;
+      return await this.subscriptionRepo.findSubscriptionsByUserId(userId);
     } catch (error) {
-      logger.error("Error updating subscription:", error);
+      logger.error("Error getting subscriptions:", error);
       throw error;
     }
   }

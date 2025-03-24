@@ -1,12 +1,18 @@
 import type { Context } from "hono";
 import { logger } from "../../lib/logger.js";
-import { SubscriptionService } from "../../service/subscription.js";
-import { StripeService } from "../../service/stripe.js";
-import { UserService } from "../../service/user.js";
-import { ERRORS } from "./resp/error.js";
-import { serveBadRequest } from "./resp/error.js";
-import { SubscriptionRequestBody } from "../validator/subscription.ts";
-import env from "../../lib/env.ts";
+import type { SubscriptionService } from "../../service/subscription.js";
+import type { StripeService } from "../../service/stripe.js";
+import type { UserService } from "../../service/user.js";
+import {
+  type SubscriptionRequestBody,
+  subscriptionRequestValidator,
+} from "../validator/subscription.js";
+import {
+  ERRORS,
+  serveBadRequest,
+  serveInternalServerError,
+} from "./resp/error.js";
+import { serveData } from "./resp/resp.js";
 
 export class SubscriptionController {
   private subscriptionService: SubscriptionService;
@@ -37,26 +43,18 @@ export class SubscriptionController {
       }
 
       const body: SubscriptionRequestBody = await c.req.json();
-      const { priceId, productId, successUrl, cancelUrl } = body;
-
       const session = await this.subscriptionService.createSubscription(
         user,
-        priceId,
-        productId,
-        successUrl,
-        cancelUrl
+        body.priceId,
+        body.productId,
+        body.successUrl,
+        body.cancelUrl
       );
 
-      return c.json({
-        success: true,
-        url: session.url,
-      });
+      return serveData(c, { url: session.url });
     } catch (error) {
       logger.error("Error creating subscription:", error);
-      if (error instanceof Error) {
-        return c.json({ error: error.message }, 400);
-      }
-      return c.json({ error: "Failed to create subscription" }, 500);
+      return serveInternalServerError(c, error);
     }
   };
 
@@ -67,44 +65,28 @@ export class SubscriptionController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const result = await this.subscriptionService.cancelSubscription(user.id);
-      return c.json({ success: true, subscription: result });
+      await this.subscriptionService.cancelSubscription(user.id);
+      return serveData(c, { message: "Subscription cancelled successfully" });
     } catch (error) {
-      logger.error("Error canceling subscription:", error);
-      return c.json({ error: "Failed to cancel subscription" }, 500);
+      logger.error("Error cancelling subscription:", error);
+      return serveInternalServerError(c, error);
     }
   };
 
-  public updateSubscription = async (c: Context) => {
+  public getSubscriptions = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const newPlanId = parseInt(c.req.param("planId"));
-      if (isNaN(newPlanId)) {
-        return serveBadRequest(c, "Invalid plan ID");
-      }
-
-      const subscription = await this.subscriptionService.updateSubscription(
-        user.id,
-        newPlanId
+      const subscriptions = await this.subscriptionService.getSubscriptions(
+        user.id
       );
-      return c.json({ success: true, subscription });
+      return serveData(c, { subscriptions });
     } catch (error) {
-      logger.error("Error updating subscription:", error);
-      return c.json({ error: "Failed to update subscription" }, 500);
-    }
-  };
-
-  public getPlans = async (c: Context) => {
-    try {
-      const plans = await this.subscriptionService.getAllPlans();
-      return c.json({ plans });
-    } catch (error) {
-      logger.error("Error getting plans:", error);
-      return c.json({ error: "Failed to get subscription plans" }, 500);
+      logger.error("Error getting subscriptions:", error);
+      return serveInternalServerError(c, error);
     }
   };
 }

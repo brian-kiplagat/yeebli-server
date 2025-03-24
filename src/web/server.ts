@@ -307,7 +307,7 @@ export class Server {
     const subscription = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    subscription.get("/plans", subscriptionCtrl.getPlans);
+    subscription.get("/", authCheck, subscriptionCtrl.getSubscriptions);
     subscription.post(
       "/subscribe",
       authCheck,
@@ -315,11 +315,6 @@ export class Server {
       subscriptionCtrl.subscribe
     );
     subscription.delete("/", authCheck, subscriptionCtrl.cancelSubscription);
-    subscription.put(
-      "/:planId",
-      authCheck,
-      subscriptionCtrl.updateSubscription
-    );
 
     api.route("/subscription", subscription);
   }
