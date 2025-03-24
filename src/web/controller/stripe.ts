@@ -3,7 +3,7 @@ import { logger } from "../../lib/logger.js";
 import type { StripeService } from "../../service/stripe.js";
 import type { UserService } from "../../service/user.js";
 import crypto from "crypto";
-import { ERRORS } from "./resp/error.ts";
+import { ERRORS, MAIL_CONTENT } from "./resp/error.ts";
 import { serveBadRequest } from "./resp/error.ts";
 import { SubscriptionRepository } from "../../repository/subscription.js";
 import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
@@ -342,12 +342,7 @@ export class StripeController {
           subscription_id: session.subscription,
         }),
         // Send welcome email
-        sendTransactionalEmail(user.email, user.name, 1, {
-          subject: "You are now subscribed to Yeebli",
-          title: "Welcome to Yeebli",
-          subtitle: "Your subscription is now active",
-          body: "Thank you for subscribing to Yeebli. Your subscription is now active and you can start using all our features.",
-        }),
+        sendTransactionalEmail(user.email, user.name, 1, MAIL_CONTENT.SUBSCRIPTION_TRIAL_STARTED),
       ]);
 
       logger.info(
