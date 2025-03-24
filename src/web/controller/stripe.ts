@@ -165,15 +165,14 @@ export class StripeController {
 
   public handleWebhook = async (c: Context) => {
     try {
-      const payload = await c.req.json();
       const signature = c.req.header("stripe-signature");
-
       if (!signature) {
         return c.json({ error: "No signature provided" }, 400);
       }
 
+      const rawBody = await c.req.raw.text();
       const event = this.stripeService.constructWebhookEvent(
-        payload,
+        rawBody,
         signature
       );
 
