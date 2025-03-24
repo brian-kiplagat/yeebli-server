@@ -183,6 +183,10 @@ export class StripeService {
     success_url: string;
     cancel_url: string;
     metadata?: Record<string, string>;
+    subscription_data?: {
+      trial_period_days?: number;
+      metadata?: Record<string, string>;
+    };
   }) {
     try {
       return await this.stripe.checkout.sessions.create(params);

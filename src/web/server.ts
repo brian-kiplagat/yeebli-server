@@ -143,7 +143,11 @@ export class Server {
     const s3Controller = new S3Controller(s3Service);
     const assetController = new AssetController(assetService, userService);
     const hlsController = new HLSController(hlsService, userService);
-    const stripeController = new StripeController(stripeService, userService);
+    const stripeController = new StripeController(
+      stripeService,
+      userService,
+      subscriptionRepo
+    );
     const subscriptionController = new SubscriptionController(
       subscriptionService,
       stripeService,

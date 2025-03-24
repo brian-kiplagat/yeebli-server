@@ -42,9 +42,12 @@ export class SubscriptionService {
         mode: "subscription",
         success_url: successUrl,
         cancel_url: cancelUrl,
-        metadata: {
-          userId: String(user.id),
-          productId: productId,
+        subscription_data: {
+          trial_period_days: 14,
+          metadata: {
+            userId: String(user.id),
+            productId: productId,
+          },
         },
       });
 

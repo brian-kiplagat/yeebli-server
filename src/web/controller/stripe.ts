@@ -5,14 +5,21 @@ import type { UserService } from "../../service/user.js";
 import crypto from "crypto";
 import { ERRORS } from "./resp/error.ts";
 import { serveBadRequest } from "./resp/error.ts";
+import { SubscriptionRepository } from "../../repository/subscription.js";
 
 export class StripeController {
   private stripeService: StripeService;
   private userService: UserService;
+  private subscriptionRepo: SubscriptionRepository;
 
-  constructor(stripeService: StripeService, userService: UserService) {
+  constructor(
+    stripeService: StripeService,
+    userService: UserService,
+    subscriptionRepo: SubscriptionRepository
+  ) {
     this.stripeService = stripeService;
     this.userService = userService;
+    this.subscriptionRepo = subscriptionRepo;
   }
 
   public createConnectAccount = async (c: Context) => {
@@ -179,6 +186,9 @@ export class StripeController {
         case "customer.subscription.deleted":
           await this.handleSubscriptionUpdate(event.data.object);
           break;
+        case "customer.subscription.trial_will_end":
+          await this.handleTrialEnding(event.data.object);
+          break;
       }
 
       return c.json({ received: true });
@@ -217,14 +227,49 @@ export class StripeController {
       const userId = subscription.metadata.userId;
       if (!userId) return;
 
+      // Get the subscription plan based on the price ID
+      const priceId = subscription.items.data[0].price.id;
+      const plan = await this.subscriptionRepo.findPlanByPriceId(priceId);
+
+      if (!plan) {
+        logger.error(`No plan found for price ID: ${priceId}`);
+        return;
+      }
+
+      // Update user's subscription status and plan
       await this.userService.update(parseInt(userId), {
         subscription_status: subscription.status,
+        subscription_id: subscription.id,
+        subscription_plan_id: plan.id,
         trial_ends_at: subscription.trial_end
           ? new Date(subscription.trial_end * 1000)
           : null,
       });
+
+      logger.info(
+        `Updated subscription status for user ${userId} to ${subscription.status}`
+      );
     } catch (error) {
       logger.error("Error handling subscription update:", error);
+      throw error;
+    }
+  }
+
+  private async handleTrialEnding(subscription: any) {
+    try {
+      const userId = subscription.metadata.userId;
+      if (!userId) return;
+
+      // Here you could implement notification logic
+      // For example, sending an email to the user
+      logger.info(`Trial ending soon for user ${userId}`);
+
+      // You might want to update some status or send a notification
+      // await this.userService.update(parseInt(userId), {
+      //   trial_ending_notified: true
+      // });
+    } catch (error) {
+      logger.error("Error handling trial ending:", error);
       throw error;
     }
   }
