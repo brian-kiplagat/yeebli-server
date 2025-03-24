@@ -1,8 +1,10 @@
-import type { Context } from 'hono';
-import { logger } from '../../lib/logger.js';
-import type { StripeService } from '../../service/stripe.js';
-import type { UserService } from '../../service/user.js';
-import type { StripeUrlBody, StripeWebhookBody } from '../validator/stripe.js';
+import type { Context } from "hono";
+import { logger } from "../../lib/logger.js";
+import type { StripeService } from "../../service/stripe.js";
+import type { UserService } from "../../service/user.js";
+import crypto from "crypto";
+import { ERRORS } from "./resp/error.ts";
+import { serveBadRequest } from "./resp/error.ts";
 
 export class StripeController {
   private stripeService: StripeService;
@@ -15,54 +17,67 @@ export class StripeController {
 
   public createConnectAccount = async (c: Context) => {
     try {
-      const userId = c.get('jwtPayload').id;
-      const user = await this.userService.find(userId);
-
+      const user = await this.getUser(c);
       if (!user) {
-        return c.json({ error: 'User not found' }, 404);
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
       // Check if user already has a Stripe account
       if (user.stripe_account_id) {
-        const account = await this.stripeService.getAccountStatus(user.stripe_account_id);
+        const account = await this.stripeService.getAccountStatus(
+          user.stripe_account_id
+        );
 
         if (account.charges_enabled) {
-          return c.json({ error: 'Stripe account already setup and verified' }, 400);
+          return c.json(
+            { error: "Stripe account already setup and verified" },
+            400
+          );
         }
       }
 
       // Create new Stripe account if none exists
-      const account = await this.stripeService.createConnectAccount(userId, user.email);
+      const account = await this.stripeService.createConnectAccount(
+        user.id,
+        user.email
+      );
 
       // Update user with Stripe account ID
-      await this.userService.update(userId, {
+      await this.userService.update(user.id, {
         stripe_account_id: account.id,
-        stripe_account_status: 'pending',
+        stripe_account_status: "pending",
       });
 
       // Generate onboarding link
-      const accountLink = await this.stripeService.createAccountLink(account.id, `${c.req.url.split('/v1')[0]}/v1`);
+      const accountLink = await this.stripeService.createAccountLink(
+        account.id,
+        `${c.req.url.split("/v1")[0]}/v1`
+      );
 
       return c.json({
         url: accountLink.url,
         accountId: account.id,
       });
     } catch (error) {
-      logger.error('Error in createConnectAccount:', error);
-      return c.json({ error: 'Failed to create Stripe Connect account' }, 500);
+      logger.error("Error in createConnectAccount:", error);
+      return c.json({ error: "Failed to create Stripe Connect account" }, 500);
     }
   };
 
   public getAccountStatus = async (c: Context) => {
     try {
-      const userId = c.get('jwtPayload').id;
-      const user = await this.userService.find(userId);
-
-      if (!user?.stripe_account_id) {
-        return c.json({ error: 'No Stripe account found' }, 404);
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const account = await this.stripeService.getAccountStatus(user.stripe_account_id);
+      if (!user.stripe_account_id) {
+        return c.json({ error: "No Stripe account found" }, 404);
+      }
+
+      const account = await this.stripeService.getAccountStatus(
+        user.stripe_account_id
+      );
 
       return c.json({
         accountId: account.id,
@@ -72,39 +87,100 @@ export class StripeController {
         status: user.stripe_account_status,
       });
     } catch (error) {
-      logger.error('Error in getAccountStatus:', error);
-      return c.json({ error: 'Failed to get account status' }, 500);
+      logger.error("Error in getAccountStatus:", error);
+      return c.json({ error: "Failed to get account status" }, 500);
+    }
+  };
+
+  private async getUser(c: Context) {
+    const email = c.get("jwtPayload").email;
+    const user = await this.userService.findByEmail(email);
+    return user;
+  }
+
+  public initiateOAuth = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const userId = user.id;
+      const state = crypto.randomBytes(16).toString("hex");
+
+      // Store state temporarily
+      await this.userService.update(userId, {
+        stripe_oauth_state: state,
+      });
+
+      const oauthUrl = this.stripeService.generateOAuthUrl(
+        state,
+        `${c.req.url}/callback`
+      );
+
+      return c.json({ url: oauthUrl });
+    } catch (error) {
+      logger.error("Error initiating OAuth:", error);
+      return c.json({ error: "Failed to initiate OAuth" }, 500);
+    }
+  };
+
+  public handleOAuthCallback = async (c: Context) => {
+    try {
+      const { code, state } = c.req.query();
+      const userId = c.get("jwtPayload").id;
+
+      const user = await this.userService.find(userId);
+      if (!user || state !== user.stripe_oauth_state) {
+        return c.json({ error: "Invalid state parameter" }, 400);
+      }
+
+      const response = await this.stripeService.handleOAuthCallback(code);
+
+      await this.userService.update(userId, {
+        stripe_account_id: response.stripe_user_id,
+        stripe_oauth_state: null,
+      });
+
+      return c.json({
+        success: true,
+        accountId: response.stripe_user_id,
+      });
+    } catch (error) {
+      logger.error("Error handling OAuth callback:", error);
+      return c.json({ error: "Failed to complete OAuth connection" }, 500);
     }
   };
 
   public handleWebhook = async (c: Context) => {
     try {
-      const payload = (await c.req.json()) as StripeWebhookBody;
-      const signature = c.req.header('stripe-signature');
+      const payload = await c.req.json();
+      const signature = c.req.header("stripe-signature");
 
       if (!signature) {
-        return c.json({ error: 'No signature provided' }, 400);
+        return c.json({ error: "No signature provided" }, 400);
       }
 
-      // Verify webhook signature
-      try {
-        const event = this.stripeService.constructWebhookEvent(payload, signature);
+      const event = this.stripeService.constructWebhookEvent(
+        payload,
+        signature
+      );
 
-        // Handle different event types
-        switch (event.type) {
-          case 'account.updated':
-            await this.handleAccountUpdate(event.data.object);
-            break;
-          // Add other event types as needed
-        }
-
-        return c.json({ received: true });
-      } catch (err) {
-        return c.json({ error: 'Invalid signature' }, 400);
+      switch (event.type) {
+        case "account.updated":
+          await this.handleAccountUpdate(event.data.object);
+          break;
+        case "customer.subscription.created":
+        case "customer.subscription.updated":
+        case "customer.subscription.deleted":
+          await this.handleSubscriptionUpdate(event.data.object);
+          break;
       }
+
+      return c.json({ received: true });
     } catch (error) {
-      logger.error('Error handling webhook:', error);
-      return c.json({ error: 'Webhook handler failed' }, 500);
+      logger.error("Error handling webhook:", error);
+      return c.json({ error: "Webhook handler failed" }, 500);
     }
   };
 
@@ -113,21 +189,38 @@ export class StripeController {
       const userId = account.metadata.userId;
       if (!userId) return;
 
-      let status: 'pending' | 'active' | 'rejected' | 'restricted' = 'pending';
+      let status: "pending" | "active" | "rejected" | "restricted" = "pending";
 
       if (account.charges_enabled && account.payouts_enabled) {
-        status = 'active';
+        status = "active";
       } else if (account.requirements?.disabled_reason) {
-        status = 'restricted';
+        status = "restricted";
       } else if (account.requirements?.errors?.length > 0) {
-        status = 'rejected';
+        status = "rejected";
       }
 
-      await this.userService.update(Number.parseInt(userId), {
+      await this.userService.update(parseInt(userId), {
         stripe_account_status: status,
       });
     } catch (error) {
-      logger.error('Error handling account update:', error);
+      logger.error("Error handling account update:", error);
+      throw error;
+    }
+  }
+
+  private async handleSubscriptionUpdate(subscription: any) {
+    try {
+      const userId = subscription.metadata.userId;
+      if (!userId) return;
+
+      await this.userService.update(parseInt(userId), {
+        subscription_status: subscription.status,
+        trial_ends_at: subscription.trial_end
+          ? new Date(subscription.trial_end * 1000)
+          : null,
+      });
+    } catch (error) {
+      logger.error("Error handling subscription update:", error);
       throw error;
     }
   }
