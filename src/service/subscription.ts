@@ -43,7 +43,7 @@ export class SubscriptionService {
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
-          userId: user.id.toString(),
+          userId: String(user.id),
           productId: productId,
         },
       });
@@ -57,7 +57,7 @@ export class SubscriptionService {
         session_id: session.id,
         cancel_url: session.cancel_url || "",
         success_url: session.success_url || "",
-        created: BigInt(session.created),
+        created: Number(session.created),
         currency: session.currency || "",
         mode: session.mode || "",
         payment_status: session.payment_status || "",

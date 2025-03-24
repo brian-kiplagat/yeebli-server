@@ -187,7 +187,6 @@ export class StripeService {
     try {
       return await this.stripe.checkout.sessions.create(params);
     } catch (error) {
-      logger.error("Error creating checkout session:", error);
       throw error;
     }
   }

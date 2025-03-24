@@ -30,14 +30,14 @@ export class SubscriptionRepository {
     session_id: string;
     cancel_url: string;
     success_url: string;
-    created: bigint;
+    created: number;
     currency: string;
     mode: string;
     payment_status: string;
     status: string;
     subscription_id: string | null;
   }) {
-    return db.insert(subscriptionSchema).values(data).returning();
+    return db.insert(subscriptionSchema).values(data).$returningId();
   }
 
   public async findSubscriptionBySessionId(sessionId: string) {

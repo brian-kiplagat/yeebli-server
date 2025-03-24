@@ -6,6 +6,7 @@ import { UserService } from "../../service/user.js";
 import { ERRORS } from "./resp/error.js";
 import { serveBadRequest } from "./resp/error.js";
 import { SubscriptionRequestBody } from "../validator/subscription.ts";
+import env from "../../lib/env.ts";
 
 export class SubscriptionController {
   private subscriptionService: SubscriptionService;
