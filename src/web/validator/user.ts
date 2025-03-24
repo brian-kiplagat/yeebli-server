@@ -1,6 +1,7 @@
 import { validator } from "hono/validator";
 import { z } from "zod";
 import { validateSchema } from "./validator.js";
+import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -13,20 +14,19 @@ const loginValidator = validator("json", (value, c) => {
 
 const registrationSchema = loginSchema.extend({
   name: z.string().min(4).max(40),
-  phone: z
-    .string()
-    .min(10)
-    .max(15)
-    .refine(
-      (phone) => {
-        const ukPhoneRegex = /^\+44\d{10}$/;
-        return ukPhoneRegex.test(phone);
-      },
-      {
-        message:
-          "Invalid UK phone number format. Must start with +44 followed by 10 digits",
+  phone: z.string().refine(
+    (phone) => {
+      try {
+        return isValidPhoneNumber(phone);
+      } catch (error) {
+        return false;
       }
-    ),
+    },
+    {
+      message:
+        "Invalid phone number format. Must include country code (e.g., +1, +44, +81)",
+    }
+  ),
 });
 
 const registrationValidator = validator("json", (value, c) => {
