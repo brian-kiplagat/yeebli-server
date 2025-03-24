@@ -193,7 +193,7 @@ export class StripeController {
 
       return c.json({ received: true });
     } catch (error) {
-      logger.error("Error handling webhook:", error);
+      console.error(error);
       return c.json({ error: "Webhook handler failed" }, 500);
     }
   };
