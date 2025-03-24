@@ -41,6 +41,7 @@ const ERRORS = {
   NOT_ALLOWED: 'Ops, you are not allowed to do this action.',
   EVENT_HAS_LEADS_CONNECTED:
     'Event has leads connected, cannot delete because there are leads assigned to this event, please cancel event and delete all leads associated with this particular event',
+  INVALID_STATE: 'Invalid state parameter. The state parameter does not match the expected value.',
 };
 
 export {

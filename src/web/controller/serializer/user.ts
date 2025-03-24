@@ -12,6 +12,8 @@ type UserResponse = {
   bio: string | null;
   is_banned: boolean | null;
   is_deleted: boolean | null;
+  stripe_account_id: string | null;
+  subscription_status: string | null;
 };
 
 const serializeUser = (user: User): UserResponse => {
@@ -27,6 +29,8 @@ const serializeUser = (user: User): UserResponse => {
     bio: user.bio,
     is_banned: user.is_banned,
     is_deleted: user.is_deleted,
+    stripe_account_id: user.stripe_account_id,
+    subscription_status: user.subscription_status,
   };
 };
 

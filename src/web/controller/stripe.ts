@@ -132,8 +132,11 @@ export class StripeController {
 
       const userId = user.id;
 
-      if (!user || state !== user.stripe_oauth_state) {
-        return c.json({ error: "Invalid state parameter" }, 400);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      if (state !== user.stripe_oauth_state) {
+        return serveBadRequest(c, ERRORS.INVALID_STATE);
       }
 
       const response = await this.stripeService.handleOAuthCallback(code);
