@@ -191,4 +191,19 @@ export class StripeService {
       throw error;
     }
   }
+
+  public async createCustomer(
+    email: string,
+    metadata?: Record<string, string>
+  ) {
+    try {
+      return await this.stripe.customers.create({
+        email,
+        metadata,
+      });
+    } catch (error) {
+      logger.error("Error creating customer:", error);
+      throw error;
+    }
+  }
 }

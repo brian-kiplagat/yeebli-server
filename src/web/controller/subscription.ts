@@ -45,6 +45,7 @@ export class SubscriptionController {
         successUrl,
         cancelUrl
       );
+      
 
       return c.json({
         success: true,

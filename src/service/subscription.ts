@@ -27,11 +27,12 @@ export class SubscriptionService {
     cancelUrl: string
   ) {
     try {
-      if (!user.stripe_account_id) {
-        throw new Error("User has no connected Stripe account");
+      if (!user.stripe_customer_id) {
+        throw new Error("User has no Stripe customer ID");
       }
+
       const session = await this.stripeService.createCheckoutSession({
-        customer: user.stripe_account_id,
+        customer: user.stripe_customer_id,
         line_items: [
           {
             price: priceId,
@@ -66,6 +67,7 @@ export class SubscriptionService {
 
       return session;
     } catch (error) {
+      console.log(error);
       logger.error("Error creating subscription checkout session:", error);
       throw error;
     }

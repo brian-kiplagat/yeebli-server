@@ -105,13 +105,13 @@ export class Server {
     const subscriptionRepo = new SubscriptionRepository();
     // Setup services
     const s3Service = new S3Service();
-    const userService = new UserService(userRepo);
     const leadService = new LeadService(leadRepo);
     const eventService = new EventService(eventRepo, s3Service);
     const adminService = new AdminService(adminRepo);
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
     const stripeService = new StripeService();
+    const userService = new UserService(userRepo, stripeService);
     const subscriptionService = new SubscriptionService(
       subscriptionRepo,
       stripeService,

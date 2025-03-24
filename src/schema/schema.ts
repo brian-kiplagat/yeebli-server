@@ -30,6 +30,7 @@ export const userSchema = mysqlTable("user", {
   is_banned: boolean("is_banned").default(false),
   is_deleted: boolean("is_deleted").default(false),
   stripe_account_id: varchar("stripe_account_id", { length: 255 }),
+  stripe_customer_id: varchar("stripe_customer_id", { length: 255 }),
   stripe_account_status: mysqlEnum("stripe_account_status", [
     "pending",
     "active",
