@@ -311,12 +311,12 @@ export class StripeController {
         return;
       }
       // Send welcome email
-      sendTransactionalEmail(user.email, user.name, 1, {
-        subject: "Your trial is ending soon",
-        title: "Your trial is ending soon",
-        subtitle: "Your trial is ending soon",
-        body: "Your trial is ending soon. Not to worry, the process is seamless your card will be charged when the trial ends seamlessly for the next month. You can cancel your subscription at any time. If you need help, please contact us at support@yeebli.com.",
-      });
+      sendTransactionalEmail(
+        user.email,
+        user.name,
+        1,
+        MAIL_CONTENT.SUBSCRIPTION_TRIAL_ENDED
+      );
     } catch (error) {
       logger.error("Error handling trial ending:", error);
       throw error;
