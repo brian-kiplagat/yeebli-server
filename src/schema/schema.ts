@@ -52,6 +52,12 @@ export const userSchema = mysqlTable("user", {
   stripe_oauth_state: varchar("stripe_oauth_state", { length: 255 }),
 });
 
+export const membershipSchema = mysqlTable("memberships", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
 export const leadSchema = mysqlTable("leads", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }),
@@ -75,12 +81,10 @@ export const leadSchema = mysqlTable("leads", {
     "Member",
     "Inactive Member",
   ]).default("Manual"),
-  lead_status: mysqlEnum("lead_status", [
-    "Level 1",
-    "Level 2",
-    "Level 3",
-    "Level 4",
-  ]).default("Level 1"),
+  lead_status: int("lead_status")
+    .references(() => membershipSchema.id)
+    .notNull()
+    .default(1),
   source_url: text("source_url"),
   membership_level: mysqlEnum("membership_level", [
     "Silver",
@@ -159,13 +163,20 @@ export const leadRelations = relations(leadSchema, ({ one }) => ({
     fields: [leadSchema.event_id],
     references: [eventSchema.id],
   }),
+  membership: one(membershipSchema, {
+    fields: [leadSchema.lead_status],
+    references: [membershipSchema.id],
+  }),
 }));
 
 export type Lead = typeof leadSchema.$inferSelect & {
   event?: Event | null;
+  membership?: Membership | null;
 };
 export type NewLead = typeof leadSchema.$inferInsert;
 export type Event = typeof eventSchema.$inferSelect;
 export type NewEvent = typeof eventSchema.$inferInsert;
 export type Asset = typeof assetsSchema.$inferSelect;
 export type NewAsset = typeof assetsSchema.$inferInsert;
+export type Membership = typeof membershipSchema.$inferSelect;
+export type NewMembership = typeof membershipSchema.$inferInsert;
