@@ -134,6 +134,13 @@
       "when": 1742814427721,
       "tag": "0019_sparkling_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1742816177784,
+      "tag": "0020_omniscient_supernaut",
+      "breakpoints": true
     }
   ]
 }

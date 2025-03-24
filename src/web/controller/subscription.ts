@@ -45,7 +45,6 @@ export class SubscriptionController {
         successUrl,
         cancelUrl
       );
-      
 
       return c.json({
         success: true,
@@ -53,6 +52,9 @@ export class SubscriptionController {
       });
     } catch (error) {
       logger.error("Error creating subscription:", error);
+      if (error instanceof Error) {
+        return c.json({ error: error.message }, 400);
+      }
       return c.json({ error: "Failed to create subscription" }, 500);
     }
   };
