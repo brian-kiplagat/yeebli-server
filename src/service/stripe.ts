@@ -175,4 +175,20 @@ export class StripeService {
       throw error;
     }
   }
+
+  public async createCheckoutSession(params: {
+    customer: string;
+    line_items: Array<{ price: string; quantity: number }>;
+    mode: Stripe.Checkout.SessionCreateParams.Mode;
+    success_url: string;
+    cancel_url: string;
+    metadata?: Record<string, string>;
+  }) {
+    try {
+      return await this.stripe.checkout.sessions.create(params);
+    } catch (error) {
+      logger.error("Error creating checkout session:", error);
+      throw error;
+    }
+  }
 }

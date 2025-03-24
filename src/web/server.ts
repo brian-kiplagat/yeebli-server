@@ -61,6 +61,7 @@ import {
 import { SubscriptionController } from "./controller/subscription.js";
 import { SubscriptionService } from "../service/subscription.js";
 import { SubscriptionRepository } from "../repository/subscription.js";
+import { subscriptionRequestValidator } from "./validator/subscription.ts";
 
 export class Server {
   private app: Hono;
@@ -145,7 +146,8 @@ export class Server {
     const stripeController = new StripeController(stripeService, userService);
     const subscriptionController = new SubscriptionController(
       subscriptionService,
-      stripeService
+      stripeService,
+      userService
     );
 
     // Register routes
@@ -301,10 +303,19 @@ export class Server {
     const subscription = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    // Admin only route to set up plans
-    subscription.post("/setup-plans", authCheck, subscriptionCtrl.setupPlans);
-    // Public route to get plans
     subscription.get("/plans", subscriptionCtrl.getPlans);
+    subscription.post(
+      "/subscribe",
+      authCheck,
+      subscriptionRequestValidator,
+      subscriptionCtrl.subscribe
+    );
+    subscription.delete("/", authCheck, subscriptionCtrl.cancelSubscription);
+    subscription.put(
+      "/:planId",
+      authCheck,
+      subscriptionCtrl.updateSubscription
+    );
 
     api.route("/subscription", subscription);
   }

@@ -2,6 +2,7 @@ import { SubscriptionRepository } from "../repository/subscription.js";
 import { StripeService } from "./stripe.js";
 import { UserService } from "./user.js";
 import { logger } from "../lib/logger.js";
+import { User } from "../lib/database.ts";
 
 export class SubscriptionService {
   private subscriptionRepo: SubscriptionRepository;
@@ -18,40 +19,54 @@ export class SubscriptionService {
     this.userService = userService;
   }
 
-  public async createSubscription(userId: number, planId: number) {
+  public async createSubscription(
+    user: User,
+    priceId: string,
+    productId: string,
+    successUrl: string,
+    cancelUrl: string
+  ) {
     try {
-      const user = await this.userService.find(userId);
-      if (!user?.stripe_account_id) {
+      if (!user.stripe_account_id) {
         throw new Error("User has no connected Stripe account");
       }
-
-      const plan = await this.subscriptionRepo.findPlan(planId);
-      if (!plan) {
-        throw new Error("Subscription plan not found");
-      }
-
-      const subscription = await this.stripeService.createSubscription({
+      const session = await this.stripeService.createCheckoutSession({
         customer: user.stripe_account_id,
-        items: [{ price: plan.stripe_price_id }],
-        trial_period_days: 14,
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: successUrl,
+        cancel_url: cancelUrl,
         metadata: {
-          userId: userId.toString(),
-          planId: planId.toString(),
+          userId: user.id.toString(),
+          productId: productId,
         },
       });
 
-      await this.userService.update(userId, {
-        subscription_id: subscription.id,
-        subscription_status: subscription.status,
-        subscription_plan_id: planId,
-        trial_ends_at: subscription.trial_end
-          ? new Date(subscription.trial_end * 1000)
-          : null,
+      // Store the checkout session in our database
+      await this.subscriptionRepo.createSubscription({
+        user_id: user.id,
+        object: "checkout.session",
+        amount_subtotal: session.amount_subtotal || 0,
+        amount_total: session.amount_total || 0,
+        session_id: session.id,
+        cancel_url: session.cancel_url || "",
+        success_url: session.success_url || "",
+        created: BigInt(session.created),
+        currency: session.currency || "",
+        mode: session.mode || "",
+        payment_status: session.payment_status || "",
+        status: session.status || "",
+        subscription_id: session.subscription?.toString() || null,
       });
 
-      return subscription;
+      return session;
     } catch (error) {
-      logger.error("Error creating subscription:", error);
+      logger.error("Error creating subscription checkout session:", error);
       throw error;
     }
   }

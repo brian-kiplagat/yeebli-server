@@ -2,101 +2,95 @@ import type { Context } from "hono";
 import { logger } from "../../lib/logger.js";
 import { SubscriptionService } from "../../service/subscription.js";
 import { StripeService } from "../../service/stripe.js";
+import { UserService } from "../../service/user.js";
+import { ERRORS } from "./resp/error.js";
+import { serveBadRequest } from "./resp/error.js";
+import { SubscriptionRequestBody } from "../validator/subscription.ts";
 
 export class SubscriptionController {
   private subscriptionService: SubscriptionService;
   private stripeService: StripeService;
+  private userService: UserService;
 
   constructor(
     subscriptionService: SubscriptionService,
-    stripeService: StripeService
+    stripeService: StripeService,
+    userService: UserService
   ) {
     this.subscriptionService = subscriptionService;
     this.stripeService = stripeService;
+    this.userService = userService;
   }
 
-  public setupPlans = async (c: Context) => {
+  private async getUser(c: Context) {
+    const email = c.get("jwtPayload").email;
+    const user = await this.userService.findByEmail(email);
+    return user;
+  }
+
+  public subscribe = async (c: Context) => {
     try {
-      const plans = [
-        {
-          name: "Platform Trial",
-          price: 0,
-          interval: "year",
-          features: {
-            lead_capacity: 100,
-            prerecorded_events: 3,
-            live_venue_events: true,
-            live_video_events: true,
-            email_alerts: true,
-            video_asset_limit: 5,
-          },
-        },
-        {
-          name: "Platform Basic",
-          price: 199,
-          interval: "month",
-          features: {
-            lead_capacity: 10000,
-            prerecorded_events: 10,
-            live_venue_events: true,
-            live_video_events: true,
-            membership_access: true,
-            email_alerts: true,
-            support_level: "email",
-            video_asset_limit: 15,
-          },
-        },
-        {
-          name: "Platform Full",
-          price: 399,
-          interval: "month",
-          features: {
-            lead_capacity: 30000,
-            prerecorded_events: 20,
-            live_venue_events: true,
-            live_video_events: true,
-            membership_access: true,
-            email_alerts: true,
-            sms_alerts: 1000,
-            support_level: "phone",
-            email_campaign: true,
-            video_asset_limit: 30,
-          },
-        },
-      ];
-
-      const createdPlans = [];
-      for (const plan of plans) {
-        const product = await this.stripeService.createProduct({
-          name: plan.name,
-          metadata: {
-            features: JSON.stringify(plan.features),
-          },
-        });
-
-        if (plan.price > 0) {
-          const price = await this.stripeService.createPrice({
-            product: product.id,
-            unit_amount: plan.price * 100, // Convert to cents
-            currency: "gbp",
-            recurring: {
-              interval: plan.interval as "month" | "year" | "day" | "week",
-            },
-          });
-
-          createdPlans.push({
-            name: plan.name,
-            productId: product.id,
-            priceId: price.id,
-            features: plan.features,
-          });
-        }
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      return c.json({ success: true, plans: createdPlans });
+      const body: SubscriptionRequestBody = await c.req.json();
+      const { priceId, productId, successUrl, cancelUrl } = body;
+
+      const session = await this.subscriptionService.createSubscription(
+        user,
+        priceId,
+        productId,
+        successUrl,
+        cancelUrl
+      );
+
+      return c.json({
+        success: true,
+        url: session.url,
+      });
     } catch (error) {
-      logger.error("Error setting up plans:", error);
-      return c.json({ error: "Failed to set up subscription plans" }, 500);
+      logger.error("Error creating subscription:", error);
+      return c.json({ error: "Failed to create subscription" }, 500);
+    }
+  };
+
+  public cancelSubscription = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const result = await this.subscriptionService.cancelSubscription(user.id);
+      return c.json({ success: true, subscription: result });
+    } catch (error) {
+      logger.error("Error canceling subscription:", error);
+      return c.json({ error: "Failed to cancel subscription" }, 500);
+    }
+  };
+
+  public updateSubscription = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const newPlanId = parseInt(c.req.param("planId"));
+      if (isNaN(newPlanId)) {
+        return serveBadRequest(c, "Invalid plan ID");
+      }
+
+      const subscription = await this.subscriptionService.updateSubscription(
+        user.id,
+        newPlanId
+      );
+      return c.json({ success: true, subscription });
+    } catch (error) {
+      logger.error("Error updating subscription:", error);
+      return c.json({ error: "Failed to update subscription" }, 500);
     }
   };
 

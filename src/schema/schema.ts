@@ -156,6 +156,24 @@ export const subscriptionPlanSchema = mysqlTable("subscription_plans", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+export const subscriptionSchema = mysqlTable("subscription", {
+  id: serial("id").primaryKey(),
+  created_at: timestamp("created_at").defaultNow(),
+  user_id: int("user_id").notNull(),
+  object: text("object").notNull(),
+  amount_subtotal: int("amount_subtotal").notNull(),
+  amount_total: int("amount_total").notNull(),
+  session_id: text("session_id").notNull(),
+  cancel_url: text("cancel_url").notNull(),
+  success_url: text("success_url").notNull(),
+  created: int("created").notNull(),
+  currency: text("currency").notNull(),
+  mode: text("mode").notNull(),
+  payment_status: text("payment_status").notNull(),
+  status: text("status").notNull(),
+  subscription_id: text("subscription_id"),
+});
+
 // Define the relations
 export const leadRelations = relations(leadSchema, ({ one }) => ({
   event: one(eventSchema, {
