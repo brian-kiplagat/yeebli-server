@@ -55,11 +55,12 @@ const ERRORS = {
   ASSET_NOT_FOUND: "Ops, we could not find the associated asset for this event",
   NOT_ALLOWED: "Ops, you are not allowed to do this action.",
   EVENT_HAS_LEADS_CONNECTED:
-    "Event has leads connected, cannot delete because there are leads assigned to this event, please cancel event and delete all leads associated with this particular event",
+    "This event has active leads connected. Please cancel the event first then try again.",
   INVALID_STATE:
     "Invalid state parameter. The state parameter does not match the expected value.",
   EVENT_DATE_REQUIRED: "Event date is required",
-  ASSET_LINKED_TO_EVENT: "Asset is linked to an event, cannot delete because there are leads assigned to this event, please cancel event first so that this asset can be deleted",
+  ASSET_LINKED_TO_EVENT:
+    "This asset has active leads tied to an event. Please cancel the event first then try again.",
 };
 
 const MAIL_CONTENT = {
