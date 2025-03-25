@@ -13,7 +13,7 @@ const loginValidator = validator("json", (value, c) => {
 });
 
 const registrationSchema = loginSchema.extend({
-  name: z.string().min(4).max(40),
+  name: z.string().min(2).max(40),
   phone: z.string().refine(
     (phone) => {
       try {
