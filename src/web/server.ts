@@ -108,7 +108,7 @@ export class Server {
     const s3Service = new S3Service();
     const turnstileService = new TurnstileService();
     const leadService = new LeadService(leadRepo);
-    const eventService = new EventService(eventRepo, s3Service);
+    const eventService = new EventService(eventRepo, s3Service, leadService);
     const adminService = new AdminService(adminRepo);
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
