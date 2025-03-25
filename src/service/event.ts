@@ -115,4 +115,8 @@ export class EventService {
         return "application/octet-stream";
     }
   }
+
+  public async findByAssetId(assetId: number) {
+    return this.repository.findByAssetId(assetId);
+  }
 }

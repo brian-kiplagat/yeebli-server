@@ -59,6 +59,7 @@ const ERRORS = {
   INVALID_STATE:
     "Invalid state parameter. The state parameter does not match the expected value.",
   EVENT_DATE_REQUIRED: "Event date is required",
+  ASSET_LINKED_TO_EVENT: "Asset is linked to an event, cannot delete because there are leads assigned to this event, please cancel event first so that this asset can be deleted",
 };
 
 const MAIL_CONTENT = {
