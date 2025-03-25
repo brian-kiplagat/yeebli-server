@@ -144,7 +144,7 @@ export class Server {
       assetService
     );
     const s3Controller = new S3Controller(s3Service);
-    const assetController = new AssetController(assetService, userService);
+    const assetController = new AssetController(assetService, userService, eventService, leadService);
     const hlsController = new HLSController(hlsService, userService);
     const stripeController = new StripeController(
       stripeService,
