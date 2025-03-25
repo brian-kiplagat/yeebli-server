@@ -11,6 +11,9 @@ const eventSchema = z.object({
   asset_id: z.string(),
   event_type: z.enum(["live_venue", "prerecorded", "live_video_call"]),
   status: z.enum(["active", "suspended", "cancelled"]),
+  lead_level: z.array(z.string()),
+  live_video_url: z.string().optional(),
+  success_url: z.string().optional(),
 });
 
 export const eventValidator = zValidator('json', eventSchema);
