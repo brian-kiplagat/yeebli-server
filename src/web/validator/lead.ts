@@ -35,6 +35,7 @@ const externalFormSchema = z.object({
     .transform((val) => val.replace(/[^\d+]/g, '')), // Remove non-digit characters except +
   event_id: z.string().transform((val) => Number.parseInt(val, 10)),
   host_id: z.string().transform((val) => Number.parseInt(val, 10)),
+  'cf-turnstile-response': z.string().min(1, 'Turnstile response is required'),
 });
 
 type LeadBody = z.infer<typeof leadSchema>;

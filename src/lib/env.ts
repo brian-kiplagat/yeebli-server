@@ -23,6 +23,7 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string(),
   STRIPE_CLIENT_ID: z.string(),
   STRIPE_OAUTH_REDIRECT_URI: z.string(),
+  TURNSTILE_SECRET_KEY: z.string(),
 });
 
 export default envSchema.parse(process.env);

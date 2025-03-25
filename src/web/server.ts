@@ -62,6 +62,7 @@ import { SubscriptionController } from "./controller/subscription.js";
 import { SubscriptionService } from "../service/subscription.js";
 import { SubscriptionRepository } from "../repository/subscription.js";
 import { subscriptionRequestValidator } from "./validator/subscription.ts";
+import { TurnstileService } from "../service/turnstile.js";
 
 export class Server {
   private app: Hono;
@@ -105,6 +106,7 @@ export class Server {
     const subscriptionRepo = new SubscriptionRepository();
     // Setup services
     const s3Service = new S3Service();
+    const turnstileService = new TurnstileService();
     const leadService = new LeadService(leadRepo);
     const eventService = new EventService(eventRepo, s3Service);
     const adminService = new AdminService(adminRepo);
@@ -126,7 +128,8 @@ export class Server {
     const leadController = new LeadController(
       leadService,
       userService,
-      eventService
+      eventService,
+      turnstileService
     );
     const eventController = new EventController(
       eventService,
