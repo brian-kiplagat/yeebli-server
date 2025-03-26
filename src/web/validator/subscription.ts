@@ -1,6 +1,6 @@
-import { validator } from "hono/validator";
-import { z } from "zod";
-import { validateSchema } from "./validator.js";
+import { validator } from 'hono/validator';
+import { z } from 'zod';
+import { validateSchema } from './validator.js';
 
 const subscriptionSchema = z.object({
   priceId: z.string(),
@@ -9,7 +9,7 @@ const subscriptionSchema = z.object({
   cancelUrl: z.string().url(),
 });
 
-const subscriptionRequestValidator = validator("json", (value, c) => {
+const subscriptionRequestValidator = validator('json', (value, c) => {
   return validateSchema(c, subscriptionSchema, value);
 });
 

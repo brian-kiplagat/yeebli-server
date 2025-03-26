@@ -1,6 +1,6 @@
-import { eq, desc } from "drizzle-orm";
-import { db } from "../lib/database.js";
-import { subscriptionSchema } from "../schema/schema.js";
+import { desc, eq } from 'drizzle-orm';
+import { db } from '../lib/database.js';
+import { subscriptionSchema } from '../schema/schema.js';
 
 export class SubscriptionRepository {
   public async createSubscription(data: {

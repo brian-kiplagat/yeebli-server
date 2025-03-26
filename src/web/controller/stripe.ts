@@ -1,23 +1,19 @@
-import type { Context } from "hono";
-import { logger } from "../../lib/logger.js";
-import type { StripeService } from "../../service/stripe.js";
-import type { UserService } from "../../service/user.js";
-import crypto from "crypto";
-import { ERRORS, MAIL_CONTENT } from "./resp/error.ts";
-import { serveBadRequest } from "./resp/error.ts";
-import { SubscriptionRepository } from "../../repository/subscription.js";
-import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
+import crypto from 'crypto';
+import type { Context } from 'hono';
+import { logger } from '../../lib/logger.js';
+import type { SubscriptionRepository } from '../../repository/subscription.js';
+import type { StripeService } from '../../service/stripe.js';
+import type { UserService } from '../../service/user.js';
+import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
+import { ERRORS, MAIL_CONTENT } from './resp/error.ts';
+import { serveBadRequest } from './resp/error.ts';
 
 export class StripeController {
   private stripeService: StripeService;
   private userService: UserService;
   private subscriptionRepo: SubscriptionRepository;
 
-  constructor(
-    stripeService: StripeService,
-    userService: UserService,
-    subscriptionRepo: SubscriptionRepository
-  ) {
+  constructor(stripeService: StripeService, userService: UserService, subscriptionRepo: SubscriptionRepository) {
     this.stripeService = stripeService;
     this.userService = userService;
     this.subscriptionRepo = subscriptionRepo;
@@ -32,43 +28,32 @@ export class StripeController {
 
       // Check if user already has a Stripe account
       if (user.stripe_account_id) {
-        const account = await this.stripeService.getAccountStatus(
-          user.stripe_account_id
-        );
+        const account = await this.stripeService.getAccountStatus(user.stripe_account_id);
 
         if (account.charges_enabled) {
-          return c.json(
-            { error: "Stripe account already setup and verified" },
-            400
-          );
+          return c.json({ error: 'Stripe account already setup and verified' }, 400);
         }
       }
 
       // Create new Stripe account if none exists
-      const account = await this.stripeService.createConnectAccount(
-        user.id,
-        user.email
-      );
+      const account = await this.stripeService.createConnectAccount(user.id, user.email);
 
       // Update user with Stripe account ID
       await this.userService.update(user.id, {
         stripe_account_id: account.id,
-        stripe_account_status: "pending",
+        stripe_account_status: 'pending',
       });
 
       // Generate onboarding link
-      const accountLink = await this.stripeService.createAccountLink(
-        account.id,
-        `${c.req.url.split("/v1")[0]}/v1`
-      );
+      const accountLink = await this.stripeService.createAccountLink(account.id, `${c.req.url.split('/v1')[0]}/v1`);
 
       return c.json({
         url: accountLink.url,
         accountId: account.id,
       });
     } catch (error) {
-      logger.error("Error in createConnectAccount:", error);
-      return c.json({ error: "Failed to create Stripe Connect account" }, 500);
+      logger.error('Error in createConnectAccount:', error);
+      return c.json({ error: 'Failed to create Stripe Connect account' }, 500);
     }
   };
 
@@ -80,12 +65,10 @@ export class StripeController {
       }
 
       if (!user.stripe_account_id) {
-        return c.json({ error: "No Stripe account found" }, 404);
+        return c.json({ error: 'No Stripe account found' }, 404);
       }
 
-      const account = await this.stripeService.getAccountStatus(
-        user.stripe_account_id
-      );
+      const account = await this.stripeService.getAccountStatus(user.stripe_account_id);
 
       return c.json({
         accountId: account.id,
@@ -95,8 +78,8 @@ export class StripeController {
         status: user.stripe_account_status,
       });
     } catch (error) {
-      logger.error("Error in getAccountStatus:", error);
-      return c.json({ error: "Failed to get account status" }, 500);
+      logger.error('Error in getAccountStatus:', error);
+      return c.json({ error: 'Failed to get account status' }, 500);
     }
   };
 
@@ -109,17 +92,15 @@ export class StripeController {
       if (!user.stripe_customer_id) {
         return serveBadRequest(c, ERRORS.STRIPE_CUSTOMER_ID_NOT_FOUND);
       }
-      const cardDetails = await this.stripeService.getCustomerPaymentMethods(
-        user.stripe_customer_id
-      );
+      const cardDetails = await this.stripeService.getCustomerPaymentMethods(user.stripe_customer_id);
       return c.json(cardDetails);
     } catch (error) {
-      logger.error("Error in getAccountStatus:", error);
-      return c.json({ error: "Failed to get account status" }, 500);
+      logger.error('Error in getAccountStatus:', error);
+      return c.json({ error: 'Failed to get account status' }, 500);
     }
   };
   private async getUser(c: Context) {
-    const email = c.get("jwtPayload").email;
+    const email = c.get('jwtPayload').email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -132,7 +113,7 @@ export class StripeController {
       }
 
       const userId = user.id;
-      const state = crypto.randomBytes(16).toString("hex");
+      const state = crypto.randomBytes(16).toString('hex');
 
       // Store state temporarily
       await this.userService.update(userId, {
@@ -143,8 +124,8 @@ export class StripeController {
 
       return c.json({ url: oauthUrl });
     } catch (error) {
-      logger.error("Error initiating OAuth:", error);
-      return c.json({ error: "Failed to initiate OAuth" }, 500);
+      logger.error('Error initiating OAuth:', error);
+      return c.json({ error: 'Failed to initiate OAuth' }, 500);
     }
   };
 
@@ -177,39 +158,36 @@ export class StripeController {
         accountId: response.stripe_user_id,
       });
     } catch (error) {
-      logger.error("Error handling OAuth callback:", error);
-      return c.json({ error: "Failed to complete OAuth connection" }, 500);
+      logger.error('Error handling OAuth callback:', error);
+      return c.json({ error: 'Failed to complete OAuth connection' }, 500);
     }
   };
 
   public handleWebhook = async (c: Context) => {
     try {
-      const signature = c.req.header("stripe-signature");
+      const signature = c.req.header('stripe-signature');
       if (!signature) {
-        return c.json({ error: "No signature provided" }, 400);
+        return c.json({ error: 'No signature provided' }, 400);
       }
 
       const rawBody = await c.req.raw.text();
-      const event = this.stripeService.constructWebhookEvent(
-        rawBody,
-        signature
-      );
+      const event = this.stripeService.constructWebhookEvent(rawBody, signature);
 
       switch (event.type) {
-        case "account.updated":
+        case 'account.updated':
           await this.handleAccountUpdate(event.data.object);
           break;
-        case "checkout.session.completed":
+        case 'checkout.session.completed':
           await this.handleCheckoutCompleted(event.data.object);
           break;
-        case "customer.subscription.created":
+        case 'customer.subscription.created':
           await this.handleSubscriptionUpdate(event.data.object);
           break;
-        case "customer.subscription.updated":
-        case "customer.subscription.deleted":
+        case 'customer.subscription.updated':
+        case 'customer.subscription.deleted':
           await this.handleSubscriptionUpdate(event.data.object);
           break;
-        case "customer.subscription.trial_will_end":
+        case 'customer.subscription.trial_will_end':
           await this.handleTrialEnding(event.data.object);
           break;
       }
@@ -219,10 +197,10 @@ export class StripeController {
       console.error(error);
       return c.json(
         {
-          error: "Webhook handler failed",
-          message: error instanceof Error ? error.message : "Unknown error",
+          error: 'Webhook handler failed',
+          message: error instanceof Error ? error.message : 'Unknown error',
         },
-        500
+        500,
       );
     }
   };
@@ -232,21 +210,21 @@ export class StripeController {
       const userId = account.metadata.userId;
       if (!userId) return;
 
-      let status: "pending" | "active" | "rejected" | "restricted" = "pending";
+      let status: 'pending' | 'active' | 'rejected' | 'restricted' = 'pending';
 
       if (account.charges_enabled && account.payouts_enabled) {
-        status = "active";
+        status = 'active';
       } else if (account.requirements?.disabled_reason) {
-        status = "restricted";
+        status = 'restricted';
       } else if (account.requirements?.errors?.length > 0) {
-        status = "rejected";
+        status = 'rejected';
       }
 
-      await this.userService.update(parseInt(userId), {
+      await this.userService.update(Number.parseInt(userId), {
         stripe_account_status: status,
       });
     } catch (error) {
-      logger.error("Error handling account update:", error);
+      logger.error('Error handling account update:', error);
       throw error;
     }
   }
@@ -257,63 +235,55 @@ export class StripeController {
       if (!userId) return;
 
       // Log the subscription event
-      logger.info(
-        `Processing subscription event: ${subscription.status} for user ${userId}`
-      );
+      logger.info(`Processing subscription event: ${subscription.status} for user ${userId}`);
 
       // Update user's subscription status
-      await this.userService.update(parseInt(userId), {
+      await this.userService.update(Number.parseInt(userId), {
         subscription_status: subscription.status,
         subscription_id: subscription.id,
-        trial_ends_at: subscription.trial_end
-          ? new Date(subscription.trial_end * 1000)
-          : null,
+        trial_ends_at: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
       });
 
       // Log subscription details for tracking
       logger.info({
-        event: "subscription_update",
+        event: 'subscription_update',
         userId,
         subscriptionId: subscription.id,
         status: subscription.status,
-        trialEnd: subscription.trial_end
-          ? new Date(subscription.trial_end * 1000)
-          : null,
+        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
       });
 
       // Handle specific subscription statuses
       switch (subscription.status) {
-        case "trialing":
+        case 'trialing':
           logger.info(`User ${userId} started trial period`);
           break;
-        case "active":
+        case 'active':
           logger.info(`User ${userId} subscription is now active`);
           break;
-        case "past_due":
+        case 'past_due':
           logger.warn(`User ${userId} subscription payment is past due`);
           break;
-        case "canceled":
+        case 'canceled':
           logger.info(`User ${userId} subscription was canceled`);
           break;
-        case "incomplete":
+        case 'incomplete':
           logger.warn(`User ${userId} subscription is incomplete`);
           break;
-        case "incomplete_expired":
-          logger.warn(
-            `User ${userId} subscription expired due to incomplete payment`
-          );
+        case 'incomplete_expired':
+          logger.warn(`User ${userId} subscription expired due to incomplete payment`);
           break;
-        case "paused":
+        case 'paused':
           logger.info(`User ${userId} subscription is paused`);
           break;
-        case "unpaid":
+        case 'unpaid':
           logger.warn(`User ${userId} subscription is unpaid`);
           break;
       }
     } catch (error) {
-      logger.error("Error handling subscription update:", error);
+      logger.error('Error handling subscription update:', error);
       throw error;
     }
   }
@@ -323,20 +293,15 @@ export class StripeController {
       const userId = subscription.metadata.userId;
       if (!userId) return;
 
-      const user = await this.userService.find(parseInt(userId));
+      const user = await this.userService.find(Number.parseInt(userId));
       if (!user) {
         logger.error(`User ${userId} not found during checkout completion`);
         return;
       }
       // Send welcome email
-      sendTransactionalEmail(
-        user.email,
-        user.name,
-        1,
-        MAIL_CONTENT.SUBSCRIPTION_TRIAL_ENDED
-      );
+      sendTransactionalEmail(user.email, user.name, 1, MAIL_CONTENT.SUBSCRIPTION_TRIAL_ENDED);
     } catch (error) {
-      logger.error("Error handling trial ending:", error);
+      logger.error('Error handling trial ending:', error);
       throw error;
     }
   }
@@ -346,7 +311,7 @@ export class StripeController {
       const userId = session.metadata.userId;
       if (!userId) return;
 
-      const user = await this.userService.find(parseInt(userId));
+      const user = await this.userService.find(Number.parseInt(userId));
       if (!user) {
         logger.error(`User ${userId} not found during checkout completion`);
         return;
@@ -355,24 +320,17 @@ export class StripeController {
       // Run user update and email sending concurrently
       await Promise.all([
         // Update user's subscription status to active
-        this.userService.update(parseInt(userId), {
-          subscription_status: "active",
+        this.userService.update(Number.parseInt(userId), {
+          subscription_status: 'active',
           subscription_id: session.subscription,
         }),
         // Send welcome email
-        sendTransactionalEmail(
-          user.email,
-          user.name,
-          1,
-          MAIL_CONTENT.SUBSCRIPTION_TRIAL_STARTED
-        ),
+        sendTransactionalEmail(user.email, user.name, 1, MAIL_CONTENT.SUBSCRIPTION_TRIAL_STARTED),
       ]);
 
-      logger.info(
-        `User ${userId} completed checkout and subscription is now active`
-      );
+      logger.info(`User ${userId} completed checkout and subscription is now active`);
     } catch (error) {
-      logger.error("Error handling checkout completion:", error);
+      logger.error('Error handling checkout completion:', error);
       throw error;
     }
   }

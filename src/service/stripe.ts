@@ -1,6 +1,6 @@
-import Stripe from "stripe";
-import env from "../lib/env.js";
-import { logger } from "../lib/logger.js";
+import Stripe from 'stripe';
+import env from '../lib/env.js';
+import { logger } from '../lib/logger.js';
 
 export class StripeService {
   private stripe: Stripe;
@@ -9,7 +9,7 @@ export class StripeService {
 
   constructor() {
     this.stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-02-24.acacia",
+      apiVersion: '2025-02-24.acacia',
     });
     this.clientId = env.STRIPE_CLIENT_ID;
     this.redirectUri = env.STRIPE_OAUTH_REDIRECT_URI;
@@ -18,13 +18,13 @@ export class StripeService {
   // OAuth Methods
   public generateOAuthUrl(state: string) {
     const params = new URLSearchParams({
-      response_type: "code",
+      response_type: 'code',
       client_id: this.clientId,
-      scope: "read_write",
+      scope: 'read_write',
       state: state,
     });
 
-    params.append("redirect_uri", this.redirectUri);
+    params.append('redirect_uri', this.redirectUri);
 
     return `https://connect.stripe.com/oauth/authorize?${params.toString()}`;
   }
@@ -32,11 +32,11 @@ export class StripeService {
   public async handleOAuthCallback(code: string): Promise<Stripe.OAuthToken> {
     try {
       return await this.stripe.oauth.token({
-        grant_type: "authorization_code",
+        grant_type: 'authorization_code',
         code,
       });
     } catch (error) {
-      logger.error("Error handling OAuth callback:", error);
+      logger.error('Error handling OAuth callback:', error);
       throw error;
     }
   }
@@ -51,7 +51,7 @@ export class StripeService {
     try {
       return await this.stripe.subscriptions.create(params);
     } catch (error) {
-      logger.error("Error creating subscription:", error);
+      logger.error('Error creating subscription:', error);
       throw error;
     }
   }
@@ -60,15 +60,14 @@ export class StripeService {
     try {
       return await this.stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
-      logger.error("Error canceling subscription:", error);
+      logger.error('Error canceling subscription:', error);
       throw error;
     }
   }
 
   public async updateSubscription(subscriptionId: string, priceId: string) {
     try {
-      const subscription =
-        await this.stripe.subscriptions.retrieve(subscriptionId);
+      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
       return await this.stripe.subscriptions.update(subscriptionId, {
         items: [
           {
@@ -78,7 +77,7 @@ export class StripeService {
         ],
       });
     } catch (error) {
-      logger.error("Error updating subscription:", error);
+      logger.error('Error updating subscription:', error);
       throw error;
     }
   }
@@ -87,7 +86,7 @@ export class StripeService {
     try {
       return await this.stripe.subscriptions.retrieve(subscriptionId);
     } catch (error) {
-      logger.error("Error retrieving subscription:", error);
+      logger.error('Error retrieving subscription:', error);
       throw error;
     }
   }
@@ -96,24 +95,20 @@ export class StripeService {
     try {
       const paymentMethods = await this.stripe.paymentMethods.list({
         customer: customerId,
-        type: "card",
+        type: 'card',
       });
       return paymentMethods.data;
     } catch (error) {
-      logger.error("Error retrieving customer payment methods:", error);
+      logger.error('Error retrieving customer payment methods:', error);
       throw error;
     }
   }
 
   public constructWebhookEvent(payload: string, signature: string) {
     try {
-      return this.stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        env.STRIPE_WEBHOOK_SECRET
-      );
+      return this.stripe.webhooks.constructEvent(payload, signature, env.STRIPE_WEBHOOK_SECRET);
     } catch (error) {
-      logger.error("Error constructing webhook event:", error);
+      logger.error('Error constructing webhook event:', error);
       throw error;
     }
   }
@@ -125,7 +120,7 @@ export class StripeService {
     try {
       return await this.stripe.products.create(params);
     } catch (error) {
-      logger.error("Error creating product:", error);
+      logger.error('Error creating product:', error);
       throw error;
     }
   }
@@ -135,13 +130,13 @@ export class StripeService {
     unit_amount: number;
     currency: string;
     recurring: {
-      interval: "day" | "week" | "month" | "year";
+      interval: 'day' | 'week' | 'month' | 'year';
     };
   }) {
     try {
       return await this.stripe.prices.create(params);
     } catch (error) {
-      logger.error("Error creating price:", error);
+      logger.error('Error creating price:', error);
       throw error;
     }
   }
@@ -149,8 +144,8 @@ export class StripeService {
   public async createConnectAccount(userId: number, email: string) {
     try {
       return await this.stripe.accounts.create({
-        type: "express",
-        country: "GB",
+        type: 'express',
+        country: 'GB',
         email: email,
         capabilities: {
           transfers: { requested: true },
@@ -161,7 +156,7 @@ export class StripeService {
         },
       });
     } catch (error) {
-      logger.error("Error creating Connect account:", error);
+      logger.error('Error creating Connect account:', error);
       throw error;
     }
   }
@@ -172,10 +167,10 @@ export class StripeService {
         account: accountId,
         refresh_url: `${baseUrl}/stripe/connect/refresh`,
         return_url: `${baseUrl}/stripe/connect/return`,
-        type: "account_onboarding",
+        type: 'account_onboarding',
       });
     } catch (error) {
-      logger.error("Error creating account link:", error);
+      logger.error('Error creating account link:', error);
       throw error;
     }
   }
@@ -184,7 +179,7 @@ export class StripeService {
     try {
       return await this.stripe.accounts.retrieve(accountId);
     } catch (error) {
-      logger.error("Error retrieving account status:", error);
+      logger.error('Error retrieving account status:', error);
       throw error;
     }
   }
@@ -208,17 +203,14 @@ export class StripeService {
     }
   }
 
-  public async createCustomer(
-    email: string,
-    metadata?: Record<string, string>
-  ) {
+  public async createCustomer(email: string, metadata?: Record<string, string>) {
     try {
       return await this.stripe.customers.create({
         email,
         metadata,
       });
     } catch (error) {
-      logger.error("Error creating customer:", error);
+      logger.error('Error creating customer:', error);
       throw error;
     }
   }
