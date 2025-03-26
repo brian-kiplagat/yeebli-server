@@ -296,6 +296,7 @@ export class Server {
       authCheck,
       stripeCtrl.handleOAuthCallback
     );
+    stripe.get("/list/payment/methods", authCheck, stripeCtrl.getCardDetails);
 
     // Webhook
     stripe.post("/webhook", stripeCtrl.handleWebhook);

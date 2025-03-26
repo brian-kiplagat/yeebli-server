@@ -92,6 +92,19 @@ export class StripeService {
     }
   }
 
+  public async getCustomerPaymentMethods(customerId: string) {
+    try {
+      const paymentMethods = await this.stripe.paymentMethods.list({
+        customer: customerId,
+        type: "card",
+      });
+      return paymentMethods.data;
+    } catch (error) {
+      logger.error("Error retrieving customer payment methods:", error);
+      throw error;
+    }
+  }
+
   public constructWebhookEvent(payload: string, signature: string) {
     try {
       return this.stripe.webhooks.constructEvent(

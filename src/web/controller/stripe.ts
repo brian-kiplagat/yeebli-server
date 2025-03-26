@@ -100,6 +100,24 @@ export class StripeController {
     }
   };
 
+  public getCardDetails = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      if (!user.stripe_customer_id) {
+        return serveBadRequest(c, ERRORS.STRIPE_CUSTOMER_ID_NOT_FOUND);
+      }
+      const cardDetails = await this.stripeService.getCustomerPaymentMethods(
+        user.stripe_customer_id
+      );
+      return c.json(cardDetails);
+    } catch (error) {
+      logger.error("Error in getAccountStatus:", error);
+      return c.json({ error: "Failed to get account status" }, 500);
+    }
+  };
   private async getUser(c: Context) {
     const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
@@ -342,7 +360,12 @@ export class StripeController {
           subscription_id: session.subscription,
         }),
         // Send welcome email
-        sendTransactionalEmail(user.email, user.name, 1, MAIL_CONTENT.SUBSCRIPTION_TRIAL_STARTED),
+        sendTransactionalEmail(
+          user.email,
+          user.name,
+          1,
+          MAIL_CONTENT.SUBSCRIPTION_TRIAL_STARTED
+        ),
       ]);
 
       logger.info(

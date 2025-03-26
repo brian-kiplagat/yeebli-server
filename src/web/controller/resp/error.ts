@@ -59,6 +59,7 @@ const ERRORS = {
   INVALID_STATE:
     "Invalid state parameter. The state parameter does not match the expected value.",
   EVENT_DATE_REQUIRED: "Event date is required",
+  STRIPE_CUSTOMER_ID_NOT_FOUND: "Stripe customer ID not found",
   ASSET_LINKED_TO_EVENT:
     "This asset has active leads tied to an event. Please cancel the event first then try again.",
 };
