@@ -60,11 +60,20 @@ const ERRORS = {
     "Invalid state parameter. The state parameter does not match the expected value.",
   EVENT_DATE_REQUIRED: "Event date is required",
   STRIPE_CUSTOMER_ID_NOT_FOUND: "Stripe customer ID not found",
+  STRIPE_PAYMENT_METHOD_NOT_FOUND: "Stripe payment method not found",
+  AUTH_INVALID_PASSWORD: "Ops, your old password is invalid, please check and try again",
+  STRIPE_PAYMENT_METHOD_NOT_ACTIVE: "Stripe payment method is not active",
   ASSET_LINKED_TO_EVENT:
     "This asset has active leads tied to an event. Please cancel the event first then try again.",
 };
 
 const MAIL_CONTENT = {
+  PASSWORD_CHANGED_IN_APP: {
+    subject: "Password Changed",
+    title: "Password Changed",
+    subtitle: "Your password has been changed successfully",
+    body: "Your password has been changed successfully. If this was not you, please contact support immediately.",
+  },
   SUBSCRIPTION_CANCELLED: {
     subject: "Your subscription has been cancelled",
     title: "Subscription Cancelled",

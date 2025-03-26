@@ -57,6 +57,7 @@ import {
   registrationValidator,
   requestResetPasswordValidator,
   resetPasswordValidator,
+  inAppResetPasswordValidator,
 } from "./validator/user.js";
 import { SubscriptionController } from "./controller/subscription.js";
 import { SubscriptionService } from "../service/subscription.js";
@@ -191,6 +192,12 @@ export class Server {
       "/reset-password",
       resetPasswordValidator,
       authCtrl.resetPassword
+    );
+    user.post(
+      "/reset-password-in-app",
+      authCheck,
+      inAppResetPasswordValidator,
+      authCtrl.resetPasswordInApp
     );
 
     api.route("/user", user);

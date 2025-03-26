@@ -68,12 +68,23 @@ const resetPasswordValidator = validator("json", (value, c) => {
   return validateSchema(c, resetPasswordSchema, value);
 });
 
+const inAppResetPasswordSchema = z.object({
+  oldPassword: z.string().min(8).max(20),
+  newPassword: z.string().min(8).max(20),
+  confirmPassword: z.string().min(8).max(20),
+});
+
+const inAppResetPasswordValidator = validator("json", (value, c) => {
+  return validateSchema(c, inAppResetPasswordSchema, value);
+});
+
 type LoginBody = z.infer<typeof loginSchema>;
 type RegistrationBody = z.infer<typeof registrationSchema>;
 type EmailVerificationBody = z.infer<typeof emailVerificationSchema>;
 type RegisterTokenBody = z.infer<typeof registerTokenSchema>;
 type RequestResetPasswordBody = z.infer<typeof requestResetPasswordSchema>;
 type ResetPasswordBody = z.infer<typeof resetPasswordSchema>;
+type InAppResetPasswordBody = z.infer<typeof inAppResetPasswordSchema>;
 export {
   type EmailVerificationBody,
   type LoginBody,
@@ -81,10 +92,12 @@ export {
   type RegisterTokenBody,
   type RequestResetPasswordBody,
   type ResetPasswordBody,
+  type InAppResetPasswordBody,
   emailVerificationValidator,
   loginValidator,
   registrationValidator,
   registerTokenValidator,
   requestResetPasswordValidator,
   resetPasswordValidator,
+  inAppResetPasswordValidator,
 };

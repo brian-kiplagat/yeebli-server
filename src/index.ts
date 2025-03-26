@@ -41,6 +41,7 @@ if (env.NODE_ENV === NODE_ENVIRONMENTS.development) {
 
 const port = Number.parseInt(env.PORT);
 logger.info(`Server is running on port: ${port}, env: ${env.NODE_ENV}`);
+logger.info(`http:localhost:${port}`);
 const web = serve({ fetch: app.fetch, port });
 
 process.on('SIGTERM', () => {
