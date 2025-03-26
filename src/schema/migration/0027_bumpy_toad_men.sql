@@ -1,0 +1,1 @@
+ALTER TABLE `leads` ADD `registered_date` varchar(100);

@@ -114,6 +114,7 @@ export const eventSchema = mysqlTable("events", {
   success_url: text("success_url"),
   instructions: text("instructions"),
   landing_page_url: text("landing_page_url"),
+  live_venue_address: text("live_venue_address"),
   other_dates: json("other_dates"),
   lead_level: json("lead_level"),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),

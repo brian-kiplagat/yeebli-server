@@ -13,6 +13,7 @@ const eventSchema = z.object({
   status: z.enum(["active", "suspended", "cancelled"]),
   lead_level: z.array(z.string()),
   live_video_url: z.string().optional(),
+  live_venue_address: z.string().optional(),
   success_url: z.string().optional(),
 });
 
