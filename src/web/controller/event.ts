@@ -4,6 +4,7 @@ import type { EventService } from '../../service/event.js';
 import type { LeadService } from '../../service/lead.js';
 import type { UserService } from '../../service/user.js';
 import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
+import { UpdateEventBody } from '../validator/event.ts';
 export class EventController {
   private service: EventService;
   private userService: UserService;
@@ -119,7 +120,7 @@ export class EventController {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
-      const body = await c.req.json();
+      const body: UpdateEventBody = await c.req.json();
       await this.service.updateEvent(eventId, body);
 
       return c.json({ message: 'Event updated successfully' });
