@@ -1,13 +1,10 @@
-import { createReadStream } from 'fs';
-import { statSync } from 'fs';
 import type { Context } from 'hono';
 import { z } from 'zod';
 import { logger } from '../../lib/logger.js';
-import type { AssetService } from '../../service/asset.js';
 import type { HLSService } from '../../service/hls.js';
 import type { UserService } from '../../service/user.js';
-import { type HLSUploadBody, Resolution } from '../validator/hls.js';
-import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
+import { type HLSUploadBody } from '../validator/hls.js';
+import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
 
 const processVideoSchema = z.object({
   videoId: z.number(),
