@@ -3,7 +3,7 @@ import { logger } from "../../lib/logger.js";
 import { encode } from "../../lib/jwt.js";
 import type { GoogleService } from "../../service/google.js";
 import { serializeUser } from "./serializer/user.js";
-import { ERRORS, serveBadRequest } from "./resp/error.ts";
+import { ERRORS, serveBadRequest, serveNotFound } from "./resp/error.ts";
 
 export class GoogleController {
   private googleService: GoogleService;
@@ -36,7 +36,7 @@ export class GoogleController {
       const user = await this.googleService.handleCallback(code);
 
       if (!user) {
-        return c.json({ error: "User not found" }, 404);
+        return serveNotFound(c, ERRORS.GOOGLE_AUTH_USER_NOT_FOUND);
       }
 
       // Generate JWT using the same encode function as auth controller

@@ -3,7 +3,7 @@ import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { StatusCodes, getReasonPhrase } from 'http-status-codes';
 
-const serveNotFound = (c: Context) => {
+const serveNotFound = (c: Context, GOOGLE_AUTH_USER_NOT_FOUND: string) => {
   return c.json({ error: getReasonPhrase(StatusCodes.NOT_FOUND) }, <ContentfulStatusCode>StatusCodes.NOT_FOUND);
 };
 
@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  GOOGLE_AUTH_USER_NOT_FOUND: 'Google authentication failed, user not found',
   AUTH_FAILED: 'Authentication failed',
   NO_AUTHORIZATION_CODE: 'No authorization code provided',
   USER_EXISTS: 'User already exists',
