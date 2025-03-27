@@ -13,7 +13,7 @@ export class GoogleService {
     this.client = new OAuth2Client({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
-      redirectUri: env.GOOGLE_CALLBACK_URL,
+      redirectUri: env.GOOGLE_REDIRECT_URL,
     });
     this.userService = userService;
     this.stripeService = stripeService;
