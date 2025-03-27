@@ -197,6 +197,13 @@
       "when": 1742987917412,
       "tag": "0028_volatile_owl",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1743080047679,
+      "tag": "0029_lyrical_iron_fist",
+      "breakpoints": true
     }
   ]
 }

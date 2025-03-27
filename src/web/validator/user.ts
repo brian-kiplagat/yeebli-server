@@ -1,5 +1,5 @@
 import { validator } from 'hono/validator';
-import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { z } from 'zod';
 import { validateSchema } from './validator.js';
 
