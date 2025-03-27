@@ -1,9 +1,9 @@
-import type { User } from '../lib/database.ts';
-import { encrypt } from '../lib/encryption.js';
-import { logger } from '../lib/logger.ts';
-import type { UserRepository } from '../repository/user.js';
-import { sendTransactionalEmail } from '../task/sendWelcomeEmail.js';
-import type { StripeService } from './stripe.ts';
+import { User } from "../schema/schema.ts";
+import { encrypt } from "../lib/encryption.ts";
+import { logger } from "../lib/logger.ts";
+import { UserRepository } from "../repository/user.ts";
+import { sendTransactionalEmail } from "../task/sendWelcomeEmail.ts";
+import { StripeService } from "./stripe.ts";
 
 export class UserService {
   private repo: UserRepository;
@@ -21,28 +21,33 @@ export class UserService {
     name: string,
     email: string,
     password: string,
-    role: 'master' | 'owner' | 'host' | 'user',
+    role: "master" | "owner" | "host" | "user",
     phone: string,
+    additionalFields: Partial<User> = {}
   ) {
     try {
-      // Create Stripe customer first
-      const stripeCustomer = await this.stripeService.createCustomer(email);
+      // Create Stripe customer first if not provided
+      const stripeCustomerId =
+        additionalFields.stripe_customer_id ||
+        (await this.stripeService.createCustomer(email)).id;
 
       const hashedPassword = encrypt(password);
 
-      // Create user with stripe customer ID
+      // Create user with all fields
       const user = await this.repo.create({
         name,
         email,
         password: hashedPassword,
         role,
         phone,
-        stripe_customer_id: stripeCustomer.id,
+        stripe_customer_id: stripeCustomerId,
+        auth_provider: "local",
+        ...additionalFields,
       });
 
       return user;
     } catch (error) {
-      logger.error('Error creating user:', error);
+      logger.error("Error creating user:", error);
       throw error;
     }
   }
@@ -70,19 +75,19 @@ export class UserService {
     try {
       const user = await this.findByEmail(email);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
 
       await sendTransactionalEmail(user.email, user.name, 1, {
-        subject: 'Welcome to Yeebli',
-        title: 'Welcome to Yeebli',
-        subtitle: 'Your subscription is now active',
-        body: 'Thank you for subscribing to Yeebli. Your subscription is now active and you can start using all our features.',
+        subject: "Welcome to Yeebli",
+        title: "Welcome to Yeebli",
+        subtitle: "Your subscription is now active",
+        body: "Thank you for subscribing to Yeebli. Your subscription is now active and you can start using all our features.",
       });
 
       logger.info(`Welcome email sent to ${email}`);
     } catch (error) {
-      logger.error('Error sending welcome email:', error);
+      logger.error("Error sending welcome email:", error);
       throw error;
     }
   }

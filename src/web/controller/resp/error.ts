@@ -32,6 +32,8 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  AUTH_FAILED: 'Authentication failed',
+  NO_AUTHORIZATION_CODE: 'No authorization code provided',
   USER_EXISTS: 'User already exists',
   USER_NOT_FOUND: 'User not found',
   INVALID_TOKEN: 'Ops, your code is invalid, please try again',

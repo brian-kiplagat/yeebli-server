@@ -1,13 +1,12 @@
-import type { Logger as drizzleLogger } from 'drizzle-orm/logger';
-import { drizzle } from 'drizzle-orm/mysql2';
-import mysql from 'mysql2/promise';
-import * as schema from '../schema/schema.js';
-import type { eventSchema, leadSchema, userSchema } from '../schema/schema.js';
-import env from './env.js';
-import { logger } from './logger.js';
+import type { Logger as drizzleLogger } from "drizzle-orm/logger";
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
+import * as schema from "../schema/schema.js";
+import env from "./env.js";
+import { logger } from "./logger.js";
 
 const DB_ERRORS = {
-  DUPLICATE_KEY: 'ER_DUP_ENTRY',
+  DUPLICATE_KEY: "ER_DUP_ENTRY",
 };
 
 export interface DatabaseError {
@@ -21,14 +20,7 @@ export interface DatabaseError {
   sqlMessage: string;
 }
 
-export type User = typeof userSchema.$inferSelect;
-export type NewUser = typeof userSchema.$inferInsert;
 
-export type Event = typeof eventSchema.$inferSelect;
-export type NewEvent = typeof eventSchema.$inferInsert;
-
-export type Lead = typeof leadSchema.$inferSelect;
-export type NewLead = typeof leadSchema.$inferInsert;
 
 class DBLogger implements drizzleLogger {
   logQuery(query: string, params: unknown[]): void {
@@ -53,7 +45,7 @@ const connection = mysql.createPool({
 
 const db = drizzle(connection, {
   schema: schema,
-  mode: 'default',
+  mode: "default",
   logger: new DBLogger(),
 });
 export { DB_ERRORS, connection, db };

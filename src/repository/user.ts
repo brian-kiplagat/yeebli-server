@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm';
-import { type NewUser, type User, db } from '../lib/database.js';
-import { userSchema } from '../schema/schema.js';
+import { eq } from "drizzle-orm";
+import { NewUser, User, userSchema } from "../schema/schema.js";
+import { db } from "../lib/database.ts";
 
 export class UserRepository {
   public async create(user: NewUser) {
@@ -14,9 +14,13 @@ export class UserRepository {
   }
 
   public async findByEmail(email: string) {
-    return db.query.userSchema.findFirst({
+    const user = await db.query.userSchema.findFirst({
       where: eq(userSchema.email, email),
     });
+    if (user && !user.auth_provider) {
+      user.auth_provider = "local";
+    }
+    return user;
   }
 
   public async update(id: number, user: Partial<User>) {

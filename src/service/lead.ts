@@ -1,6 +1,6 @@
-import type { Lead } from '../lib/database.js';
-import type { LeadQuery, LeadRepository } from '../repository/lead.js';
-import type { NewLead } from '../schema/schema.js';
+import { Lead } from "../schema/schema.ts";
+import { LeadQuery, LeadRepository } from "../repository/lead.ts";
+import { NewLead } from "../schema/schema.ts";
 
 export class LeadService {
   private repository: LeadRepository;

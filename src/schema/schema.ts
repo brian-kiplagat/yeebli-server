@@ -50,6 +50,11 @@ export const userSchema = mysqlTable("user", {
   ]),
   trial_ends_at: timestamp("trial_ends_at"),
   stripe_oauth_state: varchar("stripe_oauth_state", { length: 255 }),
+  google_id: varchar("google_id", { length: 255 }),
+  google_access_token: varchar("google_access_token", { length: 255 }),
+  auth_provider: mysqlEnum("auth_provider", ["local", "google"]).default(
+    "local"
+  ),
 });
 
 export const membershipSchema = mysqlTable("memberships", {
@@ -190,3 +195,10 @@ export type Asset = typeof assetsSchema.$inferSelect;
 export type NewAsset = typeof assetsSchema.$inferInsert;
 export type Membership = typeof membershipSchema.$inferSelect;
 export type NewMembership = typeof membershipSchema.$inferInsert;
+export type User = {
+  google_id?: string | null;
+  google_access_token?: string | null;
+  auth_provider: "local" | "google" | null;
+} & typeof userSchema.$inferSelect;
+
+export type NewUser = typeof userSchema.$inferInsert;

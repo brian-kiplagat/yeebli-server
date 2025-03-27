@@ -1,4 +1,5 @@
-import type { User } from '../../../lib/database.js';
+import { User } from "../../../schema/schema.ts";
+
 
 type UserResponse = {
   id: number;

@@ -1,8 +1,8 @@
-import type { User } from '../lib/database.ts';
-import { logger } from '../lib/logger.js';
-import type { SubscriptionRepository } from '../repository/subscription.js';
-import type { StripeService } from './stripe.js';
-import type { UserService } from './user.js';
+import { User } from "../schema/schema.ts";
+import { logger } from "../lib/logger.ts";
+import { SubscriptionRepository } from "../repository/subscription.ts";
+import { StripeService } from "./stripe.ts";
+import { UserService } from "./user.ts";
 
 export class SubscriptionService {
   private subscriptionRepo: SubscriptionRepository;

@@ -1,6 +1,6 @@
-import type { User } from '../lib/database.ts';
-import env from '../lib/env.js';
-import { logger } from '../lib/logger.js';
+import { User } from "../schema/schema.ts";
+import env from "../lib/env.ts";
+import { logger } from "../lib/logger.ts";
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
