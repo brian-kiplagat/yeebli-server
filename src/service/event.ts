@@ -34,11 +34,17 @@ export class EventService {
       // Create the event
       const newEvent = await this.repository.create(event);
 
-      // Automatically create the first event date
-      await this.repository.createEventDate({
-        event_id: newEvent[0].id,
-        date: event.event_date,
-      });
+      // Create all event dates in parallel
+      if (event.dates && Array.isArray(event.dates)) {
+        await Promise.all(
+          event.dates.map((date) =>
+            this.repository.createEventDate({
+              event_id: newEvent[0].id,
+              date: date,
+            })
+          )
+        );
+      }
 
       return newEvent;
     } catch (error) {

@@ -110,7 +110,6 @@ export const eventSchema = mysqlTable("events", {
     "prerecorded",
     "live_video_call",
   ]).default("prerecorded"),
-  event_date: varchar("event_date", { length: 50 }).notNull(), // Format: MM/DD/YYYY
   asset_id: int("asset_id").references(() => assetsSchema.id),
   created_at: timestamp("created_at").defaultNow(),
   status: mysqlEnum("status", ["active", "suspended", "cancelled"]).default(
@@ -121,7 +120,7 @@ export const eventSchema = mysqlTable("events", {
   instructions: text("instructions"),
   landing_page_url: text("landing_page_url"),
   live_venue_address: text("live_venue_address"),
-  other_dates: json("other_dates"),
+  dates: json("dates"),
   lead_level: json("lead_level"),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   host_id: int("host_id")

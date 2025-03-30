@@ -211,6 +211,20 @@
       "when": 1743318473556,
       "tag": "0030_whole_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1743320047616,
+      "tag": "0031_bumpy_shiver_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1743320094244,
+      "tag": "0032_parched_jack_murdock",
+      "breakpoints": true
     }
   ]
 }
