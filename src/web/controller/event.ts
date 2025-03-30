@@ -237,10 +237,16 @@ export class EventController {
 
       const eventId = Number(c.req.param("id"));
       const dateId = Number(c.req.param("dateId"));
-      const event = await this.service.getEvent(eventId);
 
+      // Get the event details
+      const event = await this.service.getEvent(eventId);
       if (!event) {
         return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
+      }
+
+      // Check if this is the last date
+      if (event.dates.length <= 1) {
+        return serveBadRequest(c, ERRORS.CANNOT_DELETE_LAST_DATE);
       }
 
       if (
