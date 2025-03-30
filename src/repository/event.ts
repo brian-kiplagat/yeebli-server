@@ -1,7 +1,12 @@
-import { and, desc, eq, like, or } from 'drizzle-orm';
-import { db } from '../lib/database.js';
-import { assetsSchema, eventDates, eventSchema, userSchema } from '../schema/schema.js';
-import type { Event, NewEvent, NewEventDate } from '../schema/schema.js';
+import { and, desc, eq, like, or, inArray } from "drizzle-orm";
+import { db } from "../lib/database.js";
+import {
+  assetsSchema,
+  eventDates,
+  eventSchema,
+  userSchema,
+} from "../schema/schema.js";
+import type { Event, NewEvent, NewEventDate } from "../schema/schema.js";
 
 export interface EventQuery {
   page?: number;
@@ -45,9 +50,13 @@ export class EventRepository {
     const offset = (page - 1) * limit;
 
     const whereConditions = search
-      ? or(like(eventSchema.event_name, `%${search}%`), like(eventSchema.event_description, `%${search}%`))
+      ? or(
+          like(eventSchema.event_name, `%${search}%`),
+          like(eventSchema.event_description, `%${search}%`)
+        )
       : undefined;
 
+    // First, get all events with their basic info
     const events = await db
       .select({
         event: eventSchema,
@@ -57,20 +66,34 @@ export class EventRepository {
           email: userSchema.email,
           profile_image: userSchema.profile_picture,
         },
-        dates: eventDates,
       })
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
-      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(eventSchema.created_at));
 
-    const total = await db.select({ count: eventSchema.id }).from(eventSchema).where(whereConditions);
+    // Then, get all dates for these events in a single query
+    const eventIds = events.map((e) => e.event.id);
+    const dates = await db
+      .select()
+      .from(eventDates)
+      .where(inArray(eventDates.event_id, eventIds));
 
-    return { events, total: total.length };
+    // Combine events with their dates
+    const eventsWithDates = events.map((event) => ({
+      ...event,
+      dates: dates.filter((d) => d.event_id === event.event.id),
+    }));
+
+    const total = await db
+      .select({ count: eventSchema.id })
+      .from(eventSchema)
+      .where(whereConditions);
+
+    return { events: eventsWithDates, total: total.length };
   }
 
   public async findByUserId(userId: number, query?: EventQuery) {
@@ -80,10 +103,14 @@ export class EventRepository {
     const whereConditions = search
       ? and(
           eq(eventSchema.host_id, userId),
-          or(like(eventSchema.event_name, `%${search}%`), like(eventSchema.event_description, `%${search}%`)),
+          or(
+            like(eventSchema.event_name, `%${search}%`),
+            like(eventSchema.event_description, `%${search}%`)
+          )
         )
       : eq(eventSchema.host_id, userId);
 
+    // First, get all events with their basic info
     const events = await db
       .select({
         event: eventSchema,
@@ -93,27 +120,44 @@ export class EventRepository {
           email: userSchema.email,
           profile_image: userSchema.profile_picture,
         },
-        dates: eventDates,
       })
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
-      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(eventSchema.created_at));
 
-    const total = await db.select({ count: eventSchema.id }).from(eventSchema).where(whereConditions);
+    // Then, get all dates for these events in a single query
+    const eventIds = events.map((e) => e.event.id);
+    const dates = await db
+      .select()
+      .from(eventDates)
+      .where(inArray(eventDates.event_id, eventIds));
 
-    return { events, total: total.length };
+    // Combine events with their dates
+    const eventsWithDates = events.map((event) => ({
+      ...event,
+      dates: dates.filter((d) => d.event_id === event.event.id),
+    }));
+
+    const total = await db
+      .select({ count: eventSchema.id })
+      .from(eventSchema)
+      .where(whereConditions);
+
+    return { events: eventsWithDates, total: total.length };
   }
 
   public async update(id: number, event: Partial<Event>) {
     return db.update(eventSchema).set(event).where(eq(eventSchema.id, id));
   }
 
-  public async cancel(id: number, status: 'cancelled' | 'active' | 'suspended') {
+  public async cancel(
+    id: number,
+    status: "cancelled" | "active" | "suspended"
+  ) {
     return db.update(eventSchema).set({ status }).where(eq(eventSchema.id, id));
   }
 
@@ -122,7 +166,11 @@ export class EventRepository {
   }
 
   public async findByAssetId(assetId: number) {
-    const result = await db.select().from(eventSchema).where(eq(eventSchema.asset_id, assetId)).limit(1);
+    const result = await db
+      .select()
+      .from(eventSchema)
+      .where(eq(eventSchema.asset_id, assetId))
+      .limit(1);
     return result[0];
   }
 }

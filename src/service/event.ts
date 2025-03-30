@@ -22,13 +22,13 @@ type EventWithRelations = {
     email: string;
     profile_image: string | null;
   } | null;
-  dates: {
+  dates: Array<{
     id: number;
     event_id: number;
     date: string;
     created_at: Date | null;
     updated_at: Date | null;
-  } | null;
+  }>;
 };
 
 export class EventService {
