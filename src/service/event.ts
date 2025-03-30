@@ -180,6 +180,11 @@ export class EventService {
       throw new Error("Event not found");
     }
 
+    // Check if this is the last date
+    if (event.dates.length <= 1) {
+      throw new Error("Cannot delete the last remaining date for an event");
+    }
+
     // Get all bookings for this date
     const bookings = await this.repository.findBookingsByDateId(dateId);
 
