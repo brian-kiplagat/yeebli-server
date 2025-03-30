@@ -14,6 +14,23 @@ type EventWithAsset = Event & {
   leadCount?: number;
 };
 
+type EventWithRelations = {
+  event: Event;
+  asset: Asset | null;
+  host: {
+    name: string;
+    email: string;
+    profile_image: string | null;
+  } | null;
+  dates: {
+    id: number;
+    event_id: number;
+    date: string;
+    created_at: Date | null;
+    updated_at: Date | null;
+  } | null;
+};
+
 export class EventService {
   private repository: EventRepository;
   private s3Service: S3Service;
@@ -90,23 +107,15 @@ export class EventService {
 
   public async getAllEvents(
     query?: EventQuery
-  ): Promise<{ events: Event[]; total: number }> {
-    const result = await this.repository.findAll(query);
-    return {
-      events: result.events.map((e) => e.event),
-      total: result.total,
-    };
+  ): Promise<{ events: EventWithRelations[]; total: number }> {
+    return await this.repository.findAll(query);
   }
 
   public async getEventsByUser(
     userId: number,
     query?: EventQuery
-  ): Promise<{ events: Event[]; total: number }> {
-    const result = await this.repository.findByUserId(userId, query);
-    return {
-      events: result.events.map((e) => e.event),
-      total: result.total,
-    };
+  ): Promise<{ events: EventWithRelations[]; total: number }> {
+    return await this.repository.findByUserId(userId, query);
   }
 
   public async updateEvent(id: number, event: Partial<Event>): Promise<void> {
