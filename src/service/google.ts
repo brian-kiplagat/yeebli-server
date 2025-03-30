@@ -64,7 +64,7 @@ export class GoogleService {
           userInfo.name || "Google User",
           userInfo.email,
           crypto.randomUUID(),
-          "user",
+          "host",
           "",
           {
             google_id: userInfo.id,
