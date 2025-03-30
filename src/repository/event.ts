@@ -46,9 +46,9 @@ export class EventRepository {
     const dates = await db
       .select()
       .from(eventDates)
-      .where(inArray(eventDates.event_id, [id]));
+      .where(eq(eventDates.event_id, id));
 
-    return { ...result[0], dates };
+    return { ...result[0], dates: dates };
   }
 
   public async findAll(query?: EventQuery) {
