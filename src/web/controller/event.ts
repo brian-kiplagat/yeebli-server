@@ -91,8 +91,8 @@ export class EventController {
       return c.json(
         {
           message: 'Event created successfully',
-          link: `https://yeebli-e10656.webflow.io/eventpage?code=${eventId}`,
-          eventId,
+          link: `https://yeebli-e10656.webflow.io/eventpage?code=${eventId[0].id}`,
+          eventId: eventId[0].id,
         },
         201,
       );
