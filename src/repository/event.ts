@@ -1,7 +1,7 @@
 import { and, desc, eq, like, or } from 'drizzle-orm';
 import { db } from '../lib/database.js';
-import { assetsSchema, eventSchema, userSchema } from '../schema/schema.js';
-import type { Event, NewEvent } from '../schema/schema.js';
+import { assetsSchema, eventDates, eventSchema, userSchema } from '../schema/schema.js';
+import type { Event, NewEvent, NewEventDate } from '../schema/schema.js';
 
 export interface EventQuery {
   page?: number;
@@ -12,6 +12,10 @@ export interface EventQuery {
 export class EventRepository {
   public async create(event: NewEvent) {
     return db.insert(eventSchema).values(event).$returningId();
+  }
+
+  public async createEventDate(eventDate: NewEventDate) {
+    return db.insert(eventDates).values(eventDate).$returningId();
   }
 
   public async find(id: number) {

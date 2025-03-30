@@ -32,6 +32,8 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  BOOKING_FAILED: 'Failed to create booking',
+  BOOKING_NOT_FOUND: 'Booking not found',
   GOOGLE_AUTH_USER_NOT_FOUND: 'Google authentication failed, user not found',
   AUTH_FAILED: 'Authentication failed',
   NO_AUTHORIZATION_CODE: 'No authorization code provided',

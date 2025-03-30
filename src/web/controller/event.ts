@@ -60,7 +60,7 @@ export class EventController {
       const event = await this.service.getEvent(eventId);
 
       if (!event) {
-        return serveNotFound(c);
+        return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
       }
       if (!event.asset) {
         return serveBadRequest(c, ERRORS.ASSET_NOT_FOUND);
@@ -167,7 +167,7 @@ export class EventController {
       const event = await this.service.getEvent(eventId);
 
       if (!event) {
-        return serveNotFound(c);
+        return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
       }
       //only and master role or admin or the owner of the lead
       if (user.role !== 'master' && user.role !== 'owner' && event.host_id !== user.id) {

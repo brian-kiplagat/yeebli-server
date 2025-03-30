@@ -67,6 +67,7 @@ import {
 } from "./validator/user.js";
 import { GoogleService } from "../service/google.js";
 import { GoogleController } from "./controller/google.js";
+import { BookingController } from "./controller/booking.ts";
 
 export class Server {
   private app: Hono;
@@ -165,6 +166,7 @@ export class Server {
       stripeService,
       userService
     );
+    const bookingCtrl = new BookingController(eventService);
 
     // Add Google service and controller
     const googleService = new GoogleService(userService, stripeService);
@@ -180,6 +182,7 @@ export class Server {
     this.registerHLSRoutes(api, hlsController);
     this.registerStripeRoutes(api, stripeController);
     this.registerSubscriptionRoutes(api, subscriptionController);
+    this.registerBookingRoutes(api, bookingCtrl);
   }
 
   private registerUserRoutes(
@@ -354,6 +357,15 @@ export class Server {
     subscription.delete("/", authCheck, subscriptionCtrl.cancelSubscription);
 
     api.route("/subscription", subscription);
+  }
+
+  private registerBookingRoutes(api: Hono, bookingCtrl: BookingController) {
+    const booking = new Hono();
+    
+    booking.post("/", bookingCtrl.createBooking);
+    booking.get("/lead/:lead_id", bookingCtrl.getBookingsByLead);
+
+    api.route("/booking", booking);
   }
 
   private registerWorker(userService: UserService) {

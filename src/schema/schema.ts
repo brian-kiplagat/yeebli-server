@@ -9,6 +9,7 @@ import {
   serial,
   text,
   timestamp,
+  unique,
   varchar,
 } from "drizzle-orm/mysql-core";
 
@@ -128,6 +129,31 @@ export const eventSchema = mysqlTable("events", {
     .notNull(),
 });
 
+export const eventDates = mysqlTable("event_dates", {
+  id: serial("id").primaryKey(),
+  event_id: int("event_id")
+    .references(() => eventSchema.id)
+    .notNull(),
+  date: varchar("date", { length: 50 }).notNull(), // Format: MM/DD/YYYY
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
+export const bookings = mysqlTable("bookings", {
+  id: serial("id").primaryKey(),
+  event_id: int("event_id")
+    .references(() => eventSchema.id)
+    .notNull(),
+  date_id: int("date_id")
+    .references(() => eventDates.id)
+    .notNull(),
+  lead_id: int("lead_id")
+    .references(() => leadSchema.id)
+    .notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
 export const assetsSchema = mysqlTable("assets", {
   id: serial("id").primaryKey(),
   asset_name: varchar("asset_name", { length: 255 }).notNull(),
@@ -191,6 +217,8 @@ export type Lead = typeof leadSchema.$inferSelect & {
 export type NewLead = typeof leadSchema.$inferInsert;
 export type Event = typeof eventSchema.$inferSelect;
 export type NewEvent = typeof eventSchema.$inferInsert;
+export type EventDate = typeof eventDates.$inferSelect;
+export type NewEventDate = typeof eventDates.$inferInsert;
 export type Asset = typeof assetsSchema.$inferSelect;
 export type NewAsset = typeof assetsSchema.$inferInsert;
 export type Membership = typeof membershipSchema.$inferSelect;

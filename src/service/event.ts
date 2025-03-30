@@ -1,7 +1,8 @@
-import type { EventQuery, EventRepository } from '../repository/event.ts';
-import type { Asset, Event, NewEvent } from '../schema/schema.js';
-import type { LeadService } from './lead.ts';
-import type { S3Service } from './s3.js';
+import type { EventQuery, EventRepository } from "../repository/event.ts";
+import type { Asset, Event, NewEvent } from "../schema/schema.js";
+import type { LeadService } from "./lead.ts";
+import type { S3Service } from "./s3.js";
+import { logger } from "../lib/logger.js";
 
 type EventWithAsset = Event & {
   asset?: (Asset & { presignedUrl: string }) | null;
@@ -18,15 +19,32 @@ export class EventService {
   private s3Service: S3Service;
   private leadService: LeadService;
 
-  constructor(repository: EventRepository, s3Service: S3Service, leadService: LeadService) {
+  constructor(
+    repository: EventRepository,
+    s3Service: S3Service,
+    leadService: LeadService
+  ) {
     this.repository = repository;
     this.s3Service = s3Service;
     this.leadService = leadService;
   }
 
-  public async createEvent(event: NewEvent): Promise<number> {
-    const result = await this.repository.create(event);
-    return result[0].id;
+  public async createEvent(event: NewEvent) {
+    try {
+      // Create the event
+      const newEvent = await this.repository.create(event);
+
+      // Automatically create the first event date
+      await this.repository.createEventDate({
+        event_id: newEvent[0].id,
+        date: event.event_date,
+      });
+
+      return newEvent;
+    } catch (error) {
+      logger.error("Failed to create event:", error);
+      throw error;
+    }
   }
 
   public async getEvent(id: number): Promise<EventWithAsset | undefined> {
@@ -43,7 +61,7 @@ export class EventService {
       const presignedUrl = await this.s3Service.generateGetUrl(
         this.getKeyFromUrl(asset.asset_url),
         this.getContentType(asset.asset_type as string),
-        86400, // 24 hours
+        86400 // 24 hours
       );
       return {
         ...event,
@@ -64,11 +82,16 @@ export class EventService {
     };
   }
 
-  public async getAllEvents(query?: EventQuery): Promise<{ events: Event[]; total: number }> {
+  public async getAllEvents(
+    query?: EventQuery
+  ): Promise<{ events: Event[]; total: number }> {
     return this.repository.findAll(query);
   }
 
-  public async getEventsByUser(userId: number, query?: EventQuery): Promise<{ events: Event[]; total: number }> {
+  public async getEventsByUser(
+    userId: number,
+    query?: EventQuery
+  ): Promise<{ events: Event[]; total: number }> {
     return this.repository.findByUserId(userId, query);
   }
 
@@ -76,7 +99,10 @@ export class EventService {
     await this.repository.update(id, event);
   }
 
-  public async cancelEvent(id: number, status: 'cancelled' | 'active' | 'suspended'): Promise<void> {
+  public async cancelEvent(
+    id: number,
+    status: "cancelled" | "active" | "suspended"
+  ): Promise<void> {
     await this.repository.cancel(id, status);
   }
 
@@ -85,22 +111,22 @@ export class EventService {
   }
 
   private getKeyFromUrl(url: string): string {
-    const urlParts = url.split('.amazonaws.com/');
-    return urlParts[1] || '';
+    const urlParts = url.split(".amazonaws.com/");
+    return urlParts[1] || "";
   }
 
   private getContentType(assetType: string): string {
     switch (assetType) {
-      case 'image':
-        return 'image/jpeg';
-      case 'video':
-        return 'video/mp4';
-      case 'audio':
-        return 'audio/mpeg';
-      case 'document':
-        return 'application/pdf';
+      case "image":
+        return "image/jpeg";
+      case "video":
+        return "video/mp4";
+      case "audio":
+        return "audio/mpeg";
+      case "document":
+        return "application/pdf";
       default:
-        return 'application/octet-stream';
+        return "application/octet-stream";
     }
   }
 
