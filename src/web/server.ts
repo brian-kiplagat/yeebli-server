@@ -30,6 +30,7 @@ import { EventController } from "./controller/event.ts";
 import { HLSController } from "./controller/hls.js";
 import { LeadController } from "./controller/lead.ts";
 import {
+  ERRORS,
   serveInternalServerError,
   serveNotFound,
 } from "./controller/resp/error.js";
@@ -50,10 +51,6 @@ import {
   leadValidator,
   updateLeadValidator,
 } from "./validator/lead.ts";
-import {
-  stripeUrlValidator,
-  stripeWebhookValidator,
-} from "./validator/stripe.js";
 import { subscriptionRequestValidator } from "./validator/subscription.ts";
 import {
   emailVerificationValidator,
@@ -68,6 +65,8 @@ import {
 import { GoogleService } from "../service/google.js";
 import { GoogleController } from "./controller/google.js";
 import { BookingController } from "./controller/booking.ts";
+import { BookingRepository } from "../repository/booking.ts";
+import { BookingService } from "../service/booking.ts";
 
 export class Server {
   private app: Hono;
@@ -92,7 +91,7 @@ export class Server {
 
     // Universal catchall
     this.app.notFound((c) => {
-      return serveNotFound(c);
+      return serveNotFound(c, ERRORS.NOT_FOUND);
     });
 
     // Error handling
@@ -115,6 +114,8 @@ export class Server {
     const leadService = new LeadService(leadRepo);
     const eventService = new EventService(eventRepo, s3Service, leadService);
     const adminService = new AdminService(adminRepo);
+    const bookingRepo = new BookingRepository();
+    const bookingService = new BookingService(bookingRepo);
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
     const stripeService = new StripeService();
@@ -166,7 +167,7 @@ export class Server {
       stripeService,
       userService
     );
-    const bookingCtrl = new BookingController(eventService);
+    const bookingCtrl = new BookingController(bookingService);
 
     // Add Google service and controller
     const googleService = new GoogleService(userService, stripeService);
@@ -361,7 +362,7 @@ export class Server {
 
   private registerBookingRoutes(api: Hono, bookingCtrl: BookingController) {
     const booking = new Hono();
-    
+
     booking.post("/", bookingCtrl.createBooking);
     booking.get("/lead/:lead_id", bookingCtrl.getBookingsByLead);
 

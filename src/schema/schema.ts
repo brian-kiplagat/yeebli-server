@@ -213,6 +213,8 @@ export type Lead = typeof leadSchema.$inferSelect & {
   event?: Event | null;
   membership?: Membership | null;
 };
+export type Booking = typeof bookings.$inferSelect;
+export type NewBooking = typeof bookings.$inferInsert;
 export type NewLead = typeof leadSchema.$inferInsert;
 export type Event = typeof eventSchema.$inferSelect;
 export type NewEvent = typeof eventSchema.$inferInsert;

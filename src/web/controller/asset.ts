@@ -99,7 +99,7 @@ export class AssetController {
       const asset = await this.service.getAsset(assetId);
 
       if (!asset) {
-        return serveNotFound(c);
+        return serveNotFound(c, ERRORS.ASSET_NOT_FOUND);
       }
 
       return c.json(asset);
@@ -115,7 +115,7 @@ export class AssetController {
       const asset = await this.service.getAsset(assetId);
 
       if (!asset) {
-        return serveNotFound(c);
+        return serveNotFound(c, ERRORS.ASSET_NOT_FOUND);
       }
 
       // Check if asset is linked to any events
@@ -151,7 +151,7 @@ export class AssetController {
       const assetId = Number(c.req.param('id'));
       const asset = await this.service.getAsset(assetId);
       if (!asset) {
-        return serveNotFound(c);
+        return serveNotFound(c, ERRORS.ASSET_NOT_FOUND);
       }
       //only and master role or admin or the owner of the  can update the asset
       if (user.role !== 'master' && user.role !== 'owner' && asset.user_id !== user.id) {

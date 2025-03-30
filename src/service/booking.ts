@@ -1,6 +1,6 @@
-import type { BookingRepository } from "../repository/booking.js";
-import type { NewBooking } from "../schema/schema.js";
-import { logger } from "../lib/logger.js";
+import type { NewBooking } from "../schema/schema.ts";
+import { logger } from "../lib/logger.ts";
+import { BookingRepository } from "../repository/booking.ts";
 
 export class BookingService {
   private repo: BookingRepository;

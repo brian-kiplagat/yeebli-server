@@ -91,14 +91,22 @@ export class EventService {
   public async getAllEvents(
     query?: EventQuery
   ): Promise<{ events: Event[]; total: number }> {
-    return this.repository.findAll(query);
+    const result = await this.repository.findAll(query);
+    return {
+      events: result.events.map((e) => e.event),
+      total: result.total,
+    };
   }
 
   public async getEventsByUser(
     userId: number,
     query?: EventQuery
   ): Promise<{ events: Event[]; total: number }> {
-    return this.repository.findByUserId(userId, query);
+    const result = await this.repository.findByUserId(userId, query);
+    return {
+      events: result.events.map((e) => e.event),
+      total: result.total,
+    };
   }
 
   public async updateEvent(id: number, event: Partial<Event>): Promise<void> {

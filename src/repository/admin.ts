@@ -64,7 +64,7 @@ export class AdminRepository {
   }
 
   async getEvents(query: AdminEventQuery) {
-    const { page = 1, limit = 50, search, date_range } = query;
+    const { page = 1, limit = 50, search } = query;
     const offset = (page - 1) * limit;
 
     const whereClause = [];
@@ -73,11 +73,7 @@ export class AdminRepository {
         or(like(eventSchema.event_name, `%${search}%`), like(eventSchema.event_description, `%${search}%`)),
       );
     }
-    if (date_range) {
-      whereClause.push(
-        and(like(eventSchema.event_date, `%${date_range.start}%`), like(eventSchema.event_date, `%${date_range.end}%`)),
-      );
-    }
+    
 
     const events = await db
       .select()
@@ -85,7 +81,7 @@ export class AdminRepository {
       .where(whereClause.length ? and(...whereClause) : undefined)
       .limit(limit)
       .offset(offset)
-      .orderBy(asc(eventSchema.event_date));
+      .orderBy(asc(eventSchema.created_at));
 
     const total = await db
       .select({ count: eventSchema.id })

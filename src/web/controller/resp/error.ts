@@ -3,8 +3,8 @@ import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { StatusCodes, getReasonPhrase } from 'http-status-codes';
 
-const serveNotFound = (c: Context, GOOGLE_AUTH_USER_NOT_FOUND: string) => {
-  return c.json({ error: getReasonPhrase(StatusCodes.NOT_FOUND) }, <ContentfulStatusCode>StatusCodes.NOT_FOUND);
+const serveNotFound = (c: Context, message: string) => {
+  return c.json({ error: message }, <ContentfulStatusCode>StatusCodes.NOT_FOUND);
 };
 
 const serveBadRequest = (c: Context, message: string) => {
@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  NOT_FOUND: 'Ops, we could not find the resource you are looking for',
   BOOKING_FAILED: 'Failed to create booking',
   BOOKING_NOT_FOUND: 'Booking not found',
   GOOGLE_AUTH_USER_NOT_FOUND: 'Google authentication failed, user not found',

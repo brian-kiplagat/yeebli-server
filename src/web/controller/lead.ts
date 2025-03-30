@@ -202,19 +202,6 @@ export class LeadController {
 
       const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
 
-      const eventTimeGMT = new Date(
-        Number(event.event_date) * 1000
-      ).toLocaleString("en-GB", {
-        timeZone: "UTC",
-        year: "numeric",
-        month: "long",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true, // AM/PM format
-      });
-
       sendTransactionalEmail(
         validatedData.lead_form_email,
         validatedData.lead_form_name,
@@ -223,7 +210,7 @@ export class LeadController {
           subject: "Welcome to the event",
           title: "Welcome to the event",
           subtitle: `You have been registered for the event`,
-          body: `You have been registered for the event. The event starts at ${eventTimeGMT}. Please use this link to access the event: ${eventLink}`,
+          body: `You have been registered for the event. Please use this link to access the event: ${eventLink}`,
         }
       );
       return c.json(
