@@ -28,10 +28,12 @@ export class EventRepository {
           email: userSchema.email,
           profile_image: userSchema.profile_picture,
         },
+        dates: eventDates,
       })
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
+      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
       .where(eq(eventSchema.id, id))
       .limit(1);
 
