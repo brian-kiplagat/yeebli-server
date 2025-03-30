@@ -2,6 +2,7 @@ import { and, desc, eq, like, or, inArray } from "drizzle-orm";
 import { db } from "../lib/database.js";
 import {
   assetsSchema,
+  bookings,
   eventDates,
   eventSchema,
   userSchema,
@@ -162,6 +163,8 @@ export class EventRepository {
   }
 
   public async delete(id: number) {
+    await db.delete(eventDates).where(eq(eventDates.event_id, id));
+    await db.delete(bookings).where(eq(bookings.event_id, id));
     return db.delete(eventSchema).where(eq(eventSchema.id, id));
   }
 
