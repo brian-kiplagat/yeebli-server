@@ -12,6 +12,13 @@ type EventWithAsset = Event & {
     profile_image: string | null;
   } | null;
   leadCount?: number;
+  dates: Array<{
+    id: number;
+    event_id: number;
+    date: string;
+    created_at: Date | null;
+    updated_at: Date | null;
+  }>;
 };
 
 type EventWithRelations = {
@@ -94,6 +101,7 @@ export class EventService {
         },
         host,
         leadCount,
+        dates: result.dates,
       };
     }
 
@@ -102,6 +110,7 @@ export class EventService {
       asset: null,
       host,
       leadCount,
+      dates: result.dates,
     };
   }
 
