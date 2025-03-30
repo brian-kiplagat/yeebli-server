@@ -259,6 +259,8 @@ export class Server {
 
     event.get("/", authCheck, eventQueryValidator, eventCtrl.getEvents);
     event.get("/:id", authCheck, eventCtrl.getEvent);
+    event.get("/:id/dates", authCheck, eventCtrl.getEventDates);
+    event.delete("/:id/dates/:dateId", authCheck, eventCtrl.deleteEventDate);
     event.post("/", authCheck, eventValidator, eventCtrl.createEvent);
     event.put("/:id", authCheck, updateEventValidator, eventCtrl.updateEvent);
     event.delete("/:id", authCheck, eventCtrl.deleteEvent);

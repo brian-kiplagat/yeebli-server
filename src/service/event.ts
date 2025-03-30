@@ -165,4 +165,8 @@ export class EventService {
   public async findByAssetId(assetId: number) {
     return this.repository.findByAssetId(assetId);
   }
+
+  public async deleteEventDate(dateId: number): Promise<void> {
+    await this.repository.deleteEventDate(dateId);
+  }
 }

@@ -181,4 +181,8 @@ export class EventRepository {
       .limit(1);
     return result[0];
   }
+
+  public async deleteEventDate(dateId: number) {
+    return db.delete(eventDates).where(eq(eventDates.id, dateId));
+  }
 }
