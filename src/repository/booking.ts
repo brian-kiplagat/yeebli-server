@@ -11,4 +11,8 @@ export class BookingRepository {
   public async findByLeadId(leadId: number) {
     return db.select().from(bookings).where(eq(bookings.lead_id, leadId));
   }
+
+  public async findByDateId(dateId: number) {
+    return db.select().from(bookings).where(eq(bookings.date_id, dateId));
+  }
 }

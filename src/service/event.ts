@@ -1,8 +1,9 @@
 import type { EventQuery, EventRepository } from "../repository/event.ts";
-import type { Asset, Event, NewEvent } from "../schema/schema.js";
+import type { Asset, Event, NewEvent, Booking } from "../schema/schema.js";
 import type { LeadService } from "./lead.ts";
 import type { S3Service } from "./s3.js";
 import { logger } from "../lib/logger.js";
+import { sendTransactionalEmail } from "../task/sendWelcomeEmail.js";
 
 type EventWithAsset = Event & {
   asset?: (Asset & { presignedUrl: string }) | null;
@@ -167,6 +168,42 @@ export class EventService {
   }
 
   public async deleteEventDate(dateId: number): Promise<void> {
+    // Get the event date details
+    const date = await this.repository.findEventDate(dateId);
+    if (!date) {
+      throw new Error("Event date not found");
+    }
+
+    // Get the event details
+    const event = await this.repository.find(date.event_id);
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Get all bookings for this date
+    const bookings = await this.repository.findBookingsByDateId(dateId);
+
+    // Send emails to all booked users
+    await Promise.all(
+      bookings.map(async (booking: Booking) => {
+        const lead = await this.leadService.find(booking.lead_id);
+        if (lead?.email && lead?.name) {
+          await sendTransactionalEmail(
+            lead.email,
+            lead.name,
+            1, // Use appropriate template ID
+            {
+              subject: "Event Date Cancelled",
+              title: "Event Date Cancelled",
+              subtitle: `The event "${event.event.event_name}" has been cancelled for ${date.date}`,
+              body: `We regret to inform you that the event "${event.event.event_name}" scheduled for ${date.date} has been cancelled.`,
+            }
+          );
+        }
+      })
+    );
+
+    // Delete the event date
     await this.repository.deleteEventDate(dateId);
   }
 }

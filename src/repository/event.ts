@@ -182,6 +182,19 @@ export class EventRepository {
     return result[0];
   }
 
+  public async findEventDate(dateId: number) {
+    const result = await db
+      .select()
+      .from(eventDates)
+      .where(eq(eventDates.id, dateId))
+      .limit(1);
+    return result[0];
+  }
+
+  public async findBookingsByDateId(dateId: number) {
+    return db.select().from(bookings).where(eq(bookings.date_id, dateId));
+  }
+
   public async deleteEventDate(dateId: number) {
     return db.delete(eventDates).where(eq(eventDates.id, dateId));
   }
