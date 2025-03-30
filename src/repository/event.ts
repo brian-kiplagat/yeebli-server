@@ -8,6 +8,7 @@ import {
   userSchema,
 } from "../schema/schema.js";
 import type { Event, NewEvent, NewEventDate } from "../schema/schema.js";
+import { number } from "zod";
 
 export interface EventQuery {
   page?: number;
@@ -34,16 +35,20 @@ export class EventRepository {
           email: userSchema.email,
           profile_image: userSchema.profile_picture,
         },
-        dates: eventDates,
       })
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
-      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
+      .leftJoin(bookings, eq(eventSchema.id, bookings.event_id))
       .where(eq(eventSchema.id, id))
       .limit(1);
+    //Then, get all dates for these events in a single query
+    const dates = await db
+      .select()
+      .from(eventDates)
+      .where(inArray(eventDates.event_id, [id]));
 
-    return result[0];
+    return { ...result[0], dates };
   }
 
   public async findAll(query?: EventQuery) {
