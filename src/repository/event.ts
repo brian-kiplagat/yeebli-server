@@ -49,8 +49,20 @@ export class EventRepository {
       : undefined;
 
     const events = await db
-      .select()
+      .select({
+        event: eventSchema,
+        asset: assetsSchema,
+        host: {
+          name: userSchema.name,
+          email: userSchema.email,
+          profile_image: userSchema.profile_picture,
+        },
+        dates: eventDates,
+      })
       .from(eventSchema)
+      .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
+      .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
+      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
@@ -73,8 +85,20 @@ export class EventRepository {
       : eq(eventSchema.host_id, userId);
 
     const events = await db
-      .select()
+      .select({
+        event: eventSchema,
+        asset: assetsSchema,
+        host: {
+          name: userSchema.name,
+          email: userSchema.email,
+          profile_image: userSchema.profile_picture,
+        },
+        dates: eventDates,
+      })
       .from(eventSchema)
+      .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
+      .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
+      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
