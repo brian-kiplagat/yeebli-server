@@ -1,0 +1,2 @@
+ALTER TABLE `price_plans` ADD `user_id` int NOT NULL;--> statement-breakpoint
+ALTER TABLE `price_plans` ADD CONSTRAINT `price_plans_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE no action ON UPDATE no action;

@@ -1,9 +1,17 @@
-import type { Context } from 'hono';
-import { logger } from '../../lib/logger.js';
-import type { PricePlanService } from '../../service/pricePlan.js';
-import type { UserService } from '../../service/user.js';
-import type { CreatePricePlanBody, UpdatePricePlanBody } from '../validator/pricePlan.ts';
-import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
+import type { Context } from "hono";
+import { logger } from "../../lib/logger.js";
+import type { PricePlanService } from "../../service/pricePlan.js";
+import type { UserService } from "../../service/user.js";
+import type {
+  CreatePricePlanBody,
+  UpdatePricePlanBody,
+} from "../validator/pricePlan.ts";
+import {
+  ERRORS,
+  serveBadRequest,
+  serveInternalServerError,
+  serveNotFound,
+} from "./resp/error.js";
 
 export class PricePlanController {
   private service: PricePlanService;
@@ -15,7 +23,7 @@ export class PricePlanController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get('jwtPayload').email;
+    const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -27,11 +35,6 @@ export class PricePlanController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Only master and owner roles can view price plans
-      if (user.role !== 'master' && user.role !== 'owner') {
-        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
-      }
-
       const { page, limit, search } = c.req.query();
       const query = {
         page: page ? Number.parseInt(page) : undefined,
@@ -39,7 +42,14 @@ export class PricePlanController {
         search,
       };
 
-      const plans = await this.service.getAllPricePlans(query);
+      // Admin users (master/owner) can see all price plans
+      if (user.role === "master" || user.role === "owner") {
+        const plans = await this.service.getAllPricePlans(query);
+        return c.json(plans);
+      }
+
+      // Regular users only see their own price plans
+      const plans = await this.service.getPricePlansByUser(user.id, query);
       return c.json(plans);
     } catch (error) {
       logger.error(error);
@@ -55,11 +65,11 @@ export class PricePlanController {
       }
 
       // Only master and owner roles can view price plans
-      if (user.role !== 'master' && user.role !== 'owner') {
+      if (user.role !== "master" && user.role !== "owner") {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
-      const planId = Number(c.req.param('id'));
+      const planId = Number(c.req.param("id"));
       const plan = await this.service.getPricePlan(planId);
 
       if (!plan) {
@@ -81,19 +91,22 @@ export class PricePlanController {
       }
 
       // Only master and owner roles can create price plans
-      if (user.role !== 'master' && user.role !== 'owner') {
+      if (user.role !== "master" && user.role !== "owner") {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const body: CreatePricePlanBody = await c.req.json();
-      const planId = await this.service.createPricePlan(body);
+      const planId = await this.service.createPricePlan({
+        ...body,
+        user_id: user.id,
+      });
 
       return c.json(
         {
-          message: 'Price plan created successfully',
+          message: "Price plan created successfully",
           planId: planId,
         },
-        201,
+        201
       );
     } catch (error) {
       logger.error(error);
@@ -109,11 +122,11 @@ export class PricePlanController {
       }
 
       // Only master and owner roles can update price plans
-      if (user.role !== 'master' && user.role !== 'owner') {
+      if (user.role !== "master" && user.role !== "owner") {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
-      const planId = Number(c.req.param('id'));
+      const planId = Number(c.req.param("id"));
       const plan = await this.service.getPricePlan(planId);
 
       if (!plan) {
@@ -123,7 +136,7 @@ export class PricePlanController {
       const body: UpdatePricePlanBody = await c.req.json();
       await this.service.updatePricePlan(planId, body);
 
-      return c.json({ message: 'Price plan updated successfully' });
+      return c.json({ message: "Price plan updated successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -138,11 +151,11 @@ export class PricePlanController {
       }
 
       // Only master and owner roles can delete price plans
-      if (user.role !== 'master' && user.role !== 'owner') {
+      if (user.role !== "master" && user.role !== "owner") {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
-      const planId = Number(c.req.param('id'));
+      const planId = Number(c.req.param("id"));
       const plan = await this.service.getPricePlan(planId);
 
       if (!plan) {
@@ -150,7 +163,7 @@ export class PricePlanController {
       }
 
       await this.service.deletePricePlan(planId);
-      return c.json({ message: 'Price plan deleted successfully' });
+      return c.json({ message: "Price plan deleted successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
