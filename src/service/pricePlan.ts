@@ -1,6 +1,6 @@
 import { logger } from '../lib/logger.js';
-import type { PricePlanRepository } from '../repository/pricePlan.js';
-import type { NewPricePlan, PricePlan } from '../schema/schema.js';
+import { PricePlanRepository } from '../repository/pricePlan.ts';
+import type { NewPricePlan, PricePlan } from '../schema/schema.ts';
 
 type PricePlanQuery = {
   page?: number;

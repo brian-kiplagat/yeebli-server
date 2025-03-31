@@ -5,7 +5,7 @@ const pricePlanSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   price: z.number().min(0),
-  recurring_payment: z.boolean().default(false),
+  recurring_payment: z.enum(['one_off', 'recurring']).default('one_off'),
 });
 
 export const pricePlanValidator = zValidator('json', pricePlanSchema);
