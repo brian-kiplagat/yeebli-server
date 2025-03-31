@@ -1,0 +1,2 @@
+ALTER TABLE `price_plans` RENAME COLUMN `recurring_payment` TO `payment_type`;--> statement-breakpoint
+ALTER TABLE `price_plans` MODIFY COLUMN `payment_type` enum('one_off','recurring') DEFAULT 'one_off';

@@ -144,7 +144,7 @@ export const pricePlans = mysqlTable('price_plans', {
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
   price: int('price').notNull(),
-  recurring_payment: mysqlEnum('recurring_payment', ['one_off', 'recurring']).default('one_off'),
+  payment_type: mysqlEnum('payment_type', ['one_off', 'recurring']).default('one_off'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });

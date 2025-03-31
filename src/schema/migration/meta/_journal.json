@@ -239,6 +239,13 @@
       "when": 1743408760899,
       "tag": "0034_lucky_red_ghost",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1743409745774,
+      "tag": "0035_previous_joystick",
+      "breakpoints": true
     }
   ]
 }
