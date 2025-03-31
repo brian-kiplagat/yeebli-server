@@ -1,9 +1,9 @@
-import type { Context } from "hono";
-import { logger } from "../../lib/logger.js";
-import { encode } from "../../lib/jwt.js";
-import type { GoogleService } from "../../service/google.js";
-import { serializeUser } from "./serializer/user.js";
-import { ERRORS, serveBadRequest, serveNotFound } from "./resp/error.ts";
+import type { Context } from 'hono';
+import { encode } from '../../lib/jwt.js';
+import { logger } from '../../lib/logger.js';
+import type { GoogleService } from '../../service/google.js';
+import { ERRORS, serveBadRequest, serveNotFound } from './resp/error.ts';
+import { serializeUser } from './serializer/user.js';
 
 export class GoogleController {
   private googleService: GoogleService;
@@ -20,14 +20,14 @@ export class GoogleController {
         authUrl,
       });
     } catch (error) {
-      logger.error("Failed to initiate Google auth:", error);
+      logger.error('Failed to initiate Google auth:', error);
       return serveBadRequest(c, ERRORS.AUTH_FAILED);
     }
   };
 
   public handleCallback = async (c: Context) => {
     try {
-      const code = c.req.query("code");
+      const code = c.req.query('code');
 
       if (!code) {
         return serveBadRequest(c, ERRORS.NO_AUTHORIZATION_CODE);
@@ -50,7 +50,7 @@ export class GoogleController {
         user: serializedUser,
       });
     } catch (error) {
-      logger.error("Google callback failed:", error);
+      logger.error('Google callback failed:', error);
       return serveBadRequest(c, ERRORS.AUTH_FAILED);
     }
   };

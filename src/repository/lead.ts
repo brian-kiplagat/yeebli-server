@@ -1,6 +1,6 @@
 import { and, desc, eq, like, or } from 'drizzle-orm';
-import { Lead, leadSchema, NewLead } from '../schema/schema.js';
 import { db } from '../lib/database.ts';
+import { type Lead, type NewLead, leadSchema } from '../schema/schema.js';
 
 export interface LeadQuery {
   page?: number;

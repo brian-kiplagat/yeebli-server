@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { logger } from '../../lib/logger.js';
 import type { HLSService } from '../../service/hls.js';
 import type { UserService } from '../../service/user.js';
-import { type HLSUploadBody } from '../validator/hls.js';
+import type { HLSUploadBody } from '../validator/hls.js';
 import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
 
 const processVideoSchema = z.object({

@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
-import { db } from "../lib/database.js";
-import { bookings } from "../schema/schema.js";
-import type { NewBooking } from "../schema/schema.js";
+import { eq } from 'drizzle-orm';
+import { db } from '../lib/database.js';
+import { bookings } from '../schema/schema.js';
+import type { NewBooking } from '../schema/schema.js';
 
 export class BookingRepository {
   public async create(booking: NewBooking) {

@@ -73,7 +73,6 @@ export class AdminRepository {
         or(like(eventSchema.event_name, `%${search}%`), like(eventSchema.event_description, `%${search}%`)),
       );
     }
-    
 
     const events = await db
       .select()

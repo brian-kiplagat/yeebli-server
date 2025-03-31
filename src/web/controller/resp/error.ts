@@ -32,8 +32,9 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
-  EVENT_DATE_NOT_FOUND: "Event date not found",
-  CANNOT_DELETE_LAST_DATE: "Cannot delete the last remaining date for an event",
+  PRICE_PLAN_NOT_FOUND: 'Price plan not found, please check the price plan id',
+  EVENT_DATE_NOT_FOUND: 'Event date not found',
+  CANNOT_DELETE_LAST_DATE: 'Cannot delete the last remaining date for an event',
   NOT_FOUND: 'Ops, we could not find the resource you are looking for',
   BOOKING_FAILED: 'Failed to create booking',
   BOOKING_NOT_FOUND: 'Booking not found',

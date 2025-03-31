@@ -1,5 +1,4 @@
-import { User } from "../../../schema/schema.ts";
-
+import type { User } from '../../../schema/schema.ts';
 
 type UserResponse = {
   id: number;

@@ -232,6 +232,13 @@
       "when": 1743330152609,
       "tag": "0033_slimy_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1743408760899,
+      "tag": "0034_lucky_red_ghost",
+      "breakpoints": true
     }
   ]
 }

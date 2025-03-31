@@ -1,6 +1,6 @@
-import type { NewBooking } from "../schema/schema.ts";
-import { logger } from "../lib/logger.ts";
-import { BookingRepository } from "../repository/booking.ts";
+import { logger } from '../lib/logger.ts';
+import type { BookingRepository } from '../repository/booking.ts';
+import type { NewBooking } from '../schema/schema.ts';
 
 export class BookingService {
   private repo: BookingRepository;
@@ -13,7 +13,7 @@ export class BookingService {
     try {
       return await this.repo.create(booking);
     } catch (error) {
-      logger.error("Failed to create booking:", error);
+      logger.error('Failed to create booking:', error);
       throw error;
     }
   }

@@ -1,9 +1,9 @@
-import type { EventQuery, EventRepository } from "../repository/event.ts";
-import type { Asset, Event, NewEvent, Booking } from "../schema/schema.js";
-import type { LeadService } from "./lead.ts";
-import type { S3Service } from "./s3.js";
-import { logger } from "../lib/logger.js";
-import { sendTransactionalEmail } from "../task/sendWelcomeEmail.js";
+import { logger } from '../lib/logger.js';
+import type { EventQuery, EventRepository } from '../repository/event.ts';
+import type { Asset, Booking, Event, NewEvent } from '../schema/schema.js';
+import { sendTransactionalEmail } from '../task/sendWelcomeEmail.js';
+import type { LeadService } from './lead.ts';
+import type { S3Service } from './s3.js';
 
 type EventWithAsset = Event & {
   asset?: (Asset & { presignedUrl: string }) | null;
@@ -44,11 +44,7 @@ export class EventService {
   private s3Service: S3Service;
   private leadService: LeadService;
 
-  constructor(
-    repository: EventRepository,
-    s3Service: S3Service,
-    leadService: LeadService
-  ) {
+  constructor(repository: EventRepository, s3Service: S3Service, leadService: LeadService) {
     this.repository = repository;
     this.s3Service = s3Service;
     this.leadService = leadService;
@@ -66,14 +62,14 @@ export class EventService {
             this.repository.createEventDate({
               event_id: newEvent[0].id,
               date: date,
-            })
-          )
+            }),
+          ),
         );
       }
 
       return newEvent;
     } catch (error) {
-      logger.error("Failed to create event:", error);
+      logger.error('Failed to create event:', error);
       throw error;
     }
   }
@@ -92,7 +88,7 @@ export class EventService {
       const presignedUrl = await this.s3Service.generateGetUrl(
         this.getKeyFromUrl(asset.asset_url),
         this.getContentType(asset.asset_type as string),
-        86400 // 24 hours
+        86400, // 24 hours
       );
       return {
         ...event,
@@ -115,15 +111,13 @@ export class EventService {
     };
   }
 
-  public async getAllEvents(
-    query?: EventQuery
-  ): Promise<{ events: EventWithRelations[]; total: number }> {
+  public async getAllEvents(query?: EventQuery): Promise<{ events: EventWithRelations[]; total: number }> {
     return await this.repository.findAll(query);
   }
 
   public async getEventsByUser(
     userId: number,
-    query?: EventQuery
+    query?: EventQuery,
   ): Promise<{ events: EventWithRelations[]; total: number }> {
     return await this.repository.findByUserId(userId, query);
   }
@@ -132,10 +126,7 @@ export class EventService {
     await this.repository.update(id, event);
   }
 
-  public async cancelEvent(
-    id: number,
-    status: "cancelled" | "active" | "suspended"
-  ): Promise<void> {
+  public async cancelEvent(id: number, status: 'cancelled' | 'active' | 'suspended'): Promise<void> {
     await this.repository.cancel(id, status);
   }
 
@@ -144,22 +135,22 @@ export class EventService {
   }
 
   private getKeyFromUrl(url: string): string {
-    const urlParts = url.split(".amazonaws.com/");
-    return urlParts[1] || "";
+    const urlParts = url.split('.amazonaws.com/');
+    return urlParts[1] || '';
   }
 
   private getContentType(assetType: string): string {
     switch (assetType) {
-      case "image":
-        return "image/jpeg";
-      case "video":
-        return "video/mp4";
-      case "audio":
-        return "audio/mpeg";
-      case "document":
-        return "application/pdf";
+      case 'image':
+        return 'image/jpeg';
+      case 'video':
+        return 'video/mp4';
+      case 'audio':
+        return 'audio/mpeg';
+      case 'document':
+        return 'application/pdf';
       default:
-        return "application/octet-stream";
+        return 'application/octet-stream';
     }
   }
 
@@ -171,13 +162,13 @@ export class EventService {
     // Get the event date details
     const date = await this.repository.findEventDate(dateId);
     if (!date) {
-      throw new Error("Event date not found");
+      throw new Error('Event date not found');
     }
 
     // Get the event details
     const event = await this.repository.find(date.event_id);
     if (!event) {
-      throw new Error("Event not found");
+      throw new Error('Event not found');
     }
 
     // Get all bookings for this date
@@ -193,14 +184,14 @@ export class EventService {
             lead.name,
             1, // Use appropriate template ID
             {
-              subject: "Event Date Cancelled",
-              title: "Event Date Cancelled",
+              subject: 'Event Date Cancelled',
+              title: 'Event Date Cancelled',
               subtitle: `The event "${event.event.event_name}" has been cancelled for ${date.date}`,
               body: `We regret to inform you that the event "${event.event.event_name}" scheduled for ${date.date} has been cancelled.`,
-            }
+            },
           );
         }
-      })
+      }),
     );
 
     // Delete the event date
