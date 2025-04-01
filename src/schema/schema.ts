@@ -58,6 +58,22 @@ export const userSchema = mysqlTable("user", {
   ),
 });
 
+export const businessSchema = mysqlTable("businesses", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull(),
+  address: varchar("address", { length: 255 }),
+  phone: varchar("phone", { length: 255 }),
+  email: varchar("email", { length: 255 }),
+  description: text("description"),
+  logo: varchar("logo", { length: 255 }),
+  banner: varchar("banner", { length: 255 }),
+  user_id: int("user_id")
+    .references(() => userSchema.id)
+    .notNull(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
 export const membershipSchema = mysqlTable("memberships", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 50 }).notNull(),
