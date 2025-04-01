@@ -133,15 +133,20 @@ export class BusinessService {
         user_id: userId,
       };
 
+      let updatedBusiness;
       if (existingBusiness) {
         // Update existing business
-        await this.repository.update(existingBusiness.id, businessData);
-        return { ...existingBusiness, ...businessData };
+        updatedBusiness = await this.repository.update(
+          existingBusiness.id,
+          businessData
+        );
       } else {
         // Create new business
-        const newBusiness = await this.repository.create(businessData);
-        return newBusiness[0];
+        updatedBusiness = await this.repository.create(businessData);
       }
+
+      // Return business with resolved asset URLs
+      return await this.getBusinessByUserId(userId);
     } catch (error) {
       logger.error("Failed to upsert business:", error);
       throw error;

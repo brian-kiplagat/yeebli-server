@@ -5,7 +5,20 @@ import type { BusinessQuery } from "../web/validator/business.ts";
 
 export class BusinessRepository {
   async create(business: typeof businessSchema.$inferInsert) {
-    return await db.insert(businessSchema).values(business).$returningId();
+    const result = await db
+      .insert(businessSchema)
+      .values(business)
+      .$returningId();
+    return await this.findById(result[0].id);
+  }
+
+  async findById(id: number) {
+    const result = await db
+      .select()
+      .from(businessSchema)
+      .where(eq(businessSchema.id, id))
+      .limit(1);
+    return result[0];
   }
 
   async findByUserId(userId: number) {
@@ -50,5 +63,6 @@ export class BusinessRepository {
       .update(businessSchema)
       .set(business)
       .where(eq(businessSchema.id, id));
+    return await this.findById(id);
   }
 }
