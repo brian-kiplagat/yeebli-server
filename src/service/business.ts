@@ -20,6 +20,26 @@ export class BusinessService {
     this.assetService = assetService;
   }
 
+  private getContentType(logo: string): string {
+    if (logo.startsWith("data:image/")) {
+      // Extract content type from base64 string
+      const match = logo.match(/^data:image\/(\w+);base64,/);
+      return match ? `image/${match[1]}` : "image/jpeg";
+    }
+    // For URLs, try to determine from extension
+    const extension = logo.split(".").pop()?.toLowerCase();
+    switch (extension) {
+      case "png":
+        return "image/png";
+      case "gif":
+        return "image/gif";
+      case "webp":
+        return "image/webp";
+      default:
+        return "image/jpeg";
+    }
+  }
+
   private async handleLogoUpload(
     userId: number,
     logoBase64: string,
@@ -29,18 +49,19 @@ export class BusinessService {
       // Remove the data:image/xyz;base64, prefix
       const base64Data = logoBase64.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
+      const contentType = this.getContentType(logoBase64);
 
       // Generate a unique key for S3
       const key = `business-logos/${Date.now()}-${fileName}`;
 
       // Upload to S3
-      const url = await this.s3Service.uploadFile(key, buffer, "image/jpeg");
+      const url = await this.s3Service.uploadFile(key, buffer, contentType);
 
-      // Create asset record
+      // Create asset record with content type
       const { asset } = await this.assetService.createAsset(
         userId,
         fileName,
-        "image/jpeg",
+        contentType,
         "image",
         buffer.length,
         0
@@ -60,9 +81,10 @@ export class BusinessService {
 
       // Get presigned URL for the logo
       const key = this.getKeyFromUrl(business.logo);
+      const contentType = this.getContentType(business.logo);
       const presignedUrl = await this.s3Service.generateGetUrl(
         key,
-        "image/jpeg",
+        contentType,
         86400
       ); // 24 hours expiry
 
