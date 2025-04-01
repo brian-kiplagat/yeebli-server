@@ -144,7 +144,11 @@ export class Server {
       userService
     );
     const pricePlanService = new PricePlanService(pricePlanRepo);
-    const businessService = new BusinessService(businessRepo);
+    const businessService = new BusinessService(
+      businessRepo,
+      s3Service,
+      assetService
+    );
 
     // Setup workers
     this.registerWorker(userService);
