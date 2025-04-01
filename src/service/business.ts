@@ -55,11 +55,30 @@ export class BusinessService {
 
   public async getBusinessByUserId(userId: number) {
     try {
-      return await this.repository.findByUserId(userId);
+      const business = await this.repository.findByUserId(userId);
+      if (!business?.logo) return business;
+
+      // Get presigned URL for the logo
+      const key = this.getKeyFromUrl(business.logo);
+      const presignedUrl = await this.s3Service.generateGetUrl(
+        key,
+        "image/jpeg",
+        86400
+      ); // 24 hours expiry
+
+      return {
+        ...business,
+        presignedLogoUrl: presignedUrl,
+      };
     } catch (error) {
       logger.error("Failed to get business by user:", error);
       throw error;
     }
+  }
+
+  private getKeyFromUrl(url: string): string {
+    const urlParts = url.split(".amazonaws.com/");
+    return urlParts[1] || "";
   }
 
   public async getAllBusinesses(query?: BusinessQuery) {
