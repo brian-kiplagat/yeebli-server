@@ -1,5 +1,6 @@
 import { logger } from "../lib/logger.js";
 import type { BusinessRepository } from "../repository/business.js";
+import { NewBusiness } from "../schema/schema.ts";
 import type { BusinessQuery } from "../web/validator/business.ts";
 
 export class BusinessService {
@@ -27,7 +28,7 @@ export class BusinessService {
     }
   }
 
-  public async upsertBusiness(userId: number, business: any) {
+  public async upsertBusiness(userId: number, business: NewBusiness) {
     try {
       const existingBusiness = await this.repository.findByUserId(userId);
 

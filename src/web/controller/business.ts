@@ -7,6 +7,7 @@ import {
   serveBadRequest,
   serveInternalServerError,
 } from "./resp/error.js";
+import { BusinessBody } from "../validator/business.ts";
 
 export class BusinessController {
   private service: BusinessService;
@@ -45,8 +46,11 @@ export class BusinessController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const body = await c.req.json();
-      const business = await this.service.upsertBusiness(user.id, body);
+      const body: BusinessBody = await c.req.json();
+      const business = await this.service.upsertBusiness(user.id, {
+        ...body,
+        user_id: user.id,
+      });
 
       return c.json({
         message: "Business information saved successfully",

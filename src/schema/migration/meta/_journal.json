@@ -260,6 +260,20 @@
       "when": 1743497917486,
       "tag": "0037_redundant_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1743501907539,
+      "tag": "0038_rare_war_machine",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1743502268341,
+      "tag": "0039_remarkable_xorn",
+      "breakpoints": true
     }
   ]
 }

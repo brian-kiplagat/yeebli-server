@@ -66,7 +66,6 @@ export const businessSchema = mysqlTable("businesses", {
   email: varchar("email", { length: 255 }),
   description: text("description"),
   logo: varchar("logo", { length: 255 }),
-  banner: varchar("banner", { length: 255 }),
   user_id: int("user_id")
     .references(() => userSchema.id)
     .notNull(),
@@ -266,3 +265,4 @@ export type User = {
 } & typeof userSchema.$inferSelect;
 
 export type NewUser = typeof userSchema.$inferInsert;
+export type NewBusiness = typeof businessSchema.$inferInsert;

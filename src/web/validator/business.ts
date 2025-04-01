@@ -8,7 +8,7 @@ const businessSchema = z.object({
   email: z.string().email().optional(),
   description: z.string().optional(),
   logo: z.string().optional(),
-  banner: z.string().optional(),
+ 
 });
 
 export const businessValidator = zValidator("json", businessSchema);
@@ -21,3 +21,4 @@ const businessQuerySchema = z.object({
 
 export const businessQueryValidator = zValidator("query", businessQuerySchema);
 export type BusinessQuery = z.infer<typeof businessQuerySchema>;
+export type BusinessBody = z.infer<typeof businessSchema>;
