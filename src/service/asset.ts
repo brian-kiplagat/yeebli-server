@@ -23,8 +23,8 @@ export class AssetService {
     fileSize: number,
     duration: number
   ) {
-    // Generate a unique key for the file
-    const key = `assets/${assetType}/${Date.now()}-${fileName}`;
+    // Generate a unique key for the file with consistent folder structure
+    const key = `assets/${assetType}s/${Date.now()}-${fileName}`;
 
     // Get presigned URL from S3
     const { presignedUrl, url } = await this.s3Service.generatePresignedUrl(
