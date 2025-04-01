@@ -58,7 +58,7 @@ export class BusinessService {
       const url = await this.s3Service.uploadFile(key, buffer, contentType);
 
       // Create asset record with content type
-      const { asset } = await this.assetService.createAsset(
+      const assetObject = await this.assetService.createAsset(
         userId,
         fileName,
         contentType,
@@ -67,7 +67,7 @@ export class BusinessService {
         0
       );
 
-      return { assetId: asset.id };
+      return { assetId: assetObject.asset };
     } catch (error) {
       logger.error("Failed to upload logo:", error);
       throw error;
@@ -120,7 +120,7 @@ export class BusinessService {
             business.logo,
             fileName
           );
-          logoAssetId = logoData.assetId || null;
+          logoAssetId = logoData.assetId;
         } else {
           // If logo is not a base64 string and not updating, keep existing logo_asset_id
           logoAssetId = existingBusiness?.logo_asset_id;

@@ -1,29 +1,33 @@
-import { and, desc, eq, like, or } from 'drizzle-orm';
-import { db } from '../lib/database.js';
-import { assetsSchema } from '../schema/schema.js';
-import type { Asset, NewAsset } from '../schema/schema.js';
-import type { AssetQuery } from '../web/validator/asset.js';
+import { and, desc, eq, like, or } from "drizzle-orm";
+import { db } from "../lib/database.js";
+import { assetsSchema } from "../schema/schema.js";
+import type { Asset, NewAsset } from "../schema/schema.js";
+import type { AssetQuery } from "../web/validator/asset.js";
 
 export interface AssetSearchQuery {
-  asset_type?: 'image' | 'video' | 'audio' | 'document';
-  processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  asset_type?: "image" | "video" | "audio" | "document";
+  processing_status?: "pending" | "processing" | "completed" | "failed";
 }
 
 export class AssetRepository {
-  async create(asset: NewAsset): Promise<void> {
-    await db.insert(assetsSchema).values(asset);
+  async create(asset: NewAsset): Promise<number> {
+    const result = await db.insert(assetsSchema).values(asset).$returningId();
+    return result[0].id;
   }
 
   async find(id: number): Promise<Asset | undefined> {
-    return db
+    const result = await db
       .select()
       .from(assetsSchema)
       .where(eq(assetsSchema.id, id))
-      .limit(1)
-      .then((rows) => rows[0]);
+      .limit(1);
+    return result[0];
   }
 
-  async findByUserId(userId: number, query?: AssetQuery): Promise<{ assets: Asset[]; total: number }> {
+  async findByUserId(
+    userId: number,
+    query?: AssetQuery
+  ): Promise<{ assets: Asset[]; total: number }> {
     const { page = 1, limit = 50, search, asset_type } = query || {};
     const offset = (page - 1) * limit;
 
@@ -62,7 +66,9 @@ export class AssetRepository {
     await db.update(assetsSchema).set(asset).where(eq(assetsSchema.id, id));
   }
 
-  async findByQuery(query: AssetSearchQuery): Promise<{ assets: Asset[]; total: number }> {
+  async findByQuery(
+    query: AssetSearchQuery
+  ): Promise<{ assets: Asset[]; total: number }> {
     const whereConditions = [];
 
     if (query.asset_type) {
@@ -70,7 +76,9 @@ export class AssetRepository {
     }
 
     if (query.processing_status) {
-      whereConditions.push(eq(assetsSchema.processing_status, query.processing_status));
+      whereConditions.push(
+        eq(assetsSchema.processing_status, query.processing_status)
+      );
     }
 
     const assets = await db

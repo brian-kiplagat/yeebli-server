@@ -43,11 +43,11 @@ export class AssetService {
       duration: duration,
     };
 
-    await this.repository.create(asset);
+    const createdAsset = await this.repository.create(asset);
 
     return {
       presignedUrl,
-      asset,
+      asset: createdAsset,
     };
   }
 
