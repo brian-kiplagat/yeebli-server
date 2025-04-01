@@ -1,6 +1,6 @@
 import { and, desc, eq, like } from "drizzle-orm";
 import { db } from "../lib/database.js";
-import { businessSchema, businessRelations } from "../schema/schema.js";
+import { businessSchema } from "../schema/schema.js";
 import type { BusinessQuery } from "../web/validator/business.ts";
 
 export class BusinessRepository {
@@ -13,21 +13,21 @@ export class BusinessRepository {
   }
 
   async findById(id: number) {
-    return db.query.businessSchema.findFirst({
-      where: eq(businessSchema.id, id),
-      with: {
-        user: true,
-      },
-    });
+    const result = await db
+      .select()
+      .from(businessSchema)
+      .where(eq(businessSchema.id, id))
+      .limit(1);
+    return result[0];
   }
 
   async findByUserId(userId: number) {
-    return db.query.businessSchema.findFirst({
-      where: eq(businessSchema.user_id, userId),
-      with: {
-        user: true,
-      },
-    });
+    const result = await db
+      .select()
+      .from(businessSchema)
+      .where(eq(businessSchema.user_id, userId))
+      .limit(1);
+    return result[0];
   }
 
   async findAll(query?: BusinessQuery) {
@@ -39,15 +39,13 @@ export class BusinessRepository {
       whereConditions.push(like(businessSchema.name, `%${search}%`));
     }
 
-    const businesses = await db.query.businessSchema.findMany({
-      where: whereConditions.length ? and(...whereConditions) : undefined,
-      with: {
-        user: true,
-      },
-      limit,
-      offset,
-      orderBy: desc(businessSchema.created_at),
-    });
+    const businesses = await db
+      .select()
+      .from(businessSchema)
+      .where(whereConditions.length ? and(...whereConditions) : undefined)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(businessSchema.created_at));
 
     const total = await db
       .select({ count: businessSchema.id })
