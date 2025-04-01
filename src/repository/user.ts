@@ -1,6 +1,11 @@
-import { eq } from 'drizzle-orm';
-import { db } from '../lib/database.ts';
-import { type NewUser, type User, userSchema } from '../schema/schema.js';
+import { eq } from "drizzle-orm";
+import { db } from "../lib/database.ts";
+import {
+  type NewUser,
+  type User,
+  userSchema,
+  userRelations,
+} from "../schema/schema.js";
 
 export class UserRepository {
   public async create(user: NewUser) {
@@ -10,15 +15,21 @@ export class UserRepository {
   public async find(id: number) {
     return db.query.userSchema.findFirst({
       where: eq(userSchema.id, id),
+      with: {
+        business: true,
+      },
     });
   }
 
   public async findByEmail(email: string) {
     const user = await db.query.userSchema.findFirst({
       where: eq(userSchema.email, email),
+      with: {
+        business: true,
+      },
     });
     if (user && !user.auth_provider) {
-      user.auth_provider = 'local';
+      user.auth_provider = "local";
     }
     return user;
   }

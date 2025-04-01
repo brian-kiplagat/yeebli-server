@@ -152,4 +152,26 @@ export class BusinessService {
       throw error;
     }
   }
+
+  public async getBusinessLogo(businessId: number) {
+    try {
+      const business = await this.repository.findById(businessId);
+      if (!business?.logo_asset_id) {
+        return { logo: null, presignedLogoUrl: null };
+      }
+
+      const asset = await this.assetService.getAsset(business.logo_asset_id);
+      if (!asset) {
+        return { logo: null, presignedLogoUrl: null };
+      }
+
+      return {
+        logo: asset.asset_url,
+        presignedLogoUrl: asset.presignedUrl,
+      };
+    } catch (error) {
+      logger.error("Failed to get business logo:", error);
+      throw error;
+    }
+  }
 }

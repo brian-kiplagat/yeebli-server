@@ -258,11 +258,24 @@ export type NewEventDate = typeof eventDates.$inferInsert;
 export type Asset = typeof assetsSchema.$inferSelect;
 export type NewAsset = typeof assetsSchema.$inferInsert;
 
-export type User = {
-  google_id?: string | null;
-  google_access_token?: string | null;
-  auth_provider: "local" | "google" | null;
-} & typeof userSchema.$inferSelect;
+export type User = typeof userSchema.$inferSelect & {
+  business?: typeof businessSchema.$inferSelect | null;
+};
 
 export type NewUser = typeof userSchema.$inferInsert;
 export type NewBusiness = typeof businessSchema.$inferInsert;
+
+// Define relations
+export const userRelations = relations(userSchema, ({ one }) => ({
+  business: one(businessSchema, {
+    fields: [userSchema.id],
+    references: [businessSchema.user_id],
+  }),
+}));
+
+export const businessRelations = relations(businessSchema, ({ one }) => ({
+  user: one(userSchema, {
+    fields: [businessSchema.user_id],
+    references: [userSchema.id],
+  }),
+}));
