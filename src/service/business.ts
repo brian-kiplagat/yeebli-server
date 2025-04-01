@@ -51,8 +51,8 @@ export class BusinessService {
       const buffer = Buffer.from(base64Data, "base64");
       const contentType = this.getContentType(logoBase64);
 
-      // Generate a unique key for S3
-      const key = `business-logos/${Date.now()}-${fileName}`;
+      // Generate a unique key for S3 using the consistent path structure
+      const key = `assets/images/${Date.now()}-${fileName}`;
 
       // Upload to S3
       const url = await this.s3Service.uploadFile(key, buffer, contentType);
