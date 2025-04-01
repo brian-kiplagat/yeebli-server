@@ -21,16 +21,24 @@ export class AssetService {
     contentType: string,
     assetType: "image" | "video" | "audio" | "document",
     fileSize: number,
-    duration: number
+    duration: number,
+    buffer?: Buffer
   ) {
     // Generate a unique key for the file with consistent folder structure
     const key = `assets/${assetType}s/${Date.now()}-${fileName}`;
 
-    // Get presigned URL from S3
-    const { presignedUrl, url } = await this.s3Service.generatePresignedUrl(
-      key,
-      contentType
-    );
+    let url: string;
+    if (buffer) {
+      // If buffer is provided, upload the file
+      url = await this.s3Service.uploadFile(key, buffer, contentType);
+    } else {
+      // Otherwise, just generate a presigned URL for client upload
+      const { url: presignedUrl } = await this.s3Service.generatePresignedUrl(
+        key,
+        contentType
+      );
+      url = presignedUrl;
+    }
 
     // Create asset record in database
     const asset: NewAsset = {
@@ -46,7 +54,7 @@ export class AssetService {
     const createdAsset = await this.repository.create(asset);
 
     return {
-      presignedUrl,
+      presignedUrl: url,
       asset: createdAsset,
     };
   }
