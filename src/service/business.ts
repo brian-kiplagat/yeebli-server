@@ -67,7 +67,7 @@ export class BusinessService {
         0
       );
 
-      return { assetId: asset.id, logoUrl: url };
+      return { assetId: asset.id };
     } catch (error) {
       logger.error("Failed to upload logo:", error);
       throw error;
@@ -77,30 +77,21 @@ export class BusinessService {
   public async getBusinessByUserId(userId: number) {
     try {
       const business = await this.repository.findByUserId(userId);
-      if (!business?.logo) return business;
+      if (!business?.logo_asset_id) return business;
 
-      // Get presigned URL for the logo
-      const key = this.getKeyFromUrl(business.logo);
-      const contentType = this.getContentType(business.logo);
-      const presignedUrl = await this.s3Service.generateGetUrl(
-        key,
-        contentType,
-        86400
-      ); // 24 hours expiry
+      // Get the asset and its presigned URL
+      const asset = await this.assetService.getAsset(business.logo_asset_id);
+      if (!asset) return business;
 
       return {
         ...business,
-        presignedLogoUrl: presignedUrl,
+        logo: asset.asset_url,
+        presignedLogoUrl: asset.presignedUrl,
       };
     } catch (error) {
       logger.error("Failed to get business by user:", error);
       throw error;
     }
-  }
-
-  private getKeyFromUrl(url: string): string {
-    const urlParts = url.split(".amazonaws.com/");
-    return urlParts[1] || "";
   }
 
   public async getAllBusinesses(query?: BusinessQuery) {
@@ -116,16 +107,21 @@ export class BusinessService {
     try {
       const existingBusiness = await this.repository.findByUserId(userId);
 
-      let logoData = null;
+      let logoAssetId = null;
       if (business.logo && business.logo.startsWith("data:image")) {
         // Handle logo upload if it's a base64 string
         const fileName = business.logoFileName || `business-logo-${userId}.jpg`;
-        logoData = await this.handleLogoUpload(userId, business.logo, fileName);
+        const logoData = await this.handleLogoUpload(
+          userId,
+          business.logo,
+          fileName
+        );
+        logoAssetId = logoData.assetId;
       }
 
       const businessData = {
         ...business,
-        logo: logoData ? logoData.logoUrl : business.logo,
+        logo_asset_id: logoAssetId,
         user_id: userId,
       };
 

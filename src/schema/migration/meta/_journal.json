@@ -274,6 +274,20 @@
       "when": 1743502268341,
       "tag": "0039_remarkable_xorn",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1743504853240,
+      "tag": "0040_flimsy_hawkeye",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1743505045015,
+      "tag": "0041_bent_joshua_kane",
+      "breakpoints": true
     }
   ]
 }

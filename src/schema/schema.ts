@@ -65,7 +65,7 @@ export const businessSchema = mysqlTable("businesses", {
   phone: varchar("phone", { length: 255 }),
   email: varchar("email", { length: 255 }),
   description: text("description"),
-  logo: varchar("logo", { length: 255 }),
+  logo_asset_id: int("logo_asset_id").references(() => assetsSchema.id),
   user_id: int("user_id")
     .references(() => userSchema.id)
     .notNull(),

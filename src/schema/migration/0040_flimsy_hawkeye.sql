@@ -1,0 +1,1 @@
+ALTER TABLE `assets` ADD `content_type` varchar(100);
