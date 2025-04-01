@@ -107,16 +107,24 @@ export class BusinessService {
     try {
       const existingBusiness = await this.repository.findByUserId(userId);
 
-      let logoAssetId = null;
-      if (business.logo && business.logo.startsWith("data:image")) {
-        // Handle logo upload if it's a base64 string
-        const fileName = business.logoFileName || `business-logo-${userId}.jpg`;
-        const logoData = await this.handleLogoUpload(
-          userId,
-          business.logo,
-          fileName
-        );
-        logoAssetId = logoData.assetId;
+      // Start with existing logo_asset_id if it exists
+      let logoAssetId = existingBusiness?.logo_asset_id || null;
+
+      if (business.logo) {
+        if (business.logo.startsWith("data:image")) {
+          // Handle logo upload if it's a base64 string
+          const fileName =
+            business.logoFileName || `business-logo-${userId}.jpg`;
+          const logoData = await this.handleLogoUpload(
+            userId,
+            business.logo,
+            fileName
+          );
+          logoAssetId = logoData.assetId || null;
+        } else {
+          // If logo is not a base64 string and not updating, keep existing logo_asset_id
+          logoAssetId = existingBusiness?.logo_asset_id;
+        }
       }
 
       const businessData = {
