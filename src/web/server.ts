@@ -85,7 +85,6 @@ import { MembershipController } from "./controller/membership.ts";
 import { MembershipRepository } from "../repository/membership.ts";
 import { MembershipService } from "../service/membership.ts";
 
-
 export class Server {
   private app: Hono;
   private worker?: Worker;
@@ -126,7 +125,7 @@ export class Server {
     const adminRepo = new AdminRepository();
     const assetRepo = new AssetRepository();
     const subscriptionRepo = new SubscriptionRepository();
-   
+
     const businessRepo = new BusinessRepository();
 
     // Setup services
@@ -148,7 +147,7 @@ export class Server {
       stripeService,
       userService
     );
-    
+
     const businessService = new BusinessService(
       businessRepo,
       s3Service,
@@ -159,7 +158,7 @@ export class Server {
     this.registerWorker(userService);
 
     // Setup controllers
-    const authController = new AuthController(userService);
+    const authController = new AuthController(userService, businessService);
     const leadController = new LeadController(
       leadService,
       userService,
@@ -197,7 +196,7 @@ export class Server {
       userService
     );
     const bookingCtrl = new BookingController(bookingService);
-    
+
     const businessController = new BusinessController(
       businessService,
       userService
@@ -209,7 +208,10 @@ export class Server {
 
     // Add Google service and controller
     const googleService = new GoogleService(userService, stripeService);
-    const googleController = new GoogleController(googleService);
+    const googleController = new GoogleController(
+      googleService,
+      businessService
+    );
 
     // Register routes
     this.registerUserRoutes(api, authController, googleController);

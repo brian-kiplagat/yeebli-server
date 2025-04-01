@@ -1,15 +1,18 @@
-import type { Context } from 'hono';
-import { encode } from '../../lib/jwt.js';
-import { logger } from '../../lib/logger.js';
-import type { GoogleService } from '../../service/google.js';
-import { ERRORS, serveBadRequest, serveNotFound } from './resp/error.ts';
-import { serializeUser } from './serializer/user.js';
+import type { Context } from "hono";
+import { encode } from "../../lib/jwt.js";
+import { logger } from "../../lib/logger.js";
+import type { GoogleService } from "../../service/google.js";
+import type { BusinessService } from "../../service/business.js";
+import { ERRORS, serveBadRequest, serveNotFound } from "./resp/error.ts";
+import { serializeUser } from "./serializer/user.js";
 
 export class GoogleController {
   private googleService: GoogleService;
+  private businessService: BusinessService;
 
-  constructor(googleService: GoogleService) {
+  constructor(googleService: GoogleService, businessService: BusinessService) {
     this.googleService = googleService;
+    this.businessService = businessService;
   }
 
   public initiateAuth = async (c: Context) => {
@@ -20,14 +23,14 @@ export class GoogleController {
         authUrl,
       });
     } catch (error) {
-      logger.error('Failed to initiate Google auth:', error);
+      logger.error("Failed to initiate Google auth:", error);
       return serveBadRequest(c, ERRORS.AUTH_FAILED);
     }
   };
 
   public handleCallback = async (c: Context) => {
     try {
-      const code = c.req.query('code');
+      const code = c.req.query("code");
 
       if (!code) {
         return serveBadRequest(c, ERRORS.NO_AUTHORIZATION_CODE);
@@ -41,7 +44,7 @@ export class GoogleController {
 
       // Generate JWT using the same encode function as auth controller
       const token = await encode(user.id, user.email);
-      const serializedUser = serializeUser(user);
+      const serializedUser = await serializeUser(user, this.businessService);
 
       // Return JSON response like other auth endpoints
       return c.json({
@@ -50,7 +53,7 @@ export class GoogleController {
         user: serializedUser,
       });
     } catch (error) {
-      logger.error('Google callback failed:', error);
+      logger.error("Google callback failed:", error);
       return serveBadRequest(c, ERRORS.AUTH_FAILED);
     }
   };
