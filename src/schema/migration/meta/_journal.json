@@ -288,6 +288,13 @@
       "when": 1743505045015,
       "tag": "0041_bent_joshua_kane",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1743506780913,
+      "tag": "0042_luxuriant_exiles",
+      "breakpoints": true
     }
   ]
 }

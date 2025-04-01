@@ -1,0 +1,1 @@
+RENAME TABLE `price_plans` TO `memberships`; 

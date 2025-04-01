@@ -11,7 +11,7 @@ import { AssetRepository } from "../repository/asset.js";
 import { BookingRepository } from "../repository/booking.ts";
 import { EventRepository } from "../repository/event.ts";
 import { LeadRepository } from "../repository/lead.js";
-import { PricePlanRepository } from "../repository/pricePlan.js";
+
 import { SubscriptionRepository } from "../repository/subscription.js";
 import { UserRepository } from "../repository/user.js";
 import { AdminService } from "../service/admin.js";
@@ -21,7 +21,7 @@ import { EventService } from "../service/event.ts";
 import { GoogleService } from "../service/google.js";
 import { HLSService } from "../service/hls.js";
 import { LeadService } from "../service/lead.js";
-import { PricePlanService } from "../service/pricePlan.js";
+
 import { S3Service } from "../service/s3.js";
 import { StripeService } from "../service/stripe.js";
 import { SubscriptionService } from "../service/subscription.js";
@@ -36,7 +36,7 @@ import { EventController } from "./controller/event.ts";
 import { GoogleController } from "./controller/google.js";
 import { HLSController } from "./controller/hls.js";
 import { LeadController } from "./controller/lead.ts";
-import { PricePlanController } from "./controller/pricePlan.js";
+
 import {
   ERRORS,
   serveInternalServerError,
@@ -60,10 +60,9 @@ import {
   updateLeadValidator,
 } from "./validator/lead.ts";
 import {
-  pricePlanQueryValidator,
-  pricePlanValidator,
-  updatePricePlanValidator,
-} from "./validator/pricePlan.ts";
+  membershipQueryValidator,
+  membershipValidator,
+} from "./validator/membership.ts";
 import { subscriptionRequestValidator } from "./validator/subscription.ts";
 import {
   emailVerificationValidator,
@@ -82,6 +81,10 @@ import {
   businessValidator,
   businessQueryValidator,
 } from "./validator/business.js";
+import { MembershipController } from "./controller/membership.ts";
+import { MembershipRepository } from "../repository/membership.ts";
+import { MembershipService } from "../service/membership.ts";
+
 
 export class Server {
   private app: Hono;
@@ -123,7 +126,7 @@ export class Server {
     const adminRepo = new AdminRepository();
     const assetRepo = new AssetRepository();
     const subscriptionRepo = new SubscriptionRepository();
-    const pricePlanRepo = new PricePlanRepository();
+   
     const businessRepo = new BusinessRepository();
 
     // Setup services
@@ -133,6 +136,8 @@ export class Server {
     const eventService = new EventService(eventRepo, s3Service, leadService);
     const adminService = new AdminService(adminRepo);
     const bookingRepo = new BookingRepository();
+    const membershipRepo = new MembershipRepository();
+    const membershipService = new MembershipService(membershipRepo);
     const bookingService = new BookingService(bookingRepo);
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
@@ -143,7 +148,7 @@ export class Server {
       stripeService,
       userService
     );
-    const pricePlanService = new PricePlanService(pricePlanRepo);
+    
     const businessService = new BusinessService(
       businessRepo,
       s3Service,
@@ -192,12 +197,13 @@ export class Server {
       userService
     );
     const bookingCtrl = new BookingController(bookingService);
-    const pricePlanController = new PricePlanController(
-      pricePlanService,
-      userService
-    );
+    
     const businessController = new BusinessController(
       businessService,
+      userService
+    );
+    const membershipController = new MembershipController(
+      membershipService,
       userService
     );
 
@@ -216,8 +222,8 @@ export class Server {
     this.registerStripeRoutes(api, stripeController);
     this.registerSubscriptionRoutes(api, subscriptionController);
     this.registerBookingRoutes(api, bookingCtrl);
-    this.registerPricePlanRoutes(api, pricePlanController);
     this.registerBusinessRoutes(api, businessController);
+    this.registerMembershipRoutes(api, membershipController);
   }
 
   private registerUserRoutes(
@@ -405,37 +411,6 @@ export class Server {
     api.route("/booking", booking);
   }
 
-  private registerPricePlanRoutes(
-    api: Hono,
-    pricePlanCtrl: PricePlanController
-  ) {
-    const pricePlan = new Hono();
-    const authCheck = jwt({ secret: env.SECRET_KEY });
-
-    pricePlan.get(
-      "/",
-      authCheck,
-      pricePlanQueryValidator,
-      pricePlanCtrl.getPricePlans
-    );
-    pricePlan.get("/:id", authCheck, pricePlanCtrl.getPricePlan);
-    pricePlan.post(
-      "/",
-      authCheck,
-      pricePlanValidator,
-      pricePlanCtrl.createPricePlan
-    );
-    pricePlan.put(
-      "/:id",
-      authCheck,
-      updatePricePlanValidator,
-      pricePlanCtrl.updatePricePlan
-    );
-    pricePlan.delete("/:id", authCheck, pricePlanCtrl.deletePricePlan);
-
-    api.route("/price-plan", pricePlan);
-  }
-
   private registerBusinessRoutes(api: Hono, businessCtrl: BusinessController) {
     const business = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
@@ -458,6 +433,37 @@ export class Server {
     );
 
     api.route("/business", business);
+  }
+
+  private registerMembershipRoutes(
+    api: Hono,
+    membershipCtrl: MembershipController
+  ) {
+    const membership = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    membership.get(
+      "/",
+      authCheck,
+      membershipQueryValidator,
+      membershipCtrl.getMemberships
+    );
+    membership.get("/:id", authCheck, membershipCtrl.getMembership);
+    membership.post(
+      "/",
+      authCheck,
+      membershipValidator,
+      membershipCtrl.createMembership
+    );
+    membership.put(
+      "/:id",
+      authCheck,
+      membershipValidator,
+      membershipCtrl.updateMembership
+    );
+    membership.delete("/:id", authCheck, membershipCtrl.deleteMembership);
+
+    api.route("/membership", membership);
   }
 
   private registerWorker(userService: UserService) {

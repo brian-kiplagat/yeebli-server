@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { mysqlTable, int } from "drizzle-orm/mysql-core";
+import { assetsSchema } from "../schema.ts";
 
 export const updateBusinessLogoToAssetReference = mysqlTable("businesses", {
   logo_asset_id: int("logo_asset_id").references(() => assetsSchema.id),

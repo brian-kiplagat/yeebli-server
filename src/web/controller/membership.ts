@@ -1,23 +1,25 @@
 import type { Context } from "hono";
-import { logger } from "../../lib/logger.js";
-import type { PricePlanService } from "../../service/pricePlan.js";
-import type { UserService } from "../../service/user.js";
-import type {
-  CreatePricePlanBody,
-  UpdatePricePlanBody,
-} from "../validator/pricePlan.ts";
+import { logger } from "../../lib/logger.ts";
+
+import type { UserService } from "../../service/user.ts";
+
 import {
   ERRORS,
   serveBadRequest,
   serveInternalServerError,
   serveNotFound,
-} from "./resp/error.js";
+} from "./resp/error.ts";
+import { MembershipService } from "../../service/membership.ts";
+import {
+  CreateMembershipBody,
+  UpdateMembershipBody,
+} from "../validator/membership.ts";
 
-export class PricePlanController {
-  private service: PricePlanService;
+export class MembershipController {
+  private service: MembershipService;
   private userService: UserService;
 
-  constructor(service: PricePlanService, userService: UserService) {
+  constructor(service: MembershipService, userService: UserService) {
     this.service = service;
     this.userService = userService;
   }
@@ -28,7 +30,7 @@ export class PricePlanController {
     return user;
   }
 
-  public getPricePlans = async (c: Context) => {
+  public getMemberships = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
@@ -42,14 +44,14 @@ export class PricePlanController {
         search,
       };
 
-      // Admin users (master/owner) can see all price plans
+      // Admin users (master/owner) can see all memberships
       if (user.role === "master" || user.role === "owner") {
-        const plans = await this.service.getAllPricePlans(query);
+        const plans = await this.service.getAllMemberships(query);
         return c.json(plans);
       }
 
-      // Regular users only see their own price plans
-      const plans = await this.service.getPricePlansByUser(user.id, query);
+      // Regular users only see their own memberships
+      const plans = await this.service.getMembershipsByUser(user.id, query);
       return c.json(plans);
     } catch (error) {
       logger.error(error);
@@ -57,23 +59,23 @@ export class PricePlanController {
     }
   };
 
-  public getPricePlan = async (c: Context) => {
+  public getMembership = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Only master and owner roles can view price plans
+      // Only master and owner roles can view memberships
       if (user.role !== "master" && user.role !== "owner") {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const planId = Number(c.req.param("id"));
-      const plan = await this.service.getPricePlan(planId);
+      const plan = await this.service.getMembership(planId);
 
       if (!plan) {
-        return serveNotFound(c, ERRORS.PRICE_PLAN_NOT_FOUND);
+        return serveNotFound(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
 
       return c.json(plan);
@@ -83,27 +85,27 @@ export class PricePlanController {
     }
   };
 
-  public createPricePlan = async (c: Context) => {
+  public createMembership = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Only master and owner roles can create price plans
+      // Only master and owner roles can create memberships
       if (user.role !== "master" && user.role !== "owner") {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
-      const body: CreatePricePlanBody = await c.req.json();
-      const planId = await this.service.createPricePlan({
+      const body: CreateMembershipBody = await c.req.json();
+      const planId = await this.service.createMembership({
         ...body,
         user_id: user.id,
       });
 
       return c.json(
         {
-          message: "Price plan created successfully",
+          message: "Membership created successfully",
           planId: planId,
         },
         201
@@ -114,56 +116,56 @@ export class PricePlanController {
     }
   };
 
-  public updatePricePlan = async (c: Context) => {
+  public updateMembership = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Only master and owner roles can update price plans
+      // Only master and owner roles can update memberships
       if (user.role !== "master" && user.role !== "owner") {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const planId = Number(c.req.param("id"));
-      const plan = await this.service.getPricePlan(planId);
+      const plan = await this.service.getMembership(planId);
 
       if (!plan) {
-        return serveBadRequest(c, ERRORS.PRICE_PLAN_NOT_FOUND);
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
 
-      const body: UpdatePricePlanBody = await c.req.json();
-      await this.service.updatePricePlan(planId, body);
+      const body: UpdateMembershipBody = await c.req.json();
+      await this.service.updateMembership(planId, body);
 
-      return c.json({ message: "Price plan updated successfully" });
+      return c.json({ message: "Membership updated successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
   };
 
-  public deletePricePlan = async (c: Context) => {
+  public deleteMembership = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Only master and owner roles can delete price plans
+      // Only master and owner roles can delete memberships
       if (user.role !== "master" && user.role !== "owner") {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const planId = Number(c.req.param("id"));
-      const plan = await this.service.getPricePlan(planId);
+      const plan = await this.service.getMembership(planId);
 
       if (!plan) {
-        return serveNotFound(c, ERRORS.PRICE_PLAN_NOT_FOUND);
+        return serveNotFound(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
 
-      await this.service.deletePricePlan(planId);
-      return c.json({ message: "Price plan deleted successfully" });
+      await this.service.deleteMembership(planId);
+      return c.json({ message: "Membership deleted successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

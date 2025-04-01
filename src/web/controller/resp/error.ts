@@ -48,7 +48,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 
 const ERRORS = {
   BUSINESS_NOT_FOUND: "Business not found, please check the business id",
-  PRICE_PLAN_NOT_FOUND: "Price plan not found, please check the price plan id",
+  MEMBERSHIP_NOT_FOUND: "Membership not found, please check the membership id",
   EVENT_DATE_NOT_FOUND: "Event date not found",
   CANNOT_DELETE_LAST_DATE: "Cannot delete the last remaining date for an event",
   NOT_FOUND: "Ops, we could not find the resource you are looking for",

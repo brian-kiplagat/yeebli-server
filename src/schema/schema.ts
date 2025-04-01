@@ -169,7 +169,7 @@ export const bookings = mysqlTable("bookings", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-export const pricePlans = mysqlTable("price_plans", {
+export const memberships = mysqlTable("memberships", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
@@ -246,8 +246,8 @@ export type Lead = typeof leadSchema.$inferSelect & {
   membership?: Membership | null;
 };
 
-export type PricePlan = typeof pricePlans.$inferSelect;
-export type NewPricePlan = typeof pricePlans.$inferInsert;
+export type Membership = typeof memberships.$inferSelect;
+export type NewMembership = typeof memberships.$inferInsert;
 export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type NewLead = typeof leadSchema.$inferInsert;
@@ -257,8 +257,7 @@ export type EventDate = typeof eventDates.$inferSelect;
 export type NewEventDate = typeof eventDates.$inferInsert;
 export type Asset = typeof assetsSchema.$inferSelect;
 export type NewAsset = typeof assetsSchema.$inferInsert;
-export type Membership = typeof membershipSchema.$inferSelect;
-export type NewMembership = typeof membershipSchema.$inferInsert;
+
 export type User = {
   google_id?: string | null;
   google_access_token?: string | null;
