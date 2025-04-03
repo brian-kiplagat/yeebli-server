@@ -217,7 +217,7 @@ export class Server {
     const googleService = new GoogleService(userService, stripeService);
     const googleController = new GoogleController(
       googleService,
-      businessService
+      s3Service
     );
 
     // Register routes

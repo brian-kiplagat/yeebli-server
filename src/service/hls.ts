@@ -112,7 +112,7 @@ export class HLSService {
 
       // Upload master playlist
       const masterContent = await fs.readFile(join(outputDir, 'master.m3u8'), 'utf8');
-      await this.s3Service.uploadFile(`${s3BasePath}/master.m3u8`, masterContent, 'application/x-mpegURL');
+      await this.s3Service.uploadFile(`${s3BasePath}/master.m3u8`, masterContent, 'application/x-mpegURL', 'video');
 
       // Upload variant playlists and segments
       const uploadPromises: Promise<any>[] = [];
@@ -129,10 +129,10 @@ export class HLSService {
           if (file.endsWith('.m3u8')) {
             // For playlist files, read the content first
             const content = await fs.readFile(filePath, 'utf8');
-            uploadPromises.push(this.s3Service.uploadFile(s3Key, content, contentType));
+            uploadPromises.push(this.s3Service.uploadFile(s3Key, content, contentType, 'video'));
           } else {
             // For video segments, use streaming upload
-            uploadPromises.push(this.s3Service.uploadFile(s3Key, createReadStream(filePath), contentType));
+            uploadPromises.push(this.s3Service.uploadFile(s3Key, createReadStream(filePath), contentType, 'video'));
           }
         }
       }
