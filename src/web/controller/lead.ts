@@ -207,7 +207,7 @@ export class LeadController {
         return serveBadRequest(c, "Invalid Turnstile token");
       }
 
-      const token = uuidv4();
+      const token = Math.floor(100000 + Math.random() * 900000).toString();
       const event = await this.eventService.getEvent(validatedData.event_id);
       if (!event) {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
@@ -232,6 +232,12 @@ export class LeadController {
       const createdLead = await this.service.create(lead);
 
       const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+      const bodyText =
+        event.event_type == "live_venue"
+          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time and enjoy the experience in person. If you have any questions or need more details, feel free to visit our website: ${eventLink}. To access the event, please use this passcode: ${token}. We look forward to seeing you there!`
+          : event.event_type == "live_video_call"
+            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early. If you need more information, you can check our website here: ${eventLink}. Your access passcode is: ${token}. We can't wait to connect with you online!`
+            : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space. Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
 
       sendTransactionalEmail(
         validatedData.lead_form_email,
@@ -241,7 +247,7 @@ export class LeadController {
           subject: "Welcome to the event",
           title: "Welcome to the event",
           subtitle: `You have been registered for the event`,
-          body: `You have been registered for the event. Please use this link to access the event: ${eventLink}`,
+          body: bodyText,
         }
       );
       return c.json(
