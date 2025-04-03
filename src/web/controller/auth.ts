@@ -78,7 +78,7 @@ export class AuthController {
       }
 
       const token = await encode(user.id, user.email);
-      const serializedUser = await serializeUser(user, this.businessService);
+      const serializedUser = await serializeUser(user, this.s3Service);
       return serveData(c, { token, user: serializedUser });
     } catch (err) {
       logger.error(err);
@@ -111,7 +111,7 @@ export class AuthController {
     await sendWelcomeEmailAsync(user.id);
 
     const token = await encode(user.id, user.email);
-    const serializedUser = await serializeUser(user, this.businessService);
+    const serializedUser = await serializeUser(user, this.s3Service);
     return serveData(c, { token, user: serializedUser });
   };
 
@@ -296,7 +296,7 @@ export class AuthController {
       return serveInternalServerError(c, new Error(ERRORS.USER_NOT_FOUND));
     }
 
-    const serializedUser = await serializeUser(user, this.businessService);
+    const serializedUser = await serializeUser(user, this.s3Service);
     return serveData(c, { user: serializedUser });
   };
 
@@ -332,7 +332,7 @@ export class AuthController {
 
       const serializedUser = await serializeUser(
         updatedUser,
-        this.businessService
+        this.s3Service
       );
       return serveData(c, {
         success: true,

@@ -1,5 +1,7 @@
 import { type User } from "../../../schema/schema.js";
+import { AssetService } from "../../../service/asset.ts";
 import { type BusinessService } from "../../../service/business.js";
+import { S3Service } from "../../../service/s3.ts";
 
 type UserResponse = {
   id: number;
@@ -20,9 +22,17 @@ type UserResponse = {
 
 export async function serializeUser(
   user: User,
-  businessService: BusinessService
+  s3Service: S3Service
 ): Promise<UserResponse> {
-  
+  //if the profile picture exists, presign it
+  let presigned_url = null;
+  if (user.profile_picture) {
+    // Extract the key from the S3 URL (everything after the bucket name)
+    const key = user.profile_picture.split(".amazonaws.com/")[1];
+    if (key) {
+      presigned_url = await s3Service.generateGetUrl(key, "image/jpeg");
+    }
+  }
 
   return {
     id: user.id,
@@ -32,13 +42,12 @@ export async function serializeUser(
     is_verified: user.is_verified,
     role: user.role,
     phone: user.phone,
-    profile_picture: user.profile_picture,
+    profile_picture: presigned_url,
     bio: user.bio,
     is_banned: user.is_banned,
     is_deleted: user.is_deleted,
     stripe_account_id: user.stripe_account_id,
     subscription_status: user.subscription_status,
     auth_provider: user.auth_provider ?? "local",
-    
   };
 }
