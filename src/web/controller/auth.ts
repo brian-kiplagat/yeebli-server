@@ -59,6 +59,7 @@ export class AuthController {
     this.resetPassword = this.resetPassword.bind(this);
     this.resetPasswordInApp = this.resetPasswordInApp.bind(this);
     this.updateUserDetails = this.updateUserDetails.bind(this);
+    this.getUser = this.getUser.bind(this);
   }
 
   public async login(c: Context) {
@@ -405,6 +406,4 @@ export class AuthController {
       return serveInternalServerError(c, error);
     }
   }
-
-
 }
