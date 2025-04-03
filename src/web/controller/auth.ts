@@ -49,20 +49,9 @@ export class AuthController {
     this.businessService = businessService;
     this.s3Service = s3Service;
     this.assetService = assetService;
-
-    this.login = this.login.bind(this);
-    this.register = this.register.bind(this);
-    this.me = this.me.bind(this);
-    this.sendToken = this.sendToken.bind(this);
-    this.verifyRegistrationToken = this.verifyRegistrationToken.bind(this);
-    this.requestResetPassword = this.requestResetPassword.bind(this);
-    this.resetPassword = this.resetPassword.bind(this);
-    this.resetPasswordInApp = this.resetPasswordInApp.bind(this);
-    this.updateUserDetails = this.updateUserDetails.bind(this);
-    this.getUser = this.getUser.bind(this);
   }
 
-  public async login(c: Context) {
+  public login = async (c: Context) => {
     try {
       const body: LoginBody = await c.req.json();
       const user = await this.service.findByEmail(body.email);
@@ -95,9 +84,9 @@ export class AuthController {
       logger.error(err);
       return serveInternalServerError(c, err);
     }
-  }
+  };
 
-  public async register(c: Context) {
+  public register = async (c: Context) => {
     const body: RegistrationBody = await c.req.json();
     try {
       await this.service.create(
@@ -124,9 +113,9 @@ export class AuthController {
     const token = await encode(user.id, user.email);
     const serializedUser = await serializeUser(user, this.businessService);
     return serveData(c, { token, user: serializedUser });
-  }
+  };
 
-  public async sendToken(c: Context) {
+  public sendToken = async (c: Context) => {
     try {
       const body: EmailVerificationBody = await c.req.json();
       const user = await this.service.findByEmail(body.email);
@@ -162,9 +151,9 @@ export class AuthController {
       logger.error(err);
       return serveInternalServerError(c, err);
     }
-  }
+  };
 
-  public async verifyRegistrationToken(c: Context) {
+  public verifyRegistrationToken = async (c: Context) => {
     try {
       const body: RegisterTokenBody = await c.req.json();
       const user = await this.service.find(body.id);
@@ -197,9 +186,9 @@ export class AuthController {
       logger.error(err);
       return serveInternalServerError(c, err);
     }
-  }
+  };
 
-  public async requestResetPassword(c: Context) {
+  public requestResetPassword = async (c: Context) => {
     try {
       const body: RequestResetPasswordBody = await c.req.json();
       const user = await this.service.findByEmail(body.email);
@@ -226,13 +215,14 @@ export class AuthController {
       logger.error(err);
       return serveInternalServerError(c, err);
     }
-  }
-  private async getUser(c: Context) {
+  };
+
+  private getUser = async (c: Context) => {
     const email = c.get("jwtPayload").email;
     const user = await this.service.findByEmail(email);
     return user;
-  }
-  public async resetPassword(c: Context) {
+  };
+  public resetPassword = async (c: Context) => {
     try {
       const body: ResetPasswordBody = await c.req.json();
       const user = await this.service.findByEmail(body.email);
@@ -261,9 +251,9 @@ export class AuthController {
       logger.error(err);
       return serveInternalServerError(c, err);
     }
-  }
+  };
 
-  public async resetPasswordInApp(c: Context) {
+  public resetPasswordInApp = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
@@ -297,9 +287,9 @@ export class AuthController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async me(c: Context) {
+  public me = async (c: Context) => {
     const payload: JWTPayload = c.get("jwtPayload");
     const user = await this.service.findByEmail(payload.email as string);
     if (!user) {
@@ -308,9 +298,9 @@ export class AuthController {
 
     const serializedUser = await serializeUser(user, this.businessService);
     return serveData(c, { user: serializedUser });
-  }
+  };
 
-  public async updateUserDetails(c: Context) {
+  public updateUserDetails = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
@@ -353,9 +343,9 @@ export class AuthController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async uploadProfileImage(c: Context) {
+  public uploadProfileImage = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
@@ -405,5 +395,5 @@ export class AuthController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 }
