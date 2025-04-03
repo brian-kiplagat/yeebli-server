@@ -66,11 +66,6 @@ export class MembershipController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Only master and owner roles can view memberships
-      if (user.role !== "master" && user.role !== "owner") {
-        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
-      }
-
       const planId = Number(c.req.param("id"));
       const plan = await this.service.getMembership(planId);
 
@@ -90,11 +85,6 @@ export class MembershipController {
       const user = await this.getUser(c);
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
-      }
-
-      // Only master and owner roles can create memberships
-      if (user.role !== "master" && user.role !== "owner") {
-        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const body: CreateMembershipBody = await c.req.json();
@@ -123,16 +113,15 @@ export class MembershipController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Only master and owner roles can update memberships
-      if (user.role !== "master" && user.role !== "owner") {
-        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
-      }
-
       const planId = Number(c.req.param("id"));
       const plan = await this.service.getMembership(planId);
 
       if (!plan) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+
+      if (plan.user_id !== user.id) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const body: UpdateMembershipBody = await c.req.json();
@@ -152,16 +141,14 @@ export class MembershipController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Only master and owner roles can delete memberships
-      if (user.role !== "master" && user.role !== "owner") {
-        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
-      }
-
       const planId = Number(c.req.param("id"));
       const plan = await this.service.getMembership(planId);
 
       if (!plan) {
         return serveNotFound(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+      if (plan.user_id !== user.id) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       await this.service.deleteMembership(planId);
