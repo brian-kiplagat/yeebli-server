@@ -1,104 +1,62 @@
 import { and, desc, eq, like } from "drizzle-orm";
 import { db } from "../lib/database.js";
-import { AssetRepository } from "../repository/asset.js";
+import type { AssetRepository } from "../repository/asset.js";
 import type { Asset, NewAsset } from "../schema/schema.js";
 import { assetsSchema } from "../schema/schema.js";
 import type { AssetQuery } from "../web/validator/asset.js";
-import { S3Service } from "./s3.js";
-import env from "../lib/env.js";
-
-type AssetType = "image" | "video" | "audio" | "document";
-
-interface MulterFile {
-  originalname: string;
-  mimetype: string;
-  size: number;
-}
+import type { S3Service } from "./s3.js";
 
 export class AssetService {
   private repository: AssetRepository;
   private s3Service: S3Service;
 
-  constructor() {
-    this.repository = new AssetRepository();
-    this.s3Service = new S3Service();
+  constructor(repository: AssetRepository, s3Service: S3Service) {
+    this.repository = repository;
+    this.s3Service = s3Service;
   }
 
   async createAsset(
-    file: MulterFile,
-    userId: string,
-    assetType: AssetType,
-    duration?: number
+    userId: number,
+    fileName: string,
+    contentType: string,
+    assetType: "image" | "video" | "audio" | "document",
+    fileSize: number,
+    duration: number,
+    buffer?: Buffer
   ) {
-    const key = `assets/${assetType}s/${Date.now()}-${file.originalname}`;
-    const contentType = file.mimetype || "application/octet-stream";
+    // Generate a unique key for the file with consistent folder structure
+    const key = `assets/${assetType}s/${Date.now()}-${fileName}`;
 
-    // For files larger than 5MB, use multipart upload
-    if (file.size > 5 * 1024 * 1024) {
-      const uploadId = await this.s3Service.initiateMultipartUpload(
+    let url: string;
+    if (buffer) {
+      // If buffer is provided, upload the file
+      url = await this.s3Service.uploadFile(key, buffer, contentType);
+    } else {
+      // Otherwise, just generate a presigned URL for client upload
+      const { url: presignedUrl } = await this.s3Service.generatePresignedUrl(
         key,
         contentType
       );
-      if (!uploadId) throw new Error("Failed to initiate multipart upload");
-
-      // Calculate number of parts (5MB each)
-      const partSize = 5 * 1024 * 1024;
-      const totalParts = Math.ceil(file.size / partSize);
-
-      // Generate presigned URLs for each part
-      const partUrls = await Promise.all(
-        Array.from({ length: totalParts }, (_, i) =>
-          this.s3Service.generatePresignedUrlForPart(key, uploadId, i + 1)
-        )
-      );
-
-      return {
-        presignedUrls: partUrls,
-        uploadId,
-        key,
-        totalParts,
-        partSize,
-        asset: await this.repository.create({
-          asset_name: file.originalname,
-          asset_size: file.size,
-          asset_type: assetType,
-          content_type: contentType,
-          asset_url: `https://${env.S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${key}`,
-          user_id: parseInt(userId),
-          duration: duration || 0,
-        }),
-      };
+      url = presignedUrl;
     }
 
-    // For smaller files, use single part upload
-    const { presignedUrl, url } = await this.s3Service.generatePresignedUrl(
-      key,
-      contentType
-    );
-
-    const asset = await this.repository.create({
-      asset_name: file.originalname,
-      asset_size: file.size,
+    // Create asset record in database
+    const asset: NewAsset = {
+      asset_name: fileName,
+      asset_size: fileSize,
       asset_type: assetType,
       content_type: contentType,
       asset_url: url,
-      user_id: parseInt(userId),
-      duration: duration || 0,
-    });
+      user_id: userId,
+      duration: duration,
+    };
 
-    return { presignedUrl, asset };
-  }
+    const createdAsset = await this.repository.create(asset);
 
-  async completeMultipartUpload(
-    key: string,
-    uploadId: string,
-    parts: { ETag: string; PartNumber: number }[]
-  ) {
-    return this.s3Service.completeMultipartUpload(key, uploadId, parts);
-  }
-
-  async abortMultipartUpload(key: string, uploadId: string) {
-    return this.s3Service.abortMultipartUpload(key, uploadId);
+    return {
+      presignedUrl: url,
+      asset: createdAsset,
+    };
   }
 
   async getAssetsByUser(userId: number, query?: AssetQuery) {

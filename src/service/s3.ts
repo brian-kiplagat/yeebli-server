@@ -1,17 +1,13 @@
-import type { Readable } from "stream";
+import type { Readable } from 'stream';
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
-  CreateMultipartUploadCommand,
-  UploadPartCommand,
-  CompleteMultipartUploadCommand,
-  AbortMultipartUploadCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import env from "../lib/env.js";
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import env from '../lib/env.js';
 
 export class S3Service {
   private client: S3Client;
@@ -28,62 +24,6 @@ export class S3Service {
     this.bucket = env.S3_BUCKET_NAME;
   }
 
-  async initiateMultipartUpload(key: string, contentType: string) {
-    const command = new CreateMultipartUploadCommand({
-      Bucket: this.bucket,
-      Key: key,
-      ContentType: contentType,
-    });
-
-    const response = await this.client.send(command);
-    return response.UploadId;
-  }
-
-  async generatePresignedUrlForPart(
-    key: string,
-    uploadId: string,
-    partNumber: number
-  ) {
-    const command = new UploadPartCommand({
-      Bucket: this.bucket,
-      Key: key,
-      UploadId: uploadId,
-      PartNumber: partNumber,
-    });
-
-    return getSignedUrl(this.client, command, {
-      expiresIn: 7200, // 2 hours
-    });
-  }
-
-  async completeMultipartUpload(
-    key: string,
-    uploadId: string,
-    parts: { ETag: string; PartNumber: number }[]
-  ) {
-    const command = new CompleteMultipartUploadCommand({
-      Bucket: this.bucket,
-      Key: key,
-      UploadId: uploadId,
-      MultipartUpload: {
-        Parts: parts,
-      },
-    });
-
-    await this.client.send(command);
-    return `https://${this.bucket}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
-  }
-
-  async abortMultipartUpload(key: string, uploadId: string) {
-    const command = new AbortMultipartUploadCommand({
-      Bucket: this.bucket,
-      Key: key,
-      UploadId: uploadId,
-    });
-
-    await this.client.send(command);
-  }
-
   async generatePresignedUrl(key: string, contentType: string) {
     const command = new PutObjectCommand({
       Bucket: this.bucket,
@@ -92,7 +32,7 @@ export class S3Service {
     });
 
     const presignedUrl = await getSignedUrl(this.client, command, {
-      expiresIn: 7200, // 2 hours
+      expiresIn: 3600, // URL expires in 1 hour
     });
 
     return {
@@ -133,11 +73,7 @@ export class S3Service {
     await this.client.send(command);
   }
 
-  async uploadFile(
-    key: string,
-    content: string | Buffer | Readable,
-    contentType: string
-  ) {
+  async uploadFile(key: string, content: string | Buffer | Readable, contentType: string) {
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
