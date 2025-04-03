@@ -110,11 +110,18 @@ export class LeadController {
         const event = await this.eventService.getEvent(body.event_id);
         if (event) {
           const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}&token=${token}&email=${body.email}`;
+          const bodyText =
+            event.event_type == "live_venue"
+              ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time and enjoy the experience in person. If you have any questions or need more details, feel free to visit our website: ${eventLink}. To access the event, please use this passcode: ${token}. We look forward to seeing you there!`
+              : event.event_type == "live_video_call"
+                ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early. If you need more information, you can check our website here: ${eventLink}. Your access passcode is: ${token}. We can't wait to connect with you online!`
+                : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space. Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
+
           sendTransactionalEmail(body.email, body.name, 1, {
-            subject: `${event.event_name} - You've been invited`,
+            subject: `${event.event_name}`,
             title: `${event.event_name} - You've been invited`,
             subtitle: `You've been invited to join us`,
-            body: `You've been invited to join us. Please use this link to access the event: ${eventLink}. Here is your passcode: ${token}`,
+            body: bodyText,
           });
         }
       }
