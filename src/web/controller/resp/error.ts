@@ -47,6 +47,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  EVENT_DATE_ID_REQUIRED: "If you invite a lead to an event, please also provide an event date.",
   BUSINESS_NOT_FOUND: "Business not found, please check the business id",
   MEMBERSHIP_NOT_FOUND: "Membership not found, please check the membership id",
   EVENT_DATE_NOT_FOUND: "Event date not found",

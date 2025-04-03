@@ -1,14 +1,18 @@
-import type { Context } from 'hono';
-import { v4 as uuidv4 } from 'uuid';
-import { logger } from '../../lib/logger.ts';
-import type { NewLead } from '../../schema/schema.js';
-import type { EventService } from '../../service/event.ts';
-import type { LeadService } from '../../service/lead.js';
-import type { TurnstileService } from '../../service/turnstile.js';
-import type { UserService } from '../../service/user.ts';
-import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
-import { externalFormSchema } from '../validator/lead.ts';
-import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
+import type { Context } from "hono";
+import { v4 as uuidv4 } from "uuid";
+import { logger } from "../../lib/logger.ts";
+import type { NewLead } from "../../schema/schema.js";
+import type { EventService } from "../../service/event.ts";
+import type { LeadService } from "../../service/lead.js";
+import type { TurnstileService } from "../../service/turnstile.js";
+import type { UserService } from "../../service/user.ts";
+import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
+import { externalFormSchema, LeadBody } from "../validator/lead.ts";
+import {
+  ERRORS,
+  serveBadRequest,
+  serveInternalServerError,
+} from "./resp/error.js";
 
 export class LeadController {
   private service: LeadService;
@@ -20,7 +24,7 @@ export class LeadController {
     service: LeadService,
     userService: UserService,
     eventService: EventService,
-    turnstileService: TurnstileService,
+    turnstileService: TurnstileService
   ) {
     this.service = service;
     this.userService = userService;
@@ -29,7 +33,7 @@ export class LeadController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get('jwtPayload').email;
+    const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -48,7 +52,7 @@ export class LeadController {
         search,
       };
 
-      if (user.role === 'master' || user.role === 'owner') {
+      if (user.role === "master" || user.role === "owner") {
         const leads = await this.service.findAll(query);
         return c.json(leads);
       }
@@ -68,7 +72,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = Number(c.req.param('id'));
+      const leadId = Number(c.req.param("id"));
       const lead = await this.service.find(leadId);
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
@@ -89,6 +93,12 @@ export class LeadController {
       }
 
       const body = await c.req.json();
+
+      if (body.event_id) {
+        if (!body.event_date_id) {
+          return serveBadRequest(c, ERRORS.EVENT_DATE_ID_REQUIRED);
+        }
+      }
       const lead = await this.service.create({ ...body, userId: user.id });
       return c.json(lead, 201);
     } catch (error) {
@@ -104,19 +114,23 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = Number(c.req.param('id'));
+      const leadId = Number(c.req.param("id"));
       const lead = await this.service.find(leadId);
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
       //only and master role or admin or the owner of the lead can update the lead
-      if (user.role !== 'master' && user.role !== 'owner' && lead.userId !== user.id) {
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        lead.userId !== user.id
+      ) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const body = await c.req.json();
       await this.service.update(leadId, body);
-      return c.json({ message: 'Lead updated successfully' });
+      return c.json({ message: "Lead updated successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -130,18 +144,22 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = Number(c.req.param('id'));
+      const leadId = Number(c.req.param("id"));
       const lead = await this.service.find(leadId);
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
       //only and master role or admin or the owner of the lead
-      if (user.role !== 'master' && user.role !== 'owner' && lead.userId !== user.id) {
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        lead.userId !== user.id
+      ) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       await this.service.delete(leadId);
-      return c.json({ message: 'Lead deleted successfully' });
+      return c.json({ message: "Lead deleted successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -154,11 +172,14 @@ export class LeadController {
       const validatedData = externalFormSchema.parse(formData);
 
       // Verify Turnstile token
-      const ip = c.req.header('CF-Connecting-IP');
-      const isValid = await this.turnstileService.verify(validatedData['cf-turnstile-response'], ip);
+      const ip = c.req.header("CF-Connecting-IP");
+      const isValid = await this.turnstileService.verify(
+        validatedData["cf-turnstile-response"],
+        ip
+      );
 
       if (!isValid) {
-        return serveBadRequest(c, 'Invalid Turnstile token');
+        return serveBadRequest(c, "Invalid Turnstile token");
       }
 
       const token = uuidv4();
@@ -174,35 +195,40 @@ export class LeadController {
         event_id: validatedData.event_id,
         registered_date: validatedData.registered_date,
         host_id: validatedData.host_id,
-        membership_level: 'Silver',
+        membership_level: "Silver",
         membership_active: false,
-        form_identifier: 'external_form',
-        status_identifier: 'Form',
+        form_identifier: "external_form",
+        status_identifier: "Form",
         userId: validatedData.host_id,
         token: token,
-        source_url: c.req.header('Referer') || 'direct',
+        source_url: c.req.header("Referer") || "direct",
       };
 
       const createdLead = await this.service.create(lead);
 
       const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
 
-      sendTransactionalEmail(validatedData.lead_form_email, validatedData.lead_form_name, 1, {
-        subject: 'Welcome to the event',
-        title: 'Welcome to the event',
-        subtitle: `You have been registered for the event`,
-        body: `You have been registered for the event. Please use this link to access the event: ${eventLink}`,
-      });
+      sendTransactionalEmail(
+        validatedData.lead_form_email,
+        validatedData.lead_form_name,
+        1,
+        {
+          subject: "Welcome to the event",
+          title: "Welcome to the event",
+          subtitle: `You have been registered for the event`,
+          body: `You have been registered for the event. Please use this link to access the event: ${eventLink}`,
+        }
+      );
       return c.json(
         {
           success: true,
-          message: 'Registration successful',
+          message: "Registration successful",
           leadId: createdLead[0].insertId,
         },
-        201,
+        201
       );
     } catch (error) {
-      logger.error('Error handling external form:', error);
+      logger.error("Error handling external form:", error);
       return serveInternalServerError(c, error);
     }
   };
