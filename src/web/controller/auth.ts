@@ -32,23 +32,26 @@ import { serializeUser } from "./serializer/user.js";
 import type { S3Service } from "../../service/s3.js";
 import type { AssetService } from "../../service/asset.js";
 import { getContentType } from "../../util/string.ts";
-
+import { UserRepository } from "../../repository/user.js";
 export class AuthController {
   private service: UserService;
   private businessService: BusinessService;
   private s3Service: S3Service;
   private assetService: AssetService;
+  private userRepository: UserRepository;
 
   constructor(
     userService: UserService,
     businessService: BusinessService,
     s3Service: S3Service,
-    assetService: AssetService
+    assetService: AssetService,
+    userRepository: UserRepository
   ) {
     this.service = userService;
     this.businessService = businessService;
     this.s3Service = s3Service;
     this.assetService = assetService;
+    this.userRepository = userRepository;
   }
 
   public login = async (c: Context) => {
@@ -78,7 +81,7 @@ export class AuthController {
       }
 
       const token = await encode(user.id, user.email);
-      const serializedUser = await serializeUser(user, this.s3Service);
+      const serializedUser = await serializeUser(user, this.s3Service, this.userRepository);
       return serveData(c, { token, user: serializedUser });
     } catch (err) {
       logger.error(err);
@@ -111,7 +114,7 @@ export class AuthController {
     await sendWelcomeEmailAsync(user.id);
 
     const token = await encode(user.id, user.email);
-    const serializedUser = await serializeUser(user, this.s3Service);
+    const serializedUser = await serializeUser(user, this.s3Service, this.userRepository);
     return serveData(c, { token, user: serializedUser });
   };
 
@@ -296,7 +299,7 @@ export class AuthController {
       return serveInternalServerError(c, new Error(ERRORS.USER_NOT_FOUND));
     }
 
-    const serializedUser = await serializeUser(user, this.s3Service);
+    const serializedUser = await serializeUser(user, this.s3Service, this.userRepository);
     return serveData(c, { user: serializedUser });
   };
 
@@ -332,7 +335,8 @@ export class AuthController {
 
       const serializedUser = await serializeUser(
         updatedUser,
-        this.s3Service
+        this.s3Service,
+        this.userRepository
       );
       return serveData(c, {
         success: true,

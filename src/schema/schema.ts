@@ -24,7 +24,11 @@ export const userSchema = mysqlTable("user", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   role: mysqlEnum("role", ["master", "owner", "host", "user"]).default("user"),
-  profile_picture: varchar("profile_picture", { length: 255 }),
+  profile_picture: text("profile_picture"),
+  presigned_profile_picture: text("presigned_profile_picture"),
+  presigned_profile_picture_expires_at: timestamp(
+    "presigned_profile_picture_expires_at"
+  ),
   bio: varchar("bio", { length: 255 }),
   custom_id: varchar("custom_id", { length: 255 }),
   is_verified: boolean("is_verified").default(false),
@@ -84,8 +88,7 @@ export const leadSchema = mysqlTable("leads", {
   name: varchar("name", { length: 100 }),
   email: varchar("email", { length: 100 }),
   phone: varchar("phone", { length: 100 }),
-  event_id: int("event_id")
-    .references(() => eventSchema.id),
+  event_id: int("event_id").references(() => eventSchema.id),
   registered_date: varchar("registered_date", { length: 100 }),
   membership_active: boolean("membership_active").default(false),
   form_identifier: varchar("form_identifier", { length: 100 }),

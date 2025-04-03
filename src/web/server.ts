@@ -164,7 +164,8 @@ export class Server {
       userService,
       businessService,
       s3Service,
-      assetService
+      assetService,
+      userRepo
     );
     const leadController = new LeadController(
       leadService,
@@ -217,7 +218,8 @@ export class Server {
     const googleService = new GoogleService(userService, stripeService);
     const googleController = new GoogleController(
       googleService,
-      s3Service
+      s3Service,
+      userRepo
     );
 
     // Register routes

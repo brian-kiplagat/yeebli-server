@@ -5,14 +5,16 @@ import type { GoogleService } from "../../service/google.js";
 import { ERRORS, serveBadRequest, serveNotFound } from "./resp/error.ts";
 import { serializeUser } from "./serializer/user.js";
 import { S3Service } from "../../service/s3.ts";
-
+import { UserRepository } from "../../repository/user.js";
 export class GoogleController {
   private googleService: GoogleService;
   private s3Service: S3Service;
+  private userRepository: UserRepository;
 
-  constructor(googleService: GoogleService, s3Service: S3Service) {
+  constructor(googleService: GoogleService, s3Service: S3Service, userRepository: UserRepository) {
     this.googleService = googleService;
     this.s3Service = s3Service;
+    this.userRepository = userRepository;
   }
 
   public initiateAuth = async (c: Context) => {
@@ -44,7 +46,7 @@ export class GoogleController {
 
       // Generate JWT using the same encode function as auth controller
       const token = await encode(user.id, user.email);
-      const serializedUser = await serializeUser(user, this.s3Service);
+      const serializedUser = await serializeUser(user, this.s3Service, this.userRepository);
 
       // Return JSON response like other auth endpoints
       return c.json({
