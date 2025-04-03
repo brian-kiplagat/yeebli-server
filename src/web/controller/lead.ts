@@ -7,7 +7,11 @@ import type { LeadService } from "../../service/lead.js";
 import type { TurnstileService } from "../../service/turnstile.js";
 import type { UserService } from "../../service/user.ts";
 import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
-import { externalFormSchema, LeadBody } from "../validator/lead.ts";
+import {
+  EventLinkBody,
+  externalFormSchema,
+  LeadBody,
+} from "../validator/lead.ts";
 import {
   ERRORS,
   serveBadRequest,
@@ -126,6 +130,27 @@ export class LeadController {
         }
       }
       return c.json(lead, 201);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public validateEventLink = async (c: Context) => {
+    try {
+      const body: EventLinkBody = await c.req.json();
+      const event = await this.eventService.getEvent(body.event_id);
+      if (!event) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+      const lead = await this.service.findByEventIdAndToken(
+        body.event_id,
+        body.token
+      );
+      if (!lead) {
+        return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
+      }
+      return c.json({ isAllowed: true, message: "Event link is valid" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

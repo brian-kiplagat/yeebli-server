@@ -55,6 +55,7 @@ import {
 import { eventQueryValidator } from "./validator/event.ts";
 import { hlsUploadValidator } from "./validator/hls.ts";
 import {
+  eventLinkValidator,
   externalFormValidator,
   leadValidator,
   updateLeadValidator,
@@ -282,6 +283,11 @@ export class Server {
     lead.get("/", authCheck, leadCtrl.getLeads);
     lead.get("/:id", authCheck, leadCtrl.getLead);
     lead.post("/", authCheck, leadValidator, leadCtrl.createLead);
+    lead.post(
+      "/lead-validate-event",
+      eventLinkValidator,
+      leadCtrl.validateEventLink
+    );
     lead.put("/:id", authCheck, updateLeadValidator, leadCtrl.updateLead);
     lead.delete("/:id", authCheck, leadCtrl.deleteLead);
 

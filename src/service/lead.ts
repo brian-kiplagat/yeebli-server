@@ -1,6 +1,6 @@
-import type { LeadQuery, LeadRepository } from '../repository/lead.ts';
-import type { Lead } from '../schema/schema.ts';
-import type { NewLead } from '../schema/schema.ts';
+import type { LeadQuery, LeadRepository } from "../repository/lead.ts";
+import type { Lead } from "../schema/schema.ts";
+import type { NewLead } from "../schema/schema.ts";
 
 export class LeadService {
   private repository: LeadRepository;
@@ -19,6 +19,10 @@ export class LeadService {
 
   public async findByEventId(eventId: number) {
     return this.repository.findByEventId(eventId);
+  }
+
+  public async findByEventIdAndToken(eventId: number, token: string) {
+    return this.repository.findByEventIdAndToken(eventId, token);
   }
 
   public async findAll(query?: LeadQuery) {

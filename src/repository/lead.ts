@@ -1,6 +1,6 @@
-import { and, desc, eq, like, or } from 'drizzle-orm';
-import { db } from '../lib/database.ts';
-import { type Lead, type NewLead, leadSchema } from '../schema/schema.js';
+import { and, desc, eq, like, or } from "drizzle-orm";
+import { db } from "../lib/database.ts";
+import { type Lead, type NewLead, leadSchema } from "../schema/schema.js";
 
 export interface LeadQuery {
   page?: number;
@@ -28,6 +28,12 @@ export class LeadRepository {
     });
   }
 
+  public async findByEventIdAndToken(eventId: number, token: string) {
+    return db.query.leadSchema.findFirst({
+      where: and(eq(leadSchema.event_id, eventId), eq(leadSchema.token, token)),
+    });
+  }
+
   public async findAll(query?: LeadQuery) {
     const { page = 1, limit = 100, search } = query || {};
     const offset = (page - 1) * limit;
@@ -36,7 +42,7 @@ export class LeadRepository {
       ? or(
           like(leadSchema.name, `%${search}%`),
           like(leadSchema.email, `%${search}%`),
-          like(leadSchema.phone, `%${search}%`),
+          like(leadSchema.phone, `%${search}%`)
         )
       : undefined;
 
@@ -50,7 +56,10 @@ export class LeadRepository {
       orderBy: desc(leadSchema.created_at),
     });
 
-    const total = await db.select({ count: leadSchema.id }).from(leadSchema).where(whereConditions);
+    const total = await db
+      .select({ count: leadSchema.id })
+      .from(leadSchema)
+      .where(whereConditions);
 
     return { leads, total: total.length };
   }
@@ -65,8 +74,8 @@ export class LeadRepository {
           or(
             like(leadSchema.name, `%${search}%`),
             like(leadSchema.email, `%${search}%`),
-            like(leadSchema.phone, `%${search}%`),
-          ),
+            like(leadSchema.phone, `%${search}%`)
+          )
         )
       : eq(leadSchema.userId, userId);
 
@@ -80,7 +89,10 @@ export class LeadRepository {
       orderBy: desc(leadSchema.created_at),
     });
 
-    const total = await db.select({ count: leadSchema.id }).from(leadSchema).where(whereConditions);
+    const total = await db
+      .select({ count: leadSchema.id })
+      .from(leadSchema)
+      .where(whereConditions);
 
     return { leads, total: total.length };
   }

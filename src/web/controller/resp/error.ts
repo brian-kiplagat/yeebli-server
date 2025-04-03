@@ -47,6 +47,8 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  LEAD_WITH_TOKEN_NOT_FOUND:
+    "Ops, we cant find a lead with this token, please check if you have the correct details",
   EVENT_DATE_ID_REQUIRED: "If you invite a lead to an event, please also provide an event date.",
   BUSINESS_NOT_FOUND: "Business not found, please check the business id",
   MEMBERSHIP_NOT_FOUND: "Membership not found, please check the membership id",

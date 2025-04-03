@@ -40,11 +40,18 @@ const externalFormSchema = z.object({
   'cf-turnstile-response': z.string().min(1, 'Turnstile response is required'),
 });
 
+const eventLinkSchema = z.object({
+  event_id: z.number().min(1, 'Event ID is required'),
+  token: z.string().min(1, 'Token is required'),
+  email: z.string().email('Invalid email address'),
+});
+
 type LeadBody = z.infer<typeof leadSchema>;
 type ExternalFormBody = z.infer<typeof externalFormSchema>;
-
+type EventLinkBody = z.infer<typeof eventLinkSchema>;
+export const eventLinkValidator = zValidator('json', eventLinkSchema);
 export const leadValidator = zValidator('json', leadSchema);
 export const updateLeadValidator = zValidator('json', updateLeadSchema);
 export const externalFormValidator = zValidator('form', externalFormSchema);
-export type { LeadBody, ExternalFormBody };
+export type { LeadBody, ExternalFormBody, EventLinkBody };
 export { externalFormSchema };
