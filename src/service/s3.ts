@@ -84,7 +84,6 @@ export class S3Service {
       Key: key,
       Body: content,
       ContentType: contentType,
-      ACL: assetType === "profile_picture" ? "public-read" : "private",
     });
 
     await this.client.send(command);
