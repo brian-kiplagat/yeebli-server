@@ -99,7 +99,25 @@ export class LeadController {
           return serveBadRequest(c, ERRORS.EVENT_DATE_ID_REQUIRED);
         }
       }
-      const lead = await this.service.create({ ...body, userId: user.id });
+      //token is a random 6 digit number
+      const token = Math.floor(100000 + Math.random() * 900000).toString();
+      const lead = await this.service.create({
+        ...body,
+        userId: user.id,
+        token,
+      });
+      if (lead && body.event_id) {
+        const event = await this.eventService.getEvent(body.event_id);
+        if (event) {
+          const eventLink = `https://yeebli-e10656.webflow.io/eventpage?code=${event.id}&token=${token}&email=${body.email}`;
+          sendTransactionalEmail(body.email, body.name, 1, {
+            subject: `${event.event_name} - You've been invited`,
+            title: `${event.event_name} - You've been invited`,
+            subtitle: `You've been invited to join us`,
+            body: `You've been invited to join us. Please use this link to access the event: ${eventLink}. Here is your passcode: ${token}`,
+          });
+        }
+      }
       return c.json(lead, 201);
     } catch (error) {
       logger.error(error);
