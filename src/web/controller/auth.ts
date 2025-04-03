@@ -28,14 +28,26 @@ import {
 } from "./resp/error.js";
 import { serveData } from "./resp/resp.js";
 import { serializeUser } from "./serializer/user.js";
+import type { S3Service } from "../../service/s3.js";
+import type { AssetService } from "../../service/asset.js";
+import { getContentType } from "../../util/string.ts";
 
 export class AuthController {
   private service: UserService;
   private businessService: BusinessService;
+  private s3Service: S3Service;
+  private assetService: AssetService;
 
-  constructor(userService: UserService, businessService: BusinessService) {
+  constructor(
+    userService: UserService,
+    businessService: BusinessService,
+    s3Service: S3Service,
+    assetService: AssetService
+  ) {
     this.service = userService;
     this.businessService = businessService;
+    this.s3Service = s3Service;
+    this.assetService = assetService;
 
     this.login = this.login.bind(this);
     this.register = this.register.bind(this);
@@ -340,4 +352,58 @@ export class AuthController {
       return serveInternalServerError(c, error);
     }
   }
+
+  public async uploadProfileImage(c: Context) {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const body = await c.req.json();
+      const { imageBase64, fileName } = body;
+
+      if (!imageBase64 || !fileName) {
+        return serveBadRequest(c, "Missing imageBase64 or fileName");
+      }
+
+      // Convert base64 to buffer
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, "base64");
+
+      // Create asset using AssetService
+      const { asset: assetId } = await this.assetService.createAsset(
+        user.id,
+        fileName,
+        getContentType(imageBase64),
+        "image",
+        buffer.length,
+        0,
+        buffer
+      );
+
+      // Get the full asset object to access the URL
+      const asset = await this.assetService.getAsset(assetId);
+      if (!asset || !asset.asset_url) {
+        return serveInternalServerError(
+          c,
+          new Error("Failed to get asset URL")
+        );
+      }
+
+      // Update user profile image with the asset URL
+      await this.service.updateProfileImage(user.id, asset.asset_url);
+
+      return serveData(c, {
+        success: true,
+        message: "Profile image uploaded successfully",
+        asset_url: asset.asset_url,
+      });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  }
+
+
 }

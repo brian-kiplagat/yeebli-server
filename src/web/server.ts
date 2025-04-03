@@ -159,7 +159,12 @@ export class Server {
     this.registerWorker(userService);
 
     // Setup controllers
-    const authController = new AuthController(userService, businessService);
+    const authController = new AuthController(
+      userService,
+      businessService,
+      s3Service,
+      assetService
+    );
     const leadController = new LeadController(
       leadService,
       userService,
@@ -268,6 +273,9 @@ export class Server {
       updateUserDetailsValidator,
       authCtrl.updateUserDetails
     );
+
+    // Add profile image upload route
+    user.post("/profile-image", authCheck, authCtrl.uploadProfileImage);
 
     // Add Google auth routes
     user.get("/auth/google", googleCtrl.initiateAuth);

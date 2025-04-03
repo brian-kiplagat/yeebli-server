@@ -4,6 +4,7 @@ import { NewBusiness } from "../schema/schema.ts";
 import type { BusinessQuery, BusinessBody } from "../web/validator/business.ts";
 import type { S3Service } from "./s3.js";
 import type { AssetService } from "./asset.js";
+import { getContentType } from "../util/string.ts";
 
 export class BusinessService {
   private repository: BusinessRepository;
@@ -49,7 +50,7 @@ export class BusinessService {
       // Remove the data:image/xyz;base64, prefix
       const base64Data = logoBase64.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
-      const contentType = this.getContentType(logoBase64);
+      const contentType = getContentType(logoBase64);
 
       // Let AssetService handle the upload and path generation
       const assetObject = await this.assetService.createAsset(
