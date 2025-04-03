@@ -65,7 +65,11 @@ export class UserService {
   }
 
   public async updateProfileImage(id: number, imageUrl: string) {
-    return this.repo.update(id, { profile_picture: imageUrl });
+    return this.repo.update(id, {
+      profile_picture: imageUrl,
+      presigned_profile_picture: null,
+      presigned_profile_picture_expires_at: null,
+    });
   }
 
   public async delete(id: number) {
