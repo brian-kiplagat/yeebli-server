@@ -28,16 +28,19 @@ export class AssetService {
     const key = `assets/${assetType}s/${Date.now()}-${fileName}`;
 
     let url: string;
-    let uploadUrl: string = ""; // Initialize with empty string
+    let presignedUrl: string;
     if (buffer) {
       // If buffer is provided, upload the file
       url = await this.s3Service.uploadFile(key, buffer, contentType);
-      uploadUrl = url; // For direct uploads, the URL is the same
+      presignedUrl = url;
     } else {
       // Otherwise, just generate a presigned URL for client upload
-      const { presignedUrl: uploadUrl, url: permanentUrl } =
-        await this.s3Service.generatePresignedUrl(key, contentType);
-      url = permanentUrl; // Store the permanent URL in the database
+      const result = await this.s3Service.generatePresignedUrl(
+        key,
+        contentType
+      );
+      url = result.url; // Store the permanent URL in the database
+      presignedUrl = result.presignedUrl;
     }
 
     // Create asset record in database
@@ -54,7 +57,7 @@ export class AssetService {
     const createdAsset = await this.repository.create(asset);
 
     return {
-      presignedUrl: uploadUrl, // Return the actual upload URL
+      presignedUrl,
       asset: createdAsset,
     };
   }
