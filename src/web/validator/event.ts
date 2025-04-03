@@ -4,8 +4,7 @@ import { z } from 'zod';
 const eventSchema = z.object({
   event_name: z.string().min(1),
   event_description: z.string(),
-  event_date: z.string(),
-  other_dates: z.array(z.string()).optional(),
+  dates: z.array(z.string()),
   instructions: z.string().optional(),
   landing_page_url: z.string().optional(),
   asset_id: z.number(),
