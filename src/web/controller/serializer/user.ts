@@ -24,16 +24,6 @@ export async function serializeUser(
   user: User,
   s3Service: S3Service
 ): Promise<UserResponse> {
-  //if the profile picture exists, presign it
-  let presigned_url = null;
-  if (user.profile_picture) {
-    // Extract the key from the S3 URL (everything after the bucket name)
-    const key = user.profile_picture.split(".amazonaws.com/")[1];
-    if (key) {
-      presigned_url = await s3Service.generateGetUrl(key, "image/jpeg");
-    }
-  }
-
   return {
     id: user.id,
     email: user.email,
@@ -42,7 +32,7 @@ export async function serializeUser(
     is_verified: user.is_verified,
     role: user.role,
     phone: user.phone,
-    profile_picture: presigned_url,
+    profile_picture: user.profile_picture,
     bio: user.bio,
     is_banned: user.is_banned,
     is_deleted: user.is_deleted,

@@ -368,7 +368,7 @@ export class AuthController {
         user.id,
         fileName,
         getContentType(imageBase64),
-        "image",
+        "profile_picture",
         buffer.length,
         0,
         buffer

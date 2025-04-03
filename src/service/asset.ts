@@ -19,7 +19,7 @@ export class AssetService {
     userId: number,
     fileName: string,
     contentType: string,
-    assetType: "image" | "video" | "audio" | "document",
+    assetType: "image" | "video" | "audio" | "document" | "profile_picture",
     fileSize: number,
     duration: number,
     buffer?: Buffer

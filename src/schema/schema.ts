@@ -191,6 +191,7 @@ export const assetsSchema = mysqlTable("assets", {
     "video",
     "audio",
     "document",
+    "profile_picture",
   ]).default("image"),
   content_type: varchar("content_type", { length: 100 }),
   asset_url: text("asset_url"),
