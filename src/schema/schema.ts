@@ -85,8 +85,7 @@ export const leadSchema = mysqlTable("leads", {
   email: varchar("email", { length: 100 }),
   phone: varchar("phone", { length: 100 }),
   event_id: int("event_id")
-    .references(() => eventSchema.id)
-    .notNull(),
+    .references(() => eventSchema.id),
   registered_date: varchar("registered_date", { length: 100 }),
   membership_active: boolean("membership_active").default(false),
   form_identifier: varchar("form_identifier", { length: 100 }),

@@ -92,7 +92,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const body = await c.req.json();
+      const body: LeadBody = await c.req.json();
 
       if (body.event_id) {
         if (!body.event_date_id) {
