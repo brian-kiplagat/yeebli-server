@@ -150,7 +150,16 @@ export class LeadController {
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
       }
-      return c.json({ isAllowed: true, message: "Event link is valid" });
+      return c.json({
+        isAllowed: true,
+        message: "Event link is valid",
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        membership_level: lead.membership_level,
+        membership_active: lead.membership_active,
+        
+      });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
