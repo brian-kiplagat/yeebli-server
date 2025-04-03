@@ -1,8 +1,15 @@
-import { and, desc, eq, inArray, like, or } from 'drizzle-orm';
-import { number } from 'zod';
-import { db } from '../lib/database.js';
-import { assetsSchema, bookings, eventDates, eventSchema, userSchema } from '../schema/schema.js';
-import type { Event, NewEvent, NewEventDate } from '../schema/schema.js';
+import { and, desc, eq, inArray, like, or } from "drizzle-orm";
+import { number } from "zod";
+import { db } from "../lib/database.js";
+import {
+  assetsSchema,
+  bookings,
+  eventDates,
+  eventSchema,
+  memberships,
+  userSchema,
+} from "../schema/schema.js";
+import type { Event, NewEvent, NewEventDate } from "../schema/schema.js";
 
 export interface EventQuery {
   page?: number;
@@ -37,9 +44,20 @@ export class EventRepository {
       .where(eq(eventSchema.id, id))
       .limit(1);
     //Then, get all dates for these events in a single query
-    const dates = await db.select().from(eventDates).where(eq(eventDates.event_id, id));
+    const dates = await db
+      .select()
+      .from(eventDates)
+      .where(eq(eventDates.event_id, id));
 
-    return { ...result[0], dates: dates };
+    // Get membership information for lead levels
+    const event = result[0].event;
+    const leadLevels = event.lead_level as number[];
+    const membershipDetails = await db
+      .select()
+      .from(memberships)
+      .where(inArray(memberships.id, leadLevels));
+
+    return { ...result[0], dates: dates, memberships: membershipDetails };
   }
 
   public async findAll(query?: EventQuery) {
@@ -47,7 +65,10 @@ export class EventRepository {
     const offset = (page - 1) * limit;
 
     const whereConditions = search
-      ? or(like(eventSchema.event_name, `%${search}%`), like(eventSchema.event_description, `%${search}%`))
+      ? or(
+          like(eventSchema.event_name, `%${search}%`),
+          like(eventSchema.event_description, `%${search}%`)
+        )
       : undefined;
 
     // First, get all events with their basic info
@@ -71,15 +92,42 @@ export class EventRepository {
 
     // Then, get all dates for these events in a single query
     const eventIds = events.map((e) => e.event.id);
-    const dates = await db.select().from(eventDates).where(inArray(eventDates.event_id, eventIds));
+    const dates = await db
+      .select()
+      .from(eventDates)
+      .where(inArray(eventDates.event_id, eventIds));
 
-    // Combine events with their dates
-    const eventsWithDates = events.map((event) => ({
-      ...event,
-      dates: dates.filter((d) => d.event_id === event.event.id),
-    }));
+    // Get all unique lead level IDs across all events
+    const allLeadLevels = events.flatMap((e) => e.event.lead_level as number[]);
+    const uniqueLeadLevels = [...new Set(allLeadLevels)];
 
-    const total = await db.select({ count: eventSchema.id }).from(eventSchema).where(whereConditions);
+    // Get membership information for all lead levels
+    const membershipDetails = await db
+      .select()
+      .from(memberships)
+      .where(inArray(memberships.id, uniqueLeadLevels));
+
+    // Create a map of membership ID to membership details
+    const membershipMap = new Map(membershipDetails.map((m) => [m.id, m]));
+
+    // Combine events with their dates and memberships
+    const eventsWithDates = events.map((event) => {
+      const eventLeadLevels = event.event.lead_level as number[];
+      const eventMemberships = eventLeadLevels
+        .map((id) => membershipMap.get(id))
+        .filter(Boolean);
+
+      return {
+        ...event,
+        dates: dates.filter((d) => d.event_id === event.event.id),
+        memberships: eventMemberships,
+      };
+    });
+
+    const total = await db
+      .select({ count: eventSchema.id })
+      .from(eventSchema)
+      .where(whereConditions);
 
     return { events: eventsWithDates, total: total.length };
   }
@@ -91,7 +139,10 @@ export class EventRepository {
     const whereConditions = search
       ? and(
           eq(eventSchema.host_id, userId),
-          or(like(eventSchema.event_name, `%${search}%`), like(eventSchema.event_description, `%${search}%`)),
+          or(
+            like(eventSchema.event_name, `%${search}%`),
+            like(eventSchema.event_description, `%${search}%`)
+          )
         )
       : eq(eventSchema.host_id, userId);
 
@@ -116,15 +167,42 @@ export class EventRepository {
 
     // Then, get all dates for these events in a single query
     const eventIds = events.map((e) => e.event.id);
-    const dates = await db.select().from(eventDates).where(inArray(eventDates.event_id, eventIds));
+    const dates = await db
+      .select()
+      .from(eventDates)
+      .where(inArray(eventDates.event_id, eventIds));
 
-    // Combine events with their dates
-    const eventsWithDates = events.map((event) => ({
-      ...event,
-      dates: dates.filter((d) => d.event_id === event.event.id),
-    }));
+    // Get all unique lead level IDs across all events
+    const allLeadLevels = events.flatMap((e) => e.event.lead_level as number[]);
+    const uniqueLeadLevels = [...new Set(allLeadLevels)];
 
-    const total = await db.select({ count: eventSchema.id }).from(eventSchema).where(whereConditions);
+    // Get membership information for all lead levels
+    const membershipDetails = await db
+      .select()
+      .from(memberships)
+      .where(inArray(memberships.id, uniqueLeadLevels));
+
+    // Create a map of membership ID to membership details
+    const membershipMap = new Map(membershipDetails.map((m) => [m.id, m]));
+
+    // Combine events with their dates and memberships
+    const eventsWithDates = events.map((event) => {
+      const eventLeadLevels = event.event.lead_level as number[];
+      const eventMemberships = eventLeadLevels
+        .map((id) => membershipMap.get(id))
+        .filter(Boolean);
+
+      return {
+        ...event,
+        dates: dates.filter((d) => d.event_id === event.event.id),
+        memberships: eventMemberships,
+      };
+    });
+
+    const total = await db
+      .select({ count: eventSchema.id })
+      .from(eventSchema)
+      .where(whereConditions);
 
     return { events: eventsWithDates, total: total.length };
   }
@@ -133,7 +211,10 @@ export class EventRepository {
     return db.update(eventSchema).set(event).where(eq(eventSchema.id, id));
   }
 
-  public async cancel(id: number, status: 'cancelled' | 'active' | 'suspended') {
+  public async cancel(
+    id: number,
+    status: "cancelled" | "active" | "suspended"
+  ) {
     return db.update(eventSchema).set({ status }).where(eq(eventSchema.id, id));
   }
 
@@ -144,12 +225,20 @@ export class EventRepository {
   }
 
   public async findByAssetId(assetId: number) {
-    const result = await db.select().from(eventSchema).where(eq(eventSchema.asset_id, assetId)).limit(1);
+    const result = await db
+      .select()
+      .from(eventSchema)
+      .where(eq(eventSchema.asset_id, assetId))
+      .limit(1);
     return result[0];
   }
 
   public async findEventDate(dateId: number) {
-    const result = await db.select().from(eventDates).where(eq(eventDates.id, dateId)).limit(1);
+    const result = await db
+      .select()
+      .from(eventDates)
+      .where(eq(eventDates.id, dateId))
+      .limit(1);
     return result[0];
   }
 
