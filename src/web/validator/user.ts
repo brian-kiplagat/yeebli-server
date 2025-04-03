@@ -1,14 +1,14 @@
-import { validator } from 'hono/validator';
-import { isValidPhoneNumber } from 'libphonenumber-js';
-import { z } from 'zod';
-import { validateSchema } from './validator.js';
+import { validator } from "hono/validator";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { z } from "zod";
+import { validateSchema } from "./validator.js";
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(20),
 });
 
-const loginValidator = validator('json', (value, c) => {
+const loginValidator = validator("json", (value, c) => {
   return validateSchema(c, loginSchema, value);
 });
 
@@ -23,12 +23,13 @@ const registrationSchema = loginSchema.extend({
       }
     },
     {
-      message: 'Invalid phone number format. Must include country code (e.g., +1, +44, +81)',
-    },
+      message:
+        "Invalid phone number format. Must include country code (e.g., +1, +44, +81)",
+    }
   ),
 });
 
-const registrationValidator = validator('json', (value, c) => {
+const registrationValidator = validator("json", (value, c) => {
   return validateSchema(c, registrationSchema, value);
 });
 
@@ -36,7 +37,7 @@ const emailVerificationSchema = z.object({
   email: z.string().email(),
 });
 
-const emailVerificationValidator = validator('json', (value, c) => {
+const emailVerificationValidator = validator("json", (value, c) => {
   return validateSchema(c, emailVerificationSchema, value);
 });
 
@@ -45,7 +46,7 @@ const registerTokenSchema = z.object({
   id: z.number(),
 });
 
-const registerTokenValidator = validator('json', (value, c) => {
+const registerTokenValidator = validator("json", (value, c) => {
   return validateSchema(c, registerTokenSchema, value);
 });
 
@@ -53,7 +54,7 @@ const requestResetPasswordSchema = z.object({
   email: z.string().email(),
 });
 
-const requestResetPasswordValidator = validator('json', (value, c) => {
+const requestResetPasswordValidator = validator("json", (value, c) => {
   return validateSchema(c, requestResetPasswordSchema, value);
 });
 
@@ -63,7 +64,7 @@ const resetPasswordSchema = z.object({
   password: z.string().min(8).max(20),
 });
 
-const resetPasswordValidator = validator('json', (value, c) => {
+const resetPasswordValidator = validator("json", (value, c) => {
   return validateSchema(c, resetPasswordSchema, value);
 });
 
@@ -73,7 +74,7 @@ const inAppResetPasswordSchema = z.object({
   confirmPassword: z.string().min(8).max(20),
 });
 
-const inAppResetPasswordValidator = validator('json', (value, c) => {
+const inAppResetPasswordValidator = validator("json", (value, c) => {
   return validateSchema(c, inAppResetPasswordSchema, value);
 });
 
@@ -90,17 +91,26 @@ const updateUserDetailsSchema = z.object({
         }
       },
       {
-        message: 'Invalid phone number format. Must include country code (e.g., +1, +44, +81)',
-      },
+        message:
+          "Invalid phone number format. Must include country code (e.g., +1, +44, +81)",
+      }
     )
     .optional(),
   email: z.string().email().optional(),
 });
 
-const updateUserDetailsValidator = validator('json', (value, c) => {
+const updateUserDetailsValidator = validator("json", (value, c) => {
   return validateSchema(c, updateUserDetailsSchema, value);
 });
 
+const uploadProfileImageSchema = z.object({
+  imageBase64: z.string(),
+  fileName: z.string(),
+});
+
+const uploadProfileImageValidator = validator("json", (value, c) => {
+  return validateSchema(c, uploadProfileImageSchema, value);
+});
 type LoginBody = z.infer<typeof loginSchema>;
 type RegistrationBody = z.infer<typeof registrationSchema>;
 type EmailVerificationBody = z.infer<typeof emailVerificationSchema>;
@@ -109,6 +119,7 @@ type RequestResetPasswordBody = z.infer<typeof requestResetPasswordSchema>;
 type ResetPasswordBody = z.infer<typeof resetPasswordSchema>;
 type InAppResetPasswordBody = z.infer<typeof inAppResetPasswordSchema>;
 type UpdateUserDetailsBody = z.infer<typeof updateUserDetailsSchema>;
+type UploadProfileImageBody = z.infer<typeof uploadProfileImageSchema>;
 export {
   type EmailVerificationBody,
   type LoginBody,
@@ -118,6 +129,7 @@ export {
   type ResetPasswordBody,
   type InAppResetPasswordBody,
   type UpdateUserDetailsBody,
+  type UploadProfileImageBody,
   emailVerificationValidator,
   loginValidator,
   registrationValidator,
@@ -126,4 +138,5 @@ export {
   resetPasswordValidator,
   inAppResetPasswordValidator,
   updateUserDetailsValidator,
+  uploadProfileImageValidator,
 };

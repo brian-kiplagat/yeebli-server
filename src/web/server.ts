@@ -74,6 +74,7 @@ import {
   requestResetPasswordValidator,
   resetPasswordValidator,
   updateUserDetailsValidator,
+  uploadProfileImageValidator,
 } from "./validator/user.js";
 import { BusinessRepository } from "../repository/business.js";
 import { BusinessService } from "../service/business.js";
@@ -275,7 +276,12 @@ export class Server {
     );
 
     // Add profile image upload route
-    user.post("/profile-image", authCheck, authCtrl.uploadProfileImage);
+    user.post(
+      "/profile-image",
+      authCheck,
+      uploadProfileImageValidator,
+      authCtrl.uploadProfileImage
+    );
 
     // Add Google auth routes
     user.get("/auth/google", googleCtrl.initiateAuth);

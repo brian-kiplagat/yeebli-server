@@ -18,6 +18,7 @@ import type {
   RequestResetPasswordBody,
   ResetPasswordBody,
   UpdateUserDetailsBody,
+  UploadProfileImageBody,
 } from "../validator/user.js";
 import {
   ERRORS,
@@ -360,7 +361,7 @@ export class AuthController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const body = await c.req.json();
+      const body: UploadProfileImageBody = await c.req.json();
       const { imageBase64, fileName } = body;
 
       if (!imageBase64 || !fileName) {
