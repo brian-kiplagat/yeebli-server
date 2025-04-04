@@ -316,6 +316,13 @@
       "when": 1743754723718,
       "tag": "0045_great_daredevil",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "5",
+      "when": 1743765003643,
+      "tag": "0046_sharp_legion",
+      "breakpoints": true
     }
   ]
 }

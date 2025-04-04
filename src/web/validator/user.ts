@@ -97,20 +97,17 @@ const updateUserDetailsSchema = z.object({
     )
     .optional(),
   email: z.string().email().optional(),
+  imageBase64: z.string().optional(),
+  fileName: z.string().optional(),
 });
 
 const updateUserDetailsValidator = validator("json", (value, c) => {
   return validateSchema(c, updateUserDetailsSchema, value);
 });
 
-const uploadProfileImageSchema = z.object({
-  imageBase64: z.string(),
-  fileName: z.string(),
-});
 
-const uploadProfileImageValidator = validator("json", (value, c) => {
-  return validateSchema(c, uploadProfileImageSchema, value);
-});
+
+
 type LoginBody = z.infer<typeof loginSchema>;
 type RegistrationBody = z.infer<typeof registrationSchema>;
 type EmailVerificationBody = z.infer<typeof emailVerificationSchema>;
@@ -119,7 +116,7 @@ type RequestResetPasswordBody = z.infer<typeof requestResetPasswordSchema>;
 type ResetPasswordBody = z.infer<typeof resetPasswordSchema>;
 type InAppResetPasswordBody = z.infer<typeof inAppResetPasswordSchema>;
 type UpdateUserDetailsBody = z.infer<typeof updateUserDetailsSchema>;
-type UploadProfileImageBody = z.infer<typeof uploadProfileImageSchema>;
+
 export {
   type EmailVerificationBody,
   type LoginBody,
@@ -129,7 +126,7 @@ export {
   type ResetPasswordBody,
   type InAppResetPasswordBody,
   type UpdateUserDetailsBody,
-  type UploadProfileImageBody,
+  
   emailVerificationValidator,
   loginValidator,
   registrationValidator,
@@ -138,5 +135,5 @@ export {
   resetPasswordValidator,
   inAppResetPasswordValidator,
   updateUserDetailsValidator,
-  uploadProfileImageValidator,
+
 };

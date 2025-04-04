@@ -18,7 +18,6 @@ import type {
   RequestResetPasswordBody,
   ResetPasswordBody,
   UpdateUserDetailsBody,
-  UploadProfileImageBody,
 } from "../validator/user.js";
 import {
   ERRORS,
@@ -333,6 +332,42 @@ export class AuthController {
         }
       }
 
+      //if updating the profile image, check if the image is valid
+      if (body.imageBase64 && body.fileName) {
+        const { imageBase64, fileName } = body;
+
+        if (!imageBase64 || !fileName) {
+          return serveBadRequest(c, "Missing imageBase64 or fileName");
+        }
+
+        // Convert base64 to buffer
+        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, "base64");
+
+        // Create asset using AssetService
+        const { asset: assetId } = await this.assetService.createAsset(
+          user.id,
+          fileName,
+          getContentType(imageBase64),
+          "profile_picture",
+          buffer.length,
+          0,
+          buffer
+        );
+
+        // Get the full asset object to access the URL
+        const asset = await this.assetService.getAsset(assetId);
+        if (!asset || !asset.asset_url) {
+          return serveInternalServerError(
+            c,
+            new Error("Failed to get asset URL")
+          );
+        }
+
+        // Update user profile image with the asset URL
+        await this.service.updateProfileImage(user.id, asset.asset_url);
+      }
+
       // Update user details
       await this.service.update(user.id, {
         ...(body.name && { name: body.name }),
@@ -362,55 +397,5 @@ export class AuthController {
     }
   };
 
-  public uploadProfileImage = async (c: Context) => {
-    try {
-      const user = await this.getUser(c);
-      if (!user) {
-        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
-      }
-
-      const body: UploadProfileImageBody = await c.req.json();
-      const { imageBase64, fileName } = body;
-
-      if (!imageBase64 || !fileName) {
-        return serveBadRequest(c, "Missing imageBase64 or fileName");
-      }
-
-      // Convert base64 to buffer
-      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-
-      // Create asset using AssetService
-      const { asset: assetId } = await this.assetService.createAsset(
-        user.id,
-        fileName,
-        getContentType(imageBase64),
-        "profile_picture",
-        buffer.length,
-        0,
-        buffer
-      );
-
-      // Get the full asset object to access the URL
-      const asset = await this.assetService.getAsset(assetId);
-      if (!asset || !asset.asset_url) {
-        return serveInternalServerError(
-          c,
-          new Error("Failed to get asset URL")
-        );
-      }
-
-      // Update user profile image with the asset URL
-      await this.service.updateProfileImage(user.id, asset.asset_url);
-
-      return serveData(c, {
-        success: true,
-        message: "Profile image uploaded successfully",
-        asset_url: asset.asset_url,
-      });
-    } catch (error) {
-      logger.error(error);
-      return serveInternalServerError(c, error);
-    }
-  };
+  
 }
