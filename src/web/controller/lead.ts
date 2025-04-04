@@ -156,9 +156,11 @@ export class LeadController {
         name: lead.name,
         email: lead.email,
         phone: lead.phone,
+        id: lead.id,
+        created_at: lead.created_at,
+        updated_at: lead.updated_at,
         membership_level: lead.membership_level,
         membership_active: lead.membership_active,
-        
       });
     } catch (error) {
       logger.error(error);
