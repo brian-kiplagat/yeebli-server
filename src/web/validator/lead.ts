@@ -15,6 +15,11 @@ const leadSchema = z.object({
   user_id: z.number().optional(),
 });
 
+const leadUpgradeSchema = z.object({
+  lead_id: z.number().min(1, 'Lead ID is required'),
+  membership_id: z.number().min(1, 'Membership ID is required'),
+});
+
 const updateLeadSchema = leadSchema.partial();
 
 // New validator for external form submissions
@@ -46,6 +51,7 @@ const eventLinkSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+type LeadUpgradeBody = z.infer<typeof leadUpgradeSchema>;
 type LeadBody = z.infer<typeof leadSchema>;
 type ExternalFormBody = z.infer<typeof externalFormSchema>;
 type EventLinkBody = z.infer<typeof eventLinkSchema>;
@@ -53,5 +59,6 @@ export const eventLinkValidator = zValidator('json', eventLinkSchema);
 export const leadValidator = zValidator('json', leadSchema);
 export const updateLeadValidator = zValidator('json', updateLeadSchema);
 export const externalFormValidator = zValidator('form', externalFormSchema);
-export type { LeadBody, ExternalFormBody, EventLinkBody };
+export const leadUpgradeValidator = zValidator('json', leadUpgradeSchema);
+export type { LeadBody, ExternalFormBody, EventLinkBody, LeadUpgradeBody };
 export { externalFormSchema };

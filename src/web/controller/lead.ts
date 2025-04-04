@@ -11,29 +11,38 @@ import {
   EventLinkBody,
   externalFormSchema,
   LeadBody,
+  LeadUpgradeBody,
 } from "../validator/lead.ts";
 import {
   ERRORS,
   serveBadRequest,
   serveInternalServerError,
 } from "./resp/error.js";
+import { MembershipService } from "../../service/membership.ts";
+import { env } from "node:process";
+import { StripeService } from "../../service/stripe.ts";
 
 export class LeadController {
   private service: LeadService;
   private userService: UserService;
   private eventService: EventService;
   private turnstileService: TurnstileService;
-
+  private membershipService: MembershipService;
+  private stripeService: StripeService;
   constructor(
     service: LeadService,
     userService: UserService,
     eventService: EventService,
-    turnstileService: TurnstileService
+    turnstileService: TurnstileService,
+    membershipService: MembershipService,
+    stripeService: StripeService
   ) {
     this.service = service;
     this.userService = userService;
     this.eventService = eventService;
     this.turnstileService = turnstileService;
+    this.membershipService = membershipService;
+    this.stripeService = stripeService;
   }
 
   private async getUser(c: Context) {
@@ -296,6 +305,54 @@ export class LeadController {
       );
     } catch (error) {
       logger.error("Error handling external form:", error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public upgradeLead = async (c: Context) => {
+    try {
+      const body: LeadUpgradeBody = await c.req.json();
+      const lead = await this.service.find(body.lead_id);
+      if (!lead) {
+        return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
+      }
+      if (!lead.event_id) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+      //get membership
+      const membership = await this.membershipService.getMembership(
+        body.membership_id
+      );
+      if (!membership) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+      //get host user
+      const host = await this.userService.find(lead.host_id);
+      if (!host) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      //get event
+      const event = await this.eventService.getEvent(lead.event_id);
+      if (!event) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+      if (!host.stripe_account_id) {
+        return serveBadRequest(c, ERRORS.STRIPE_ACCOUNT_ID_NOT_FOUND);
+      }
+      //create checkout session with stripe service, amount is membership price
+      const checkoutSession =
+        await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
+          mode: "payment",
+          success_url: `${env.FRONTEND_URL}/eventpage?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
+          cancel_url: `${env.FRONTEND_URL}/eventpage?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+          hostStripeAccountId: host.stripe_account_id,
+          price: membership.price,
+          eventName: event.event_name,
+          membershipName: membership.name,
+        });
+      return c.json(checkoutSession);
+    } catch (error) {
+      logger.error(error);
       return serveInternalServerError(c, error);
     }
   };
