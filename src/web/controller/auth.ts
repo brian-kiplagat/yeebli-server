@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { DB_ERRORS, type DatabaseError, db } from "../../lib/database.js";
-import { verify } from "../../lib/encryption.js";
+import { encrypt, verify } from "../../lib/encryption.js";
 import { type JWTPayload, encode } from "../../lib/jwt.js";
 import { logger } from "../../lib/logger.ts";
 import { userSchema } from "../../schema/schema.ts";
@@ -81,7 +81,11 @@ export class AuthController {
       }
 
       const token = await encode(user.id, user.email);
-      const serializedUser = await serializeUser(user, this.s3Service, this.userRepository);
+      const serializedUser = await serializeUser(
+        user,
+        this.s3Service,
+        this.userRepository
+      );
       return serveData(c, { token, user: serializedUser });
     } catch (err) {
       logger.error(err);
@@ -114,7 +118,11 @@ export class AuthController {
     await sendWelcomeEmailAsync(user.id);
 
     const token = await encode(user.id, user.email);
-    const serializedUser = await serializeUser(user, this.s3Service, this.userRepository);
+    const serializedUser = await serializeUser(
+      user,
+      this.s3Service,
+      this.userRepository
+    );
     return serveData(c, { token, user: serializedUser });
   };
 
@@ -235,7 +243,8 @@ export class AuthController {
       if (user.reset_token !== String(body.token)) {
         return serveBadRequest(c, ERRORS.INVALID_TOKEN);
       }
-      await this.service.update(user.id, { password: body.password });
+      const hashedPassword = encrypt(body.password);
+      await this.service.update(user.id, { password: hashedPassword });
       await db
         .update(userSchema)
         .set({ reset_token: null })
@@ -270,9 +279,9 @@ export class AuthController {
       if (!isOldPasswordValid) {
         return serveBadRequest(c, ERRORS.AUTH_INVALID_PASSWORD);
       }
-
+      const hashedPassword = encrypt(body.newPassword);
       // Update password
-      await this.service.update(user.id, { password: body.newPassword });
+      await this.service.update(user.id, { password: hashedPassword });
 
       // Send confirmation email
       await sendTransactionalEmail(
@@ -299,7 +308,11 @@ export class AuthController {
       return serveInternalServerError(c, new Error(ERRORS.USER_NOT_FOUND));
     }
 
-    const serializedUser = await serializeUser(user, this.s3Service, this.userRepository);
+    const serializedUser = await serializeUser(
+      user,
+      this.s3Service,
+      this.userRepository
+    );
     return serveData(c, { user: serializedUser });
   };
 
