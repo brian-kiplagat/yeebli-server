@@ -222,6 +222,7 @@ export class StripeService {
     }
   ) {
     try {
+      const feeAmount = 0; // 0% platform fee
       return await this.stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         line_items: [
@@ -240,9 +241,8 @@ export class StripeService {
         success_url: params.success_url,
         cancel_url: params.cancel_url,
         payment_intent_data: {
-          transfer_data: {
-            destination: params.hostStripeAccountId,
-          },
+          on_behalf_of: params.hostStripeAccountId,
+          application_fee_amount: feeAmount,
         },
         metadata: {
           leadId: lead.id.toString(),
