@@ -170,7 +170,9 @@ export class Server {
       leadService,
       userService,
       eventService,
-      turnstileService
+      turnstileService,
+      membershipService,
+      stripeService
     );
     const eventController = new EventController(
       eventService,
