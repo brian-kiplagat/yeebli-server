@@ -27,19 +27,12 @@ const businessSchema = z.object({
   logoFileName: z.string().optional(),
   banner: z.string().optional(),
   user_id: z.number().optional(),
+  imageBase64: z.string().nullable().optional(),
+  fileName: z.string().nullable().optional(),
 });
 
-const businessImageSchema = z.object({
-  imageBase64: z
-    .string()
-    .regex(base64ImageRegex, { message: "Invalid image format" })
-    .refine(validateBase64Size, { message: "Logo size must be less than 10MB" })
-    .or(z.string().url()),
-  fileName: z.string(),
-});
 
 export const businessValidator = zValidator("json", businessSchema);
-export const businessImageValidator = zValidator("json", businessImageSchema);
 const businessQuerySchema = z.object({
   page: z.coerce.number().optional().default(1),
   limit: z.coerce.number().optional().default(10),
@@ -49,4 +42,3 @@ const businessQuerySchema = z.object({
 export const businessQueryValidator = zValidator("query", businessQuerySchema);
 export type BusinessQuery = z.infer<typeof businessQuerySchema>;
 export type BusinessBody = z.infer<typeof businessSchema>;
-export type BusinessImageBody = z.infer<typeof businessImageSchema>;

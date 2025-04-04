@@ -6,8 +6,9 @@ import {
   ERRORS,
   serveBadRequest,
   serveInternalServerError,
+ 
 } from "./resp/error.js";
-import { BusinessBody, BusinessImageBody } from "../validator/business.ts";
+import { BusinessBody } from "../validator/business.ts";
 
 export class BusinessController {
   private service: BusinessService;
@@ -47,6 +48,20 @@ export class BusinessController {
       }
 
       const body: BusinessBody = await c.req.json();
+      if (body.imageBase64 && body.fileName) {
+        const { imageBase64, fileName } = body;
+        const business = await this.service.getBusinessByUserId(user.id);
+
+        if (!business) {
+          return serveBadRequest(c, "Business not found");
+        }
+
+        await this.service.updateBusinessLogo(
+          business.id,
+          imageBase64,
+          fileName
+        );
+      }
       const business = await this.service.upsertBusiness(user.id, {
         ...body,
         user_id: user.id,
@@ -88,31 +103,5 @@ export class BusinessController {
     }
   };
 
-  public updateBusinessLogo = async (c: Context) => {
-    try {
-      const user = await this.getUser(c);
-      if (!user) {
-        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
-      }
-
-      const body: BusinessImageBody = await c.req.json();
-      const business = await this.service.getBusinessByUserId(user.id);
-      if (!business) {
-        return serveBadRequest(c, ERRORS.BUSINESS_NOT_FOUND);
-      }
-
-      const updatedBusiness = await this.service.updateBusinessLogo(
-        business.id,
-        body.imageBase64,
-        body.fileName
-      );
-      return c.json({
-        message: "Business logo updated successfully",
-        business: updatedBusiness,
-      });
-    } catch (error) {
-      logger.error(error);
-      return serveInternalServerError(c, error);
-    }
-  };
+ 
 }

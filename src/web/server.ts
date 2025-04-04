@@ -438,7 +438,6 @@ export class Server {
       businessValidator,
       businessCtrl.upsertBusiness
     );
-    business.post("/logo", authCheck, businessCtrl.updateBusinessLogo);
 
     // Admin only endpoint
     business.get(
