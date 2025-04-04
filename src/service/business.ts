@@ -4,7 +4,7 @@ import { NewBusiness } from "../schema/schema.ts";
 import type { BusinessQuery, BusinessBody } from "../web/validator/business.ts";
 import type { S3Service } from "./s3.js";
 import type { AssetService } from "./asset.js";
-import { getContentType } from "../util/string.ts";
+import { getContentType, extractExtensionfromS3Url } from "../util/string.ts";
 
 export class BusinessService {
   private repository: BusinessRepository;
@@ -21,25 +21,7 @@ export class BusinessService {
     this.assetService = assetService;
   }
 
-  private getContentType(logo: string): string {
-    if (logo.startsWith("data:image/")) {
-      // Extract content type from base64 string
-      const match = logo.match(/^data:image\/(\w+);base64,/);
-      return match ? `image/${match[1]}` : "image/jpeg";
-    }
-    // For URLs, try to determine from extension
-    const extension = logo.split(".").pop()?.toLowerCase();
-    switch (extension) {
-      case "png":
-        return "image/png";
-      case "gif":
-        return "image/gif";
-      case "webp":
-        return "image/webp";
-      default:
-        return "image/jpeg";
-    }
-  }
+
 
   private async handleLogoUpload(
     userId: number,
@@ -75,14 +57,47 @@ export class BusinessService {
       const business = await this.repository.findByUserId(userId);
       if (!business?.logo_asset_id) return business;
 
-      // Get the asset and its presigned URL
+      // Get the asset and its URL
       const asset = await this.assetService.getAsset(business.logo_asset_id);
-      if (!asset) return business;
+      if (!asset || !asset.asset_url) return business;
+
+      // Check if we need to generate a new presigned URL
+      const needsNewPresignedUrl =
+        !business.presigned_logo_url ||
+        !business.presigned_logo_expires_at ||
+        new Date(business.presigned_logo_expires_at) <= new Date();
+
+      if (needsNewPresignedUrl) {
+        // Generate new presigned URL
+        const presignedUrl = await this.s3Service.generateGetUrl(
+          extractExtensionfromS3Url(asset.asset_url),
+          getContentType(asset.asset_type as string),
+          432000 // 5 days
+        );
+
+        // Calculate expiration (1 hour from now)
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 5);
+
+        // Update business with new presigned URL
+        await this.repository.update(business.id, {
+          presigned_logo_url: presignedUrl,
+          presigned_logo_expires_at: expiresAt,
+        });
+
+        return {
+          ...business,
+          logo: asset.asset_url,
+          presigned_logo_url: presignedUrl,
+          presigned_logo_expires_at: expiresAt,
+        };
+      }
 
       return {
         ...business,
         logo: asset.asset_url,
-        presignedLogoUrl: asset.presignedUrl,
+        presigned_logo_url: business.presigned_logo_url,
+        presigned_logo_expires_at: business.presigned_logo_expires_at,
       };
     } catch (error) {
       logger.error("Failed to get business by user:", error);
@@ -170,4 +185,72 @@ export class BusinessService {
       throw error;
     }
   }
+
+  public updateBusinessLogo = async (
+    businessId: number,
+    imageBase64: string,
+    fileName: string
+  ) => {
+    try {
+      // Convert base64 to buffer
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, "base64");
+
+      // Create asset using AssetService
+      const { asset: assetId } = await this.assetService.createAsset(
+        businessId,
+        fileName,
+        getContentType(imageBase64),
+        "profile_picture",
+        buffer.length,
+        0,
+        buffer
+      );
+
+      // Update business with just the asset ID
+      await this.repository.update(businessId, {
+        logo_asset_id: assetId,
+      });
+
+      // Get the updated business with presigned URL
+      const business = await this.repository.findById(businessId);
+      if (!business) {
+        throw new Error("Business not found after update");
+      }
+
+      const asset = await this.assetService.getAsset(assetId);
+      if (!asset?.asset_url) {
+        throw new Error("Failed to get asset URL");
+      }
+
+      // Generate initial presigned URL
+      const presignedUrl = await this.s3Service.generateGetUrl(
+        extractExtensionfromS3Url(asset.asset_url),
+        getContentType(asset.asset_type as string),
+        3600 // 1 hour
+      );
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+
+      // Update with presigned URL info
+      await this.repository.update(businessId, {
+        presigned_logo_url: presignedUrl,
+        presigned_logo_expires_at: expiresAt,
+      });
+
+      return {
+        success: true,
+        message: "Business logo uploaded successfully",
+        business: {
+          ...business,
+          logo: asset.asset_url,
+          presigned_logo_url: presignedUrl,
+          presigned_logo_expires_at: expiresAt,
+        },
+      };
+    } catch (error) {
+      logger.error("Error uploading business logo:", error);
+      throw error;
+    }
+  };
 }

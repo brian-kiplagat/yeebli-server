@@ -70,6 +70,8 @@ export const businessSchema = mysqlTable("businesses", {
   email: varchar("email", { length: 255 }),
   description: text("description"),
   logo_asset_id: int("logo_asset_id").references(() => assetsSchema.id),
+  presigned_logo_url: text("presigned_logo_url"),
+  presigned_logo_expires_at: timestamp("presigned_logo_expires_at"),
   user_id: int("user_id")
     .references(() => userSchema.id)
     .notNull(),
