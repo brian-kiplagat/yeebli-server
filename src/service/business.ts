@@ -59,43 +59,9 @@ export class BusinessService {
       const asset = await this.assetService.getAsset(business.logo_asset_id);
       if (!asset || !asset.asset_url) return business;
 
-      // Check if we need to generate a new presigned URL
-      const needsNewPresignedUrl =
-        !business.presigned_logo_url ||
-        !business.presigned_logo_expires_at ||
-        new Date(business.presigned_logo_expires_at) <= new Date();
-
-      if (needsNewPresignedUrl) {
-        // Generate new presigned URL
-        const presignedUrl = await this.s3Service.generateGetUrl(
-          extractExtensionfromS3Url(asset.asset_url),
-          getContentType(asset.asset_type as string),
-          432000 // 5 days
-        );
-
-        // Calculate expiration (7 days from now)
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7);
-
-        // Update business with new presigned URL
-        await this.repository.update(business.id, {
-          presigned_logo_url: presignedUrl,
-          presigned_logo_expires_at: expiresAt,
-        });
-
-        return {
-          ...business,
-          logo: asset.asset_url,
-          presigned_logo_url: presignedUrl,
-          presigned_logo_expires_at: expiresAt,
-        };
-      }
-
       return {
         ...business,
         logo: asset.asset_url,
-        presigned_logo_url: business.presigned_logo_url,
-        presigned_logo_expires_at: business.presigned_logo_expires_at,
       };
     } catch (error) {
       logger.error("Failed to get business by user:", error);
@@ -221,29 +187,13 @@ export class BusinessService {
         throw new Error("Failed to get asset URL");
       }
 
-      // Generate initial presigned URL
-      const presignedUrl = await this.s3Service.generateGetUrl(
-        extractExtensionfromS3Url(asset.asset_url),
-        getContentType(asset.asset_type as string),
-        432000 // 5 days
-      );
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 5);
-
-      // Update with presigned URL info
-      await this.repository.update(businessId, {
-        presigned_logo_url: presignedUrl,
-        presigned_logo_expires_at: expiresAt,
-      });
-
       return {
         success: true,
         message: "Business logo uploaded successfully",
         business: {
           ...business,
           logo: asset.asset_url,
-          presigned_logo_url: presignedUrl,
-          presigned_logo_expires_at: expiresAt,
+         
         },
       };
     } catch (error) {

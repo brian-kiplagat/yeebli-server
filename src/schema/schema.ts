@@ -25,10 +25,6 @@ export const userSchema = mysqlTable("user", {
   updatedAt: timestamp("updated_at").defaultNow(),
   role: mysqlEnum("role", ["master", "owner", "host", "user"]).default("user"),
   profile_picture: text("profile_picture"),
-  presigned_profile_picture: text("presigned_profile_picture"),
-  presigned_profile_picture_expires_at: timestamp(
-    "presigned_profile_picture_expires_at"
-  ),
   bio: varchar("bio", { length: 255 }),
   custom_id: varchar("custom_id", { length: 255 }),
   is_verified: boolean("is_verified").default(false),
@@ -70,8 +66,6 @@ export const businessSchema = mysqlTable("businesses", {
   email: varchar("email", { length: 255 }),
   description: text("description"),
   logo_asset_id: int("logo_asset_id").references(() => assetsSchema.id),
-  presigned_logo_url: text("presigned_logo_url"),
-  presigned_logo_expires_at: timestamp("presigned_logo_expires_at"),
   user_id: int("user_id")
     .references(() => userSchema.id)
     .notNull(),
