@@ -343,8 +343,8 @@ export class LeadController {
       const checkoutSession =
         await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
           mode: "payment",
-          success_url: `${env.FRONTEND_URL}/eventpage?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
-          cancel_url: `${env.FRONTEND_URL}/eventpage?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+          success_url: `https://yeebli-e10656.webflow.io/eventpage?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
+          cancel_url: `https://yeebli-e10656.webflow.io/eventpage?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
           hostStripeAccountId: host.stripe_account_id,
           price: membership.price,
           eventName: event.event_name,
