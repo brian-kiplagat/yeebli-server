@@ -309,6 +309,13 @@
       "when": 1743696398869,
       "tag": "0044_spooky_lionheart",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1743754723718,
+      "tag": "0045_great_daredevil",
+      "breakpoints": true
     }
   ]
 }

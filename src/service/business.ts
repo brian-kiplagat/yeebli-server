@@ -75,9 +75,9 @@ export class BusinessService {
           432000 // 5 days
         );
 
-        // Calculate expiration (1 hour from now)
+        // Calculate expiration (7 days from now)
         const expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + 5);
+        expiresAt.setDate(expiresAt.getDate() + 7);
 
         // Update business with new presigned URL
         await this.repository.update(business.id, {
