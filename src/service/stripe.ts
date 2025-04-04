@@ -228,7 +228,7 @@ export class StripeService {
         line_items: [
           {
             price_data: {
-              currency: "usd",
+              currency: "gbp",
               product_data: {
                 name: `${params.eventName} - ${params.membershipName}`,
               },
