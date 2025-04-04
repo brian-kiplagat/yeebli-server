@@ -21,8 +21,6 @@ export class BusinessService {
     this.assetService = assetService;
   }
 
-
-
   private async handleLogoUpload(
     userId: number,
     logoBase64: string,
@@ -227,10 +225,10 @@ export class BusinessService {
       const presignedUrl = await this.s3Service.generateGetUrl(
         extractExtensionfromS3Url(asset.asset_url),
         getContentType(asset.asset_type as string),
-        3600 // 1 hour
+        432000 // 5 days
       );
       const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 1);
+      expiresAt.setDate(expiresAt.getDate() + 5);
 
       // Update with presigned URL info
       await this.repository.update(businessId, {
