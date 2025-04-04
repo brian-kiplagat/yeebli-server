@@ -7,7 +7,7 @@ import {
   serveBadRequest,
   serveInternalServerError,
 } from "./resp/error.js";
-import { BusinessBody } from "../validator/business.ts";
+import { BusinessBody, BusinessImageBody } from "../validator/business.ts";
 
 export class BusinessController {
   private service: BusinessService;
@@ -82,6 +82,34 @@ export class BusinessController {
 
       const businesses = await this.service.getAllBusinesses(query);
       return c.json(businesses);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public updateBusinessLogo = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const body: BusinessImageBody = await c.req.json();
+      const business = await this.service.getBusinessByUserId(user.id);
+      if (!business) {
+        return serveBadRequest(c, ERRORS.BUSINESS_NOT_FOUND);
+      }
+
+      const updatedBusiness = await this.service.updateBusinessLogo(
+        business.id,
+        body.imageBase64,
+        body.fileName
+      );
+      return c.json({
+        message: "Business logo updated successfully",
+        business: updatedBusiness,
+      });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
