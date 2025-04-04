@@ -97,8 +97,8 @@ const updateUserDetailsSchema = z.object({
     )
     .optional(),
   email: z.string().email().optional(),
-  imageBase64: z.string().optional(),
-  fileName: z.string().optional(),
+  imageBase64: z.string().nullable().optional(),
+  fileName: z.string().nullable().optional(),
 });
 
 const updateUserDetailsValidator = validator("json", (value, c) => {

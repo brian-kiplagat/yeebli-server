@@ -336,10 +336,6 @@ export class AuthController {
       if (body.imageBase64 && body.fileName) {
         const { imageBase64, fileName } = body;
 
-        if (!imageBase64 || !fileName) {
-          return serveBadRequest(c, "Missing imageBase64 or fileName");
-        }
-
         // Convert base64 to buffer
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
         const buffer = Buffer.from(base64Data, "base64");
@@ -396,6 +392,4 @@ export class AuthController {
       return serveInternalServerError(c, error);
     }
   };
-
-  
 }
