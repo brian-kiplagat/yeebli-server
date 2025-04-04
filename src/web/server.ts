@@ -57,6 +57,7 @@ import { hlsUploadValidator } from "./validator/hls.ts";
 import {
   eventLinkValidator,
   externalFormValidator,
+  leadUpgradeValidator,
   leadValidator,
   updateLeadValidator,
 } from "./validator/lead.ts";
@@ -296,6 +297,12 @@ export class Server {
       "/lead-validate-event",
       eventLinkValidator,
       leadCtrl.validateEventLink
+    );
+    lead.post(
+      "/lead-upgrade",
+      authCheck,
+      leadUpgradeValidator,
+      leadCtrl.upgradeLead
     );
     lead.put("/:id", authCheck, updateLeadValidator, leadCtrl.updateLead);
     lead.delete("/:id", authCheck, leadCtrl.deleteLead);
