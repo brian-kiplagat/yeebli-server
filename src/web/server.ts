@@ -198,7 +198,8 @@ export class Server {
     const stripeController = new StripeController(
       stripeService,
       userService,
-      subscriptionRepo
+      subscriptionRepo,
+      leadService
     );
     const subscriptionController = new SubscriptionController(
       subscriptionService,

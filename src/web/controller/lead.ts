@@ -118,6 +118,7 @@ export class LeadController {
         ...body,
         userId: user.id,
         token,
+        membership_level: null,
       });
       if (lead && body.event_id) {
         const event = await this.eventService.getEvent(body.event_id);
@@ -265,7 +266,7 @@ export class LeadController {
         event_id: validatedData.event_id,
         registered_date: validatedData.registered_date,
         host_id: validatedData.host_id,
-        membership_level: "Silver",
+        membership_level: null,
         membership_active: false,
         form_identifier: "external_form",
         status_identifier: "Form",
@@ -349,6 +350,7 @@ export class LeadController {
           price: membership.price,
           eventName: event.event_name,
           membershipName: membership.name,
+          membershipId: String(membership.id),
         });
       return c.json(checkoutSession);
     } catch (error) {

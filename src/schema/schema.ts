@@ -106,11 +106,9 @@ export const leadSchema = mysqlTable("leads", {
     .notNull()
     .default(1),
   source_url: text("source_url"),
-  membership_level: mysqlEnum("membership_level", [
-    "Silver",
-    "Gold",
-    "Platinum",
-  ]).default("Silver"),
+  membership_level: int("membership_level")
+    .references(() => membershipSchema.id)
+    .default(1),
   userId: int("user_id").references(() => userSchema.id),
 });
 

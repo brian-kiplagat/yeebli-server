@@ -40,6 +40,7 @@ export class SubscriptionService {
         cancel_url: cancelUrl,
         metadata: {
           userId: String(user.id),
+          type: 'subscription',
         },
         subscription_data: {
           trial_period_days: 14,

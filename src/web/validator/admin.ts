@@ -12,7 +12,7 @@ export const adminLeadQuerySchema = z.object({
   page: z.coerce.number().optional().default(1),
   limit: z.coerce.number().optional().default(10),
   status: z.enum(['Manual', 'Form', 'Interested', 'Member', 'Inactive Member']).optional(),
-  membership_level: z.enum(['Silver', 'Gold', 'Platinum']).optional(),
+  membership_level: z.number().optional(),
   search: z.string().optional(),
 });
 
