@@ -74,7 +74,6 @@ import {
   requestResetPasswordValidator,
   resetPasswordValidator,
   updateUserDetailsValidator,
-  uploadProfileImageValidator,
 } from "./validator/user.js";
 import { BusinessRepository } from "../repository/business.js";
 import { BusinessService } from "../service/business.js";
@@ -277,14 +276,6 @@ export class Server {
       authCtrl.updateUserDetails
     );
 
-    // Add profile image upload route
-    user.post(
-      "/profile-image",
-      authCheck,
-      uploadProfileImageValidator,
-      authCtrl.uploadProfileImage
-    );
-
     // Add Google auth routes
     user.get("/auth/google", googleCtrl.initiateAuth);
     user.get("/auth/google/callback", googleCtrl.handleCallback);
@@ -447,11 +438,7 @@ export class Server {
       businessValidator,
       businessCtrl.upsertBusiness
     );
-    business.post(
-      "/logo",
-      authCheck,
-      businessCtrl.updateBusinessLogo
-    );
+    business.post("/logo", authCheck, businessCtrl.updateBusinessLogo);
 
     // Admin only endpoint
     business.get(
