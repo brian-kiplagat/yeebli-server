@@ -90,6 +90,16 @@ export class LeadController {
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
+      //get the membership if there  and spread it into the lead
+      if (lead.membership_level) {
+        const membership = await this.membershipService.getMembership(
+          lead.membership_level
+        );
+        return c.json({
+          ...lead,
+          membership: membership,
+        });
+      }
 
       return c.json(lead);
     } catch (error) {
