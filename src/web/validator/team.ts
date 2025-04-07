@@ -4,6 +4,7 @@ import { validateSchema } from "./validator.js";
 
 const inviteMemberSchema = z.object({
   invitee_email: z.string().email(),
+  team_id: z.number().int().positive(),
 });
 
 const inviteMemberValidator = validator("json", (value, c) => {

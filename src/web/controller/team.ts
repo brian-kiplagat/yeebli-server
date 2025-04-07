@@ -63,35 +63,50 @@ export class TeamController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const body = await c.req.json();
-      const { email } = body;
+      const body: InviteMemberBody = await c.req.json();
+      const { invitee_email, team_id } = body;
 
       // Check if inviter is the host of the team
-      const isHost = await this.service.repo.isTeamHost(user.id, user.id);
+      const isHost = await this.service.repo.isTeamHost(team_id, user.id);
       if (!isHost) {
         return serveBadRequest(c, "Only the team host can invite members");
       }
 
       // Get team details
-      const team = await this.service.repo.getTeamById(user.id);
+      const team = await this.service.repo.getTeamById(team_id);
       if (!team) {
         return serveBadRequest(c, "Team not found");
       }
 
       // Check if user already exists
-      const existingUser = await this.service.userService.findByEmail(email);
+      const existingUser =
+        await this.service.userService.findByEmail(invitee_email);
       if (existingUser) {
-        // Check if user is already a team member
+        // Check if invitee is already a team member
         const userTeams = await this.service.repo.getUserTeams(existingUser.id);
-        if (userTeams.some((team: TeamMember) => team.team_id === user.id)) {
+        if (userTeams.some((team: TeamMember) => team.team_id === team_id)) {
           return serveBadRequest(c, "User is already a member of this team");
+        }
+      } else {
+        // Check if there's already a pending invitation for this email
+        const existingInvitations =
+          await this.service.repo.getInvitationsByEmail(invitee_email);
+        if (
+          existingInvitations.some(
+            (inv) => inv.team_id === team_id && inv.status === "pending"
+          )
+        ) {
+          return serveBadRequest(
+            c,
+            "This user already has a pending invitation to this team"
+          );
         }
       }
 
       const invitation = await this.service.inviteMember(
         team.id,
         user.id,
-        email,
+        invitee_email,
         team.name
       );
 
