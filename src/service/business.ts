@@ -37,7 +37,7 @@ export class BusinessService {
         userId,
         fileName,
         contentType,
-        "image",
+        "profile_picture",
         buffer.length,
         0,
         buffer
@@ -193,7 +193,6 @@ export class BusinessService {
         business: {
           ...business,
           logo: asset.asset_url,
-         
         },
       };
     } catch (error) {
