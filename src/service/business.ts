@@ -5,20 +5,25 @@ import type { BusinessQuery, BusinessBody } from "../web/validator/business.ts";
 import type { S3Service } from "./s3.js";
 import type { AssetService } from "./asset.js";
 import { getContentType, extractExtensionfromS3Url } from "../util/string.ts";
+import { TeamService } from "./team.ts";
+
 
 export class BusinessService {
   private repository: BusinessRepository;
   private s3Service: S3Service;
   private assetService: AssetService;
+  private teamService: TeamService;
 
   constructor(
     repository: BusinessRepository,
     s3Service: S3Service,
-    assetService: AssetService
+    assetService: AssetService,
+    teamService: TeamService
   ) {
     this.repository = repository;
     this.s3Service = s3Service;
     this.assetService = assetService;
+    this.teamService = teamService;
   }
 
   private async handleLogoUpload(
@@ -118,6 +123,8 @@ export class BusinessService {
       } else {
         // Create new business
         updatedBusiness = await this.repository.create(businessData);
+        //create team
+        await this.teamService.createTeam(business.name, userId);
       }
 
       // Return business with resolved asset URLs

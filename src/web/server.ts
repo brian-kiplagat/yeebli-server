@@ -135,6 +135,7 @@ export class Server {
     const adminRepo = new AdminRepository();
     const assetRepo = new AssetRepository();
     const subscriptionRepo = new SubscriptionRepository();
+    const teamRepo = new TeamRepository();
 
     const businessRepo = new BusinessRepository();
 
@@ -161,11 +162,13 @@ export class Server {
       stripeService,
       userService
     );
+    const teamService = new TeamService(teamRepo, userService);
 
     const businessService = new BusinessService(
       businessRepo,
       s3Service,
-      assetService
+      assetService,
+      teamService
     );
 
     // Setup workers
@@ -230,8 +233,7 @@ export class Server {
     );
 
     // Add team service and controller
-    const teamRepo = new TeamRepository();
-    const teamService = new TeamService(teamRepo, userService);
+
     const teamController = new TeamController(teamService, userService);
 
     // Add Google service and controller
