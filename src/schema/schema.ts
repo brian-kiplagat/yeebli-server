@@ -20,6 +20,15 @@ export const teamSchema = mysqlTable("teams", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
+export const teamMemberSchema = mysqlTable("team_members", {
+  id: serial("id").primaryKey(),
+  team_id: int("team_id").notNull(),
+  user_id: int("user_id").notNull(),
+  role: mysqlEnum("role", ["host", "member"]).default("member"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
 export const userSchema = mysqlTable("user", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 50 }).notNull(),
@@ -63,9 +72,6 @@ export const userSchema = mysqlTable("user", {
   auth_provider: mysqlEnum("auth_provider", ["local", "google"]).default(
     "local"
   ),
-  team_id: int("team_id")
-    .references(() => teamSchema.id)
-    .notNull(),
 });
 
 export const businessSchema = mysqlTable("businesses", {
@@ -302,3 +308,6 @@ export const businessRelations = relations(businessSchema, ({ one }) => ({
     references: [userSchema.id],
   }),
 }));
+
+export type TeamMember = typeof teamMemberSchema.$inferSelect;
+export type NewTeamMember = typeof teamMemberSchema.$inferInsert;

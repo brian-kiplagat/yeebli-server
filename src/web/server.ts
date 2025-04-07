@@ -89,6 +89,11 @@ import { MembershipService } from "../service/membership.ts";
 import { TeamRepository } from "../repository/team.js";
 import { TeamService } from "../service/team.js";
 import { TeamController } from "./controller/team.js";
+import {
+  createTeamValidator,
+  inviteMemberValidator,
+  teamQueryValidator,
+} from "./validator/team.ts";
 
 export class Server {
   private app: Hono;
@@ -508,9 +513,25 @@ export class Server {
     const team = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    team.post("/invite", authCheck, teamCtrl.inviteMember);
-    team.get("/invitations", authCheck, teamCtrl.getTeamInvitations);
-    team.get("/my-invitations", authCheck, teamCtrl.getMyInvitations);
+    team.post("/create", authCheck, createTeamValidator, teamCtrl.createTeam);
+    team.post(
+      "/invite",
+      authCheck,
+      inviteMemberValidator,
+      teamCtrl.inviteMember
+    );
+    team.get(
+      "/invitations",
+      authCheck,
+      teamQueryValidator,
+      teamCtrl.getTeamInvitations
+    );
+    team.get(
+      "/my-invitations",
+      authCheck,
+      teamQueryValidator,
+      teamCtrl.getMyInvitations
+    );
     team.post("/invitations/:id/accept", authCheck, teamCtrl.acceptInvitation);
     team.post("/invitations/:id/reject", authCheck, teamCtrl.rejectInvitation);
 

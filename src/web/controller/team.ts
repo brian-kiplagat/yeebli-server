@@ -10,11 +10,14 @@ import {
 } from "./resp/error.ts";
 import { serveData } from "./resp/resp.ts";
 import {
-  InviteMemberBody,
+  type CreateTeamBody,
+  type InviteMemberBody,
   type TeamQuery,
+  createTeamValidator,
   inviteMemberValidator,
   teamQueryValidator,
 } from "../validator/team.ts";
+import type { User } from "../../schema/schema.ts";
 
 export class TeamController {
   private service: TeamService;
@@ -25,13 +28,33 @@ export class TeamController {
     this.userService = userService;
   }
 
-  private async getUser(c: Context) {
-    const userId = c.get("userId");
-    if (!userId) {
-      return null;
-    }
-    return await this.userService.find(userId);
+  private async getUser(c: Context): Promise<User | null> {
+    const email = c.get("jwtPayload").email;
+    const user = await this.userService.findByEmail(email);
+    return user ?? null;
   }
+
+  public createTeam = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const body: CreateTeamBody = await c.req.json();
+      const { name } = body;
+
+      const team = await this.service.createTeam(name, user.id);
+
+      return c.json({
+        message: "Team created successfully",
+        team,
+      });
+    } catch (error) {
+      logger.error("Error creating team:", error);
+      return serveInternalServerError(c, error);
+    }
+  };
 
   public inviteMember = async (c: Context) => {
     try {
@@ -43,15 +66,15 @@ export class TeamController {
       const body: InviteMemberBody = await c.req.json();
       const { invitee_email } = body;
 
-      const invitationId = await this.service.inviteMember(
-        user.team_id,
+      const invitation = await this.service.inviteMember(
+        user.id,
         user.id,
         invitee_email
       );
 
       return c.json({
         message: "Invitation sent successfully",
-        invitation_id: invitationId,
+        invitation,
       });
     } catch (error) {
       logger.error("Error inviting member:", error);
@@ -65,8 +88,10 @@ export class TeamController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      const invitations = await this.service.getTeamInvitations(user.team_id);
-      return c.json({ invitations });
+
+      const invitations = await this.service.getTeamInvitations(user.id);
+
+      return c.json(invitations);
     } catch (error) {
       logger.error("Error getting team invitations:", error);
       return serveInternalServerError(c, error);
@@ -81,7 +106,8 @@ export class TeamController {
       }
 
       const invitations = await this.service.getMyInvitations(user.email);
-      return c.json({ invitations });
+
+      return c.json(invitations);
     } catch (error) {
       logger.error("Error getting my invitations:", error);
       return serveInternalServerError(c, error);
@@ -90,6 +116,11 @@ export class TeamController {
 
   public acceptInvitation = async (c: Context) => {
     try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
       const invitationId = Number(c.req.param("id"));
       const invitation = await this.service.acceptInvitation(invitationId);
 
@@ -105,6 +136,11 @@ export class TeamController {
 
   public rejectInvitation = async (c: Context) => {
     try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
       const invitationId = Number(c.req.param("id"));
       const invitation = await this.service.rejectInvitation(invitationId);
 
