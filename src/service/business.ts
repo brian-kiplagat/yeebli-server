@@ -68,7 +68,10 @@ export class BusinessService {
       return {
         ...business,
         logo: asset.asset_url,
-        team: team,
+        teamDetails: {
+          ...team,
+          user: { email: team?.user?.email, name: team?.user?.name },
+        },
       };
     } catch (error) {
       logger.error("Failed to get business by user:", error);
