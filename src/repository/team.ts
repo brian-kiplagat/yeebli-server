@@ -169,4 +169,14 @@ export class TeamRepository {
       },
     });
   }
+
+  public async removeTeamMember(teamId: number, userId: number) {
+    await db.delete(teamMemberSchema).where(
+      and(
+        eq(teamMemberSchema.team_id, teamId),
+        eq(teamMemberSchema.user_id, userId),
+        eq(teamMemberSchema.role, "member") // Only allow removing members, not hosts
+      )
+    );
+  }
 }

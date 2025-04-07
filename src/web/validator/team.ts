@@ -29,15 +29,26 @@ const createTeamValidator = validator("json", (value, c) => {
   return validateSchema(c, createTeamSchema, value);
 });
 
+const revokeAccessSchema = z.object({
+  team_id: z.number().int().positive(),
+  user_id: z.number().int().positive(),
+});
+
+const revokeAccessValidator = validator("json", (value, c) => {
+  return validateSchema(c, revokeAccessSchema, value);
+});
+
 type InviteMemberBody = z.infer<typeof inviteMemberSchema>;
 type TeamQuery = z.infer<typeof teamQuerySchema>;
 type CreateTeamBody = z.infer<typeof createTeamSchema>;
-
+type RevokeAccessBody = z.infer<typeof revokeAccessSchema>;
 export {
   type InviteMemberBody,
   type TeamQuery,
   type CreateTeamBody,
+  type RevokeAccessBody,
   inviteMemberValidator,
   teamQueryValidator,
   createTeamValidator,
+  revokeAccessValidator,
 };

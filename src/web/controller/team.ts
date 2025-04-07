@@ -12,6 +12,7 @@ import { serveData } from "./resp/resp.ts";
 import {
   type CreateTeamBody,
   type InviteMemberBody,
+  RevokeAccessBody,
   type TeamQuery,
   createTeamValidator,
   inviteMemberValidator,
@@ -256,6 +257,60 @@ export class TeamController {
       });
     } catch (error) {
       logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public revokeAccess = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const body: RevokeAccessBody = await c.req.json();
+      const { team_id, user_id } = body;
+
+      if (!team_id || !user_id) {
+        return serveBadRequest(c, "Team ID and User ID are required");
+      }
+
+      // Verify that the requester is the host
+      const isHost = await this.service.repo.isTeamHost(
+        Number(team_id),
+        user.id
+      );
+      if (!isHost) {
+        return serveBadRequest(c, "Only the team host can revoke access");
+      }
+
+      // Verify that the user is not trying to remove themselves
+      if (Number(user_id) === user.id) {
+        return serveBadRequest(c, "Cannot revoke your own access");
+      }
+
+      // Verify that the user is a member of the team
+      const teamMembers = await this.service.repo.getTeamMembers(
+        Number(team_id)
+      );
+      const isMember = teamMembers.some(
+        (member) => member.user_id === Number(user_id)
+      );
+      if (!isMember) {
+        return serveBadRequest(c, "User is not a member of this team");
+      }
+
+      const result = await this.service.revokeAccess(
+        Number(team_id),
+        Number(user_id)
+      );
+
+      return serveData(c, result);
+    } catch (error) {
+      logger.error(error);
+      if (error instanceof Error) {
+        return serveBadRequest(c, error.message);
+      }
       return serveInternalServerError(c, error);
     }
   };

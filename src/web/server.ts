@@ -92,6 +92,7 @@ import { TeamController } from "./controller/team.js";
 import {
   createTeamValidator,
   inviteMemberValidator,
+  revokeAccessValidator,
   teamQueryValidator,
 } from "./validator/team.ts";
 
@@ -537,6 +538,7 @@ export class Server {
     team.post("/invitations/:id/accept", teamCtrl.acceptInvitation);
     team.post("/invitations/:id/reject", teamCtrl.rejectInvitation);
     team.get("/my-team/members", authCheck, teamCtrl.getMyTeamMembers);
+    team.post("/revoke-access", authCheck, revokeAccessValidator, teamCtrl.revokeAccess);
 
     api.route("/team", team);
   }

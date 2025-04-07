@@ -144,4 +144,15 @@ export class TeamService {
   public async getTeamByHostId(userId: number) {
     return await this.repo.getTeamByHostId(userId);
   }
+
+  public async revokeAccess(teamId: number, userId: number) {
+    try {
+      // Remove the team member
+      await this.repo.removeTeamMember(teamId, userId);
+      return { success: true };
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
+  }
 }
