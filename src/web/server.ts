@@ -536,6 +536,7 @@ export class Server {
     );
     team.post("/invitations/:id/accept", teamCtrl.acceptInvitation);
     team.post("/invitations/:id/reject", teamCtrl.rejectInvitation);
+    team.get("/:id/members", authCheck, teamCtrl.getTeamMembers);
 
     api.route("/team", team);
   }

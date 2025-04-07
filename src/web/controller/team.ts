@@ -205,4 +205,23 @@ export class TeamController {
       return serveInternalServerError(c, error);
     }
   };
+
+  public getTeamMembers = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const teamId = Number(c.req.param("id"));
+      const members = await this.service.repo.getTeamMembers(teamId);
+
+      return c.json({
+        members,
+      });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
 }
