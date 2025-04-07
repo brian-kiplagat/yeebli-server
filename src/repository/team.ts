@@ -38,6 +38,9 @@ export class TeamRepository {
   public async getTeamMembers(teamId: number) {
     return await db.query.teamMemberSchema.findMany({
       where: (member, { eq }) => eq(member.team_id, teamId),
+      with: {
+        user: true,
+      },
     });
   }
 

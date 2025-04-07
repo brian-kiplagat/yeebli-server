@@ -216,8 +216,16 @@ export class TeamController {
       const teamId = Number(c.req.param("id"));
       const members = await this.service.repo.getTeamMembers(teamId);
 
+      // Format response to include only name, email, phone, and role
+      const formattedMembers = members.map((member) => ({
+        name: member.user.name,
+        email: member.user.email,
+        phone: member.user.phone,
+        role: member.role,
+      }));
+
       return c.json({
-        members,
+        members: formattedMembers,
       });
     } catch (error) {
       logger.error(error);
