@@ -214,6 +214,10 @@ export class TeamController {
       }
 
       const teamId = Number(c.req.param("id"));
+      if (isNaN(teamId)) {
+        return serveBadRequest(c, "Invalid team ID");
+      }
+
       const members = await this.service.repo.getTeamMembers(teamId);
 
       // Format response to include only name, email, phone, and role
@@ -225,6 +229,40 @@ export class TeamController {
       }));
 
       return c.json({
+        members: formattedMembers,
+      });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public getMyTeamMembers = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      // Get the team where user is host
+      const team = await this.service.repo.getTeamByHostId(user.id);
+      if (!team) {
+        return serveBadRequest(c, "You are not a host of any team");
+      }
+
+      const members = await this.service.repo.getTeamMembers(team.team_id);
+
+      // Format response to include only name, email, phone, and role
+      const formattedMembers = members.map((member) => ({
+        name: member.user.name,
+        email: member.user.email,
+        phone: member.user.phone,
+        role: member.role,
+      }));
+
+      return c.json({
+        team_id: team.team_id,
+        team_name: team.team.name,
         members: formattedMembers,
       });
     } catch (error) {
