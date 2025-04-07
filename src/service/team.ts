@@ -37,7 +37,7 @@ export class TeamService {
         inviteeEmail
       );
 
-      const acceptUrl = `https://yeebli-e10656.webflow.io/onboarding/accept-team-invitation?code=${invitationId}&token=${teamId}`;
+      const acceptUrl = `https://yeebli-e10656.webflow.io/onboarding/accept-team-invitation?code=${invitationId}&token=${teamId}&action=${teamName}`;
 
       // Send invitation email
       await sendTransactionalEmail(inviteeEmail, "Team Invitation", 1, {
