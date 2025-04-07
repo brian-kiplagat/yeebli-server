@@ -162,6 +162,16 @@ export class TeamController {
         return serveBadRequest(c, "Invitation not found");
       }
 
+      // Check if invitation is already accepted
+      if (invitation.status === "accepted") {
+        return serveBadRequest(c, "This invitation has already been accepted");
+      }
+
+      // Check if invitation is already rejected
+      if (invitation.status === "rejected") {
+        return serveBadRequest(c, "This invitation has already been rejected");
+      }
+
       const result = await this.service.acceptInvitation(invitationId);
 
       return c.json({
