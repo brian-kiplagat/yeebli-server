@@ -154,22 +154,12 @@ export class TeamController {
 
   public acceptInvitation = async (c: Context) => {
     try {
-      const user = await this.getUser(c);
-      if (!user) {
-        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
-      }
-
       const invitationId = Number(c.req.param("id"));
 
       // Check if invitation exists
       const invitation = await this.service.repo.getInvitation(invitationId);
       if (!invitation) {
         return serveBadRequest(c, "Invitation not found");
-      }
-
-      // Check if invitation is for this user
-      if (invitation.invitee_email !== user.email) {
-        return serveBadRequest(c, "This invitation is not for you");
       }
 
       const result = await this.service.acceptInvitation(invitationId);

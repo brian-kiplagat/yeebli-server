@@ -534,8 +534,8 @@ export class Server {
       teamQueryValidator,
       teamCtrl.getMyInvitations
     );
-    team.post("/invitations/:id/accept", authCheck, teamCtrl.acceptInvitation);
-    team.post("/invitations/:id/reject", authCheck, teamCtrl.rejectInvitation);
+    team.post("/invitations/:id/accept", teamCtrl.acceptInvitation);
+    team.post("/invitations/:id/reject", teamCtrl.rejectInvitation);
 
     api.route("/team", team);
   }
