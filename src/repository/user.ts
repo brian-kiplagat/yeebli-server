@@ -9,7 +9,7 @@ import {
 
 export class UserRepository {
   public async create(user: NewUser) {
-    return db.insert(userSchema).values(user);
+    return db.insert(userSchema).values(user).$returningId();
   }
 
   public async find(id: number) {

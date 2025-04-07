@@ -3,15 +3,22 @@ import { logger } from "../lib/logger.ts";
 import type { UserRepository } from "../repository/user.ts";
 import type { User } from "../schema/schema.ts";
 import { sendTransactionalEmail } from "../task/sendWelcomeEmail.ts";
+import { MembershipService } from "./membership.ts";
 import type { StripeService } from "./stripe.ts";
 
 export class UserService {
   private repo: UserRepository;
   private stripeService: StripeService;
+  private membershipService: MembershipService;
 
-  constructor(userRepository: UserRepository, stripeService: StripeService) {
+  constructor(
+    userRepository: UserRepository,
+    stripeService: StripeService,
+    membershipService: MembershipService
+  ) {
     this.repo = userRepository;
     this.stripeService = stripeService;
+    this.membershipService = membershipService;
 
     this.create = this.create.bind(this);
     this.findByEmail = this.findByEmail.bind(this);
@@ -45,6 +52,16 @@ export class UserService {
         ...additionalFields,
       });
 
+      //create a free membership plan for the user
+      const membership = await this.membershipService.createMembership({
+        name: "Free",
+        description: "Free membership plan",
+        price: 0,
+        payment_type: "one_off",
+        user_id: user[0].id,
+      });
+
+     
       return user;
     } catch (error) {
       logger.error("Error creating user:", error);
