@@ -13,6 +13,13 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 
+export const teamSchema = mysqlTable("teams", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
 export const userSchema = mysqlTable("user", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 50 }).notNull(),
@@ -56,6 +63,9 @@ export const userSchema = mysqlTable("user", {
   auth_provider: mysqlEnum("auth_provider", ["local", "google"]).default(
     "local"
   ),
+  team_id: int("team_id")
+    .references(() => teamSchema.id)
+    .notNull(),
 });
 
 export const businessSchema = mysqlTable("businesses", {
@@ -224,6 +234,22 @@ export const subscriptionSchema = mysqlTable("subscription", {
   payment_status: text("payment_status").notNull(),
   status: text("status").notNull(),
   subscription_id: text("subscription_id"),
+});
+
+export const teamInvitationSchema = mysqlTable("team_invitations", {
+  id: serial("id").primaryKey(),
+  team_id: int("team_id")
+    .references(() => teamSchema.id)
+    .notNull(),
+  inviter_id: int("inviter_id")
+    .references(() => userSchema.id)
+    .notNull(),
+  invitee_email: varchar("invitee_email", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["pending", "accepted", "rejected"]).default(
+    "pending"
+  ),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
 // Define the relations

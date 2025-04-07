@@ -86,6 +86,9 @@ import {
 import { MembershipController } from "./controller/membership.ts";
 import { MembershipRepository } from "../repository/membership.ts";
 import { MembershipService } from "../service/membership.ts";
+import { TeamRepository } from "../repository/team.js";
+import { TeamService } from "../service/team.js";
+import { TeamController } from "./controller/team.js";
 
 export class Server {
   private app: Hono;
@@ -143,7 +146,11 @@ export class Server {
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
     const stripeService = new StripeService();
-    const userService = new UserService(userRepo, stripeService, membershipService);
+    const userService = new UserService(
+      userRepo,
+      stripeService,
+      membershipService
+    );
     const subscriptionService = new SubscriptionService(
       subscriptionRepo,
       stripeService,
@@ -217,6 +224,11 @@ export class Server {
       userService
     );
 
+    // Add team service and controller
+    const teamRepo = new TeamRepository();
+    const teamService = new TeamService(teamRepo, userService);
+    const teamController = new TeamController(teamService, userService);
+
     // Add Google service and controller
     const googleService = new GoogleService(userService, stripeService);
     const googleController = new GoogleController(
@@ -238,6 +250,7 @@ export class Server {
     this.registerBookingRoutes(api, bookingCtrl);
     this.registerBusinessRoutes(api, businessController);
     this.registerMembershipRoutes(api, membershipController);
+    this.registerTeamRoutes(api, teamController);
   }
 
   private registerUserRoutes(
@@ -489,6 +502,19 @@ export class Server {
     membership.delete("/:id", authCheck, membershipCtrl.deleteMembership);
 
     api.route("/membership", membership);
+  }
+
+  private registerTeamRoutes(api: Hono, teamCtrl: TeamController) {
+    const team = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    team.post("/invite", authCheck, teamCtrl.inviteMember);
+    team.get("/invitations", authCheck, teamCtrl.getTeamInvitations);
+    team.get("/my-invitations", authCheck, teamCtrl.getMyInvitations);
+    team.post("/invitations/:id/accept", authCheck, teamCtrl.acceptInvitation);
+    team.post("/invitations/:id/reject", authCheck, teamCtrl.rejectInvitation);
+
+    api.route("/team", team);
   }
 
   private registerWorker(userService: UserService) {
