@@ -75,7 +75,7 @@ export class TeamService {
         (await this.userService.findByEmail(invitation.invitee_email)) ?? null;
       if (!user) {
         // Create user with default password (they'll need to reset it)
-        const tempPassword = generateSecurePassword();
+        const tempPassword = generateSecurePassword(9);
         const newUserID = await this.userService.create(
           invitation.invitee_email.split("@")[0], // Use email prefix as name
           invitation.invitee_email,
