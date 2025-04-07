@@ -18,7 +18,7 @@ export class TeamService {
       const team = await this.repo.createTeam(name, hostId);
       return team;
     } catch (error) {
-      logger.error("Error creating team:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -37,12 +37,14 @@ export class TeamService {
         inviteeEmail
       );
 
+      const acceptUrl = `https://yeebli-e10656.webflow.io/onboarding/accept-team-invitation?code=${invitationId}&token=${teamId}`;
+
       // Send invitation email
       await sendTransactionalEmail(inviteeEmail, "Team Invitation", 1, {
         subject: "Team Invitation",
         title: "You've been invited to join a team",
         subtitle: "Join the team to collaborate",
-        body: `You've been invited to join the "${teamName}" team. Click the link below to accept the invitation.`,
+        body: `You've been invited to join the "${teamName}" team. Click the link below to accept the invitation. ${acceptUrl}`,
       });
 
       return invitationId;
