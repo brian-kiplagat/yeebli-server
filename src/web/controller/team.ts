@@ -77,7 +77,7 @@ export class TeamController {
         invitation,
       });
     } catch (error) {
-      logger.error("Error inviting member:", { error });
+      logger.error(error);
       return serveInternalServerError(c, error);
     }
   };
