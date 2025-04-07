@@ -228,9 +228,9 @@ export class TeamController {
 
       // Format response to include only name, email, phone, and role
       const formattedMembers = members.map((member) => ({
-        name: member.user.name,
-        email: member.user.email,
-        phone: member.user.phone,
+        name: member.user?.name || "Unknown",
+        email: member.user?.email || "Unknown",
+        phone: member.user?.phone || "Unknown",
         role: member.role,
       }));
 
