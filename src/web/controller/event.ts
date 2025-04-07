@@ -209,11 +209,6 @@ export class EventController {
 
   public getEventDates = async (c: Context) => {
     try {
-      const user = await this.getUser(c);
-      if (!user) {
-        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
-      }
-
       const eventId = Number(c.req.param("id"));
       const event = await this.service.getEvent(eventId);
 
