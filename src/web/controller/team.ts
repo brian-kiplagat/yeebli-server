@@ -262,6 +262,36 @@ export class TeamController {
     }
   };
 
+  public getMyTeams = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const teamMembers = await this.service.repo.getUserTeams(user.id);
+
+      // Get team details for each team
+      const teamDetails = await Promise.all(
+        teamMembers.map(async (member) => {
+          const teamInfo = await this.service.repo.getTeamById(member.team_id);
+          return {
+            team_id: member.team_id,
+            team_name: teamInfo?.name || "Unknown Team",
+            role: member.role,
+            created_at: member.created_at,
+            updated_at: member.updated_at,
+          };
+        })
+      );
+
+      return c.json(teamDetails);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
   public revokeAccess = async (c: Context) => {
     try {
       const user = await this.getUser(c);

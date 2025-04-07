@@ -538,7 +538,13 @@ export class Server {
     team.post("/invitations/:id/accept", teamCtrl.acceptInvitation);
     team.post("/invitations/:id/reject", teamCtrl.rejectInvitation);
     team.get("/my-team/members", authCheck, teamCtrl.getMyTeamMembers);
-    team.post("/revoke-access", authCheck, revokeAccessValidator, teamCtrl.revokeAccess);
+    team.get("/my-teams", authCheck, teamCtrl.getMyTeams);
+    team.post(
+      "/revoke-access",
+      authCheck,
+      revokeAccessValidator,
+      teamCtrl.revokeAccess
+    );
 
     api.route("/team", team);
   }
