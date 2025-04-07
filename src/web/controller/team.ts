@@ -143,7 +143,10 @@ export class TeamController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const invitations = await this.service.getMyInvitations(user.email);
+      const invitations = await this.service.getMyInvitations(
+        user.email,
+        "pending"
+      );
 
       // Format the response to include team and inviter information
       const formattedInvitations = invitations.map((invitation) => ({

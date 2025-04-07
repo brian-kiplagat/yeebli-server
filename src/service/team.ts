@@ -59,8 +59,11 @@ export class TeamService {
     return await this.repo.getInvitationsByTeam(teamId);
   }
 
-  public async getMyInvitations(email: string) {
-    return await this.repo.getInvitationsByEmail(email);
+  public async getMyInvitations(
+    email: string,
+    status?: "pending" | "accepted" | "rejected"
+  ) {
+    return await this.repo.getInvitationsByEmail(email, status);
   }
 
   public async acceptInvitation(invitationId: number) {
@@ -84,7 +87,9 @@ export class TeamService {
           "",
           { is_verified: true, subscription_status: "active" }
         );
-        user = await this.userService.findByEmail(invitation.invitee_email) ?? null;
+        user =
+          (await this.userService.findByEmail(invitation.invitee_email)) ??
+          null;
         if (!user) {
           throw new Error("Failed to create or find user");
         }

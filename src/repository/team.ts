@@ -113,9 +113,18 @@ export class TeamRepository {
     });
   }
 
-  public async getInvitationsByEmail(email: string) {
+  public async getInvitationsByEmail(
+    email: string,
+    status?: "pending" | "accepted" | "rejected"
+  ) {
     return await db.query.teamInvitationSchema.findMany({
-      where: (invitation, { eq }) => eq(invitation.invitee_email, email),
+      where: (invitation, { eq, and }) => {
+        const conditions = [eq(invitation.invitee_email, email)];
+        if (status) {
+          conditions.push(eq(invitation.status, status));
+        }
+        return and(...conditions);
+      },
       orderBy: (invitation, { desc }) => desc(invitation.created_at),
       with: {
         team: true,
