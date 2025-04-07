@@ -64,6 +64,7 @@ export class UserService {
      
       return user;
     } catch (error) {
+      console.log(error);
       logger.error("Error creating user:", error);
       throw error;
     }
