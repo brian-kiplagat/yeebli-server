@@ -311,3 +311,34 @@ export const businessRelations = relations(businessSchema, ({ one }) => ({
 
 export type TeamMember = typeof teamMemberSchema.$inferSelect;
 export type NewTeamMember = typeof teamMemberSchema.$inferInsert;
+
+// Define relations
+export const teamRelations = relations(teamSchema, ({ many }) => ({
+  members: many(teamMemberSchema),
+  invitations: many(teamInvitationSchema),
+}));
+
+export const teamMemberRelations = relations(teamMemberSchema, ({ one }) => ({
+  team: one(teamSchema, {
+    fields: [teamMemberSchema.team_id],
+    references: [teamSchema.id],
+  }),
+  user: one(userSchema, {
+    fields: [teamMemberSchema.user_id],
+    references: [userSchema.id],
+  }),
+}));
+
+export const teamInvitationRelations = relations(
+  teamInvitationSchema,
+  ({ one }) => ({
+    team: one(teamSchema, {
+      fields: [teamInvitationSchema.team_id],
+      references: [teamSchema.id],
+    }),
+    inviter: one(userSchema, {
+      fields: [teamInvitationSchema.inviter_id],
+      references: [userSchema.id],
+    }),
+  })
+);

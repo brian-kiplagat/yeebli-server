@@ -144,6 +144,7 @@ export class TeamRepository {
       ),
       with: {
         team: true,
+        user: true,
       },
     });
   }
