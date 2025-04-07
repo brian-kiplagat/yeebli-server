@@ -7,7 +7,6 @@ import type { AssetService } from "./asset.js";
 import { getContentType, extractExtensionfromS3Url } from "../util/string.ts";
 import { TeamService } from "./team.ts";
 
-
 export class BusinessService {
   private repository: BusinessRepository;
   private s3Service: S3Service;
@@ -121,10 +120,13 @@ export class BusinessService {
           businessData
         );
       } else {
-        // Create new business
-        updatedBusiness = await this.repository.create(businessData);
-        //create team
-        await this.teamService.createTeam(business.name, userId);
+        // Create business and team in parallel
+        const [createdBusiness, createdTeam] = await Promise.all([
+          this.repository.create(businessData),
+          this.teamService.createTeam(business.name, userId),
+        ]);
+
+        updatedBusiness = createdBusiness;
       }
 
       // Return business with resolved asset URLs
