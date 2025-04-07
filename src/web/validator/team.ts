@@ -31,7 +31,7 @@ const createTeamValidator = validator("json", (value, c) => {
 
 const revokeAccessSchema = z.object({
   team_id: z.number().int().positive(),
-  user_id: z.number().int().positive(),
+  member_id: z.number().int().positive(),
 });
 
 const revokeAccessValidator = validator("json", (value, c) => {
