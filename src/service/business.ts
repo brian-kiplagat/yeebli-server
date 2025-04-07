@@ -63,9 +63,12 @@ export class BusinessService {
       const asset = await this.assetService.getAsset(business.logo_asset_id);
       if (!asset || !asset.asset_url) return business;
 
+      // Get the team where user is host
+      const team = await this.teamService.getTeamByHostId(userId);
       return {
         ...business,
         logo: asset.asset_url,
+        team: team,
       };
     } catch (error) {
       logger.error("Failed to get business by user:", error);

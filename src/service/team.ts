@@ -125,4 +125,12 @@ export class TeamService {
     await this.repo.updateInvitationStatus(invitationId, "rejected");
     return invitation;
   }
+
+  public async getTeamByUserId(userId: number) {
+    return await this.repo.getTeamByUserId(userId);
+  }
+
+  public async getTeamByHostId(userId: number) {
+    return await this.repo.getTeamByHostId(userId);
+  }
 }

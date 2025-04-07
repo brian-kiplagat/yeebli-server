@@ -6,7 +6,6 @@ import {
 } from "../schema/schema.ts";
 import { db } from "../lib/database.ts";
 
-
 export class TeamRepository {
   public async createTeam(name: string, hostId: number) {
     const [team] = await db
@@ -126,5 +125,26 @@ export class TeamRepository {
       .update(teamInvitationSchema)
       .set({ status, updated_at: new Date() })
       .where(eq(teamInvitationSchema.id, id));
+  }
+
+  public async getTeamByUserId(userId: number) {
+    return await db.query.teamMemberSchema.findMany({
+      where: eq(teamMemberSchema.user_id, userId),
+      with: {
+        team: true,
+      },
+    });
+  }
+
+  public async getTeamByHostId(userId: number) {
+    return await db.query.teamMemberSchema.findFirst({
+      where: and(
+        eq(teamMemberSchema.user_id, userId),
+        eq(teamMemberSchema.role, "host")
+      ),
+      with: {
+        team: true,
+      },
+    });
   }
 }
