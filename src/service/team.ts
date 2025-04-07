@@ -3,6 +3,7 @@ import type { TeamRepository } from "../repository/team.ts";
 import type { UserService } from "./user.ts";
 import { sendTransactionalEmail } from "../task/sendWelcomeEmail.ts";
 import type { TeamMember, User } from "../schema/schema.ts";
+import { generateSecurePassword } from "../util/string.ts";
 
 export class TeamService {
   public repo: TeamRepository;
@@ -74,15 +75,23 @@ export class TeamService {
         (await this.userService.findByEmail(invitation.invitee_email)) ?? null;
       if (!user) {
         // Create user with default password (they'll need to reset it)
+        const tempPassword = generateSecurePassword();
         const newUsers = await this.userService.create(
           invitation.invitee_email.split("@")[0], // Use email prefix as name
           invitation.invitee_email,
-          "temp_password", // User will need to reset this
+          tempPassword, // User will need to reset this
           "user",
           "",
-          { is_verified: false }
+          { is_verified: true, subscription_status: "active" }
         );
         user = newUsers[0] as User;
+        //send transactional email
+        sendTransactionalEmail(user.email, "Temporary Password", 1, {
+          subject: "New account created",
+          title: "Welcome to Yeebli",
+          subtitle: "Change your password",
+          body: `A new account was created with your email ${user.email}. We also created a random temporary password for you. Please change your password immediately after logging in. Your temporary password is ${tempPassword}`,
+        });
       }
 
       if (!user) {
@@ -94,6 +103,13 @@ export class TeamService {
 
       // Update invitation status
       await this.repo.updateInvitationStatus(invitationId, "accepted");
+      // Send welcome email
+      await sendTransactionalEmail(user.email, "Welcome to the team", 1, {
+        subject: "You're officially on the team!",
+        title: "Welcome aboard 🎉",
+        subtitle: "Team invite accepted",
+        body: "You've successfully joined the team. Start collaborating and making things happen with your teammates!",
+      });
 
       return invitation;
     } catch (error) {

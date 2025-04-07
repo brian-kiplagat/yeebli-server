@@ -58,3 +58,26 @@ export const getContentTypeFromS3Url = (url: string): string => {
       return "image/jpeg"; // default to jpeg if unknown
   }
 };
+
+export const generateSecurePassword = (length: number = 6): string => {
+  // Exclude confusing characters like O,0,1,l,I
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#@$";
+  let password = "";
+
+  // Ensure at least one uppercase, one lowercase, one number, and one special char
+  password += chars.match(/[A-Z]/)![0]; // One uppercase
+  password += chars.match(/[a-z]/)![0]; // One lowercase
+  password += chars.match(/[0-9]/)![0]; // One number
+  password += chars.match(/[#@$]/)![0]; // One special char
+
+  // Fill the rest with random chars
+  for (let i = password.length; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  // Shuffle the password to make it more random
+  return password
+    .split("")
+    .sort(() => Math.random() - 0.5)
+    .join("");
+};
