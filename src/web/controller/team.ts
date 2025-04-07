@@ -248,6 +248,7 @@ export class TeamController {
         email: member.user?.email || "Unknown",
         phone: member.user?.phone || "Unknown",
         role: member.role,
+        memberId: member.id,
       }));
 
       return c.json({
