@@ -51,7 +51,7 @@ export class TeamController {
         team,
       });
     } catch (error) {
-      logger.error("Error creating team:", error);
+      logger.error("Error creating team:", { error });
       return serveInternalServerError(c, error);
     }
   };
@@ -63,13 +63,13 @@ export class TeamController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const body: InviteMemberBody = await c.req.json();
-      const { invitee_email } = body;
+      const body = await c.req.json();
+      const { email } = body;
 
       const invitation = await this.service.inviteMember(
         user.id,
         user.id,
-        invitee_email
+        email
       );
 
       return c.json({
@@ -77,7 +77,7 @@ export class TeamController {
         invitation,
       });
     } catch (error) {
-      logger.error("Error inviting member:", error);
+      logger.error("Error inviting member:", { error });
       return serveInternalServerError(c, error);
     }
   };
@@ -93,7 +93,7 @@ export class TeamController {
 
       return c.json(invitations);
     } catch (error) {
-      logger.error("Error getting team invitations:", error);
+      logger.error("Error getting team invitations:", { error });
       return serveInternalServerError(c, error);
     }
   };
@@ -109,7 +109,7 @@ export class TeamController {
 
       return c.json(invitations);
     } catch (error) {
-      logger.error("Error getting my invitations:", error);
+      logger.error("Error getting my invitations:", { error });
       return serveInternalServerError(c, error);
     }
   };
@@ -129,7 +129,7 @@ export class TeamController {
         invitation,
       });
     } catch (error) {
-      logger.error("Error accepting invitation:", error);
+      logger.error("Error accepting invitation:", { error });
       return serveInternalServerError(c, error);
     }
   };
@@ -149,7 +149,7 @@ export class TeamController {
         invitation,
       });
     } catch (error) {
-      logger.error("Error rejecting invitation:", error);
+      logger.error("Error rejecting invitation:", { error });
       return serveInternalServerError(c, error);
     }
   };
