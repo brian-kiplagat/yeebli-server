@@ -245,12 +245,17 @@ export class TeamController {
       }
 
       // Get the team where user is host
-      const team = await this.service.repo.getTeamByHostId(user.id);
-      if (!team) {
+      const teamMember = await this.service.repo.getTeamByHostId(user.id);
+      if (!teamMember) {
         return serveBadRequest(c, "You are not a host of any team");
       }
 
-      const members = await this.service.repo.getTeamMembers(team.team_id);
+      const members = await this.service.repo.getTeamMembers(
+        teamMember.team_id
+      );
+      if (!members) {
+        return serveBadRequest(c, "No members found in your team");
+      }
 
       // Format response to include only name, email, phone, and role
       const formattedMembers = members.map((member) => ({
@@ -261,8 +266,8 @@ export class TeamController {
       }));
 
       return c.json({
-        team_id: team.team_id,
-        team_name: team.team.name,
+        team_id: teamMember.team_id,
+        team_name: teamMember.team.name,
         members: formattedMembers,
       });
     } catch (error) {
