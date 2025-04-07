@@ -59,7 +59,7 @@ export const getContentTypeFromS3Url = (url: string): string => {
   }
 };
 
-export const generateSecurePassword = (length: number = 6): string => {
+export const generateSecurePassword = (length: number = 8): string => {
   // Exclude confusing characters like O,0,1,l,I
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#@$";
   let password = "";

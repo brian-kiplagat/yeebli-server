@@ -80,7 +80,7 @@ export class TeamService {
           invitation.invitee_email.split("@")[0], // Use email prefix as name
           invitation.invitee_email,
           tempPassword, // User will need to reset this
-          "user",
+          "host",
           "",
           { is_verified: true, subscription_status: "active" }
         );
