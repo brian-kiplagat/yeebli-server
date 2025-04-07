@@ -206,37 +206,6 @@ export class TeamController {
     }
   };
 
-  public getTeamMembers = async (c: Context) => {
-    try {
-      const user = await this.getUser(c);
-      if (!user) {
-        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
-      }
-
-      const teamId = Number(c.req.param("id"));
-      if (isNaN(teamId)) {
-        return serveBadRequest(c, "Invalid team ID");
-      }
-
-      const members = await this.service.repo.getTeamMembers(teamId);
-
-      // Format response to include only name, email, phone, and role
-      const formattedMembers = members.map((member) => ({
-        name: member.user.name,
-        email: member.user.email,
-        phone: member.user.phone,
-        role: member.role,
-      }));
-
-      return c.json({
-        members: formattedMembers,
-      });
-    } catch (error) {
-      logger.error(error);
-      return serveInternalServerError(c, error);
-    }
-  };
-
   public getMyTeamMembers = async (c: Context) => {
     try {
       const user = await this.getUser(c);
