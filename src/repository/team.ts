@@ -117,6 +117,15 @@ export class TeamRepository {
     return await db.query.teamInvitationSchema.findMany({
       where: (invitation, { eq }) => eq(invitation.invitee_email, email),
       orderBy: (invitation, { desc }) => desc(invitation.created_at),
+      with: {
+        team: true,
+        inviter: {
+          columns: {
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
   }
 

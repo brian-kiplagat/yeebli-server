@@ -145,7 +145,19 @@ export class TeamController {
 
       const invitations = await this.service.getMyInvitations(user.email);
 
-      return c.json(invitations);
+      // Format the response to include team and inviter information
+      const formattedInvitations = invitations.map((invitation) => ({
+        id: invitation.id,
+        team_id: invitation.team_id,
+        team_name: invitation.team?.name || "Unknown Team",
+        inviter_name: invitation.inviter?.name || "Unknown",
+        inviter_email: invitation.inviter?.email || "Unknown",
+        status: invitation.status,
+        created_at: invitation.created_at,
+        updated_at: invitation.updated_at,
+      }));
+
+      return serveData(c, formattedInvitations);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
