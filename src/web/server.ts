@@ -143,7 +143,7 @@ export class Server {
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
     const stripeService = new StripeService();
-    const userService = new UserService(userRepo, stripeService);
+    const userService = new UserService(userRepo, stripeService, membershipService);
     const subscriptionService = new SubscriptionService(
       subscriptionRepo,
       stripeService,
