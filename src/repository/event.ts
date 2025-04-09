@@ -26,6 +26,10 @@ export class EventRepository {
     return db.insert(eventDates).values(eventDate).$returningId();
   }
 
+  public async updateEventDate(dateId: number, data: { date: string }) {
+    return db.update(eventDates).set(data).where(eq(eventDates.id, dateId));
+  }
+
   public async find(id: number) {
     const result = await db
       .select({

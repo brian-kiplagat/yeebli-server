@@ -260,4 +260,55 @@ export class EventController {
       return serveInternalServerError(c, error);
     }
   };
+
+  public upsertEventDate = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const eventId = Number(c.req.param("id"));
+      const dateId = Number(c.req.param("dateId"));
+      const body = await c.req.json();
+      const { timestamp } = body;
+
+      if (!timestamp) {
+        return serveBadRequest(c, ERRORS.INVALID_DATE);
+      }
+
+      // Get the event details
+      const event = await this.service.getEvent(eventId);
+      if (!event) {
+        return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
+      }
+
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        event.host_id !== user.id
+      ) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
+      }
+
+      // If dateId exists, update it, otherwise create new
+      if (dateId) {
+        const existingDate = await this.service.getEventDate(dateId);
+        if (!existingDate) {
+          return serveNotFound(c, ERRORS.EVENT_DATE_NOT_FOUND);
+        }
+        await this.service.updateEventDate(dateId, { date: timestamp });
+      } else {
+        await this.service.createEventDate({
+          event_id: eventId,
+          date: timestamp,
+        });
+      }
+
+      return c.json({ message: "Event date updated successfully" });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
 }

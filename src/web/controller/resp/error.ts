@@ -47,10 +47,12 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
-  STRIPE_ACCOUNT_ID_NOT_FOUND: "The host has not configured payments, as a result you cannot initiate a payment.",
+  STRIPE_ACCOUNT_ID_NOT_FOUND:
+    "The host has not configured payments, as a result you cannot initiate a payment.",
   LEAD_WITH_TOKEN_NOT_FOUND:
     "Ops, we cant find a lead with this token, please check if you have the correct details",
-  EVENT_DATE_ID_REQUIRED: "If you invite a lead to an event, please also provide an event date.",
+  EVENT_DATE_ID_REQUIRED:
+    "If you invite a lead to an event, please also provide an event date.",
   BUSINESS_NOT_FOUND: "Business not found, please check the business id",
   MEMBERSHIP_NOT_FOUND: "Membership not found, please check the membership id",
   EVENT_DATE_NOT_FOUND: "Event date not found",
@@ -80,7 +82,8 @@ const ERRORS = {
   STRIPE_PAYMENT_METHOD_NOT_ACTIVE: "Stripe payment method is not active",
   ASSET_LINKED_TO_EVENT:
     "This asset has active leads tied to an event. Please cancel the event first then try again.",
-};
+  INVALID_DATE: "Invalid date provided",
+} as const;
 
 const MAIL_CONTENT = {
   PASSWORD_CHANGED_IN_APP: {
@@ -92,20 +95,20 @@ const MAIL_CONTENT = {
   SUBSCRIPTION_CANCELLED: {
     subject: "Your subscription has been cancelled",
     title: "Subscription Cancelled",
-    subtitle: "We’re sorry to see you go!",
-    body: "Your subscription has been successfully cancelled, and access to premium features will be revoked at the end of your billing period. We understand that circumstances change, but we’d love to have you back whenever you’re ready. If you ever wish to return, you can easily re-subscribe from your account settings. In the meantime, if you have any questions or need assistance, feel free to reach out to our support team. Thank you for being a part of Yeebli, and we hope to see you again soon!",
+    subtitle: "We're sorry to see you go!",
+    body: "Your subscription has been successfully cancelled, and access to premium features will be revoked at the end of your billing period. We understand that circumstances change, but we'd love to have you back whenever you're ready. If you ever wish to return, you can easily re-subscribe from your account settings. In the meantime, if you have any questions or need assistance, feel free to reach out to our support team. Thank you for being a part of Yeebli, and we hope to see you again soon!",
   },
   SUBSCRIPTION_ENDED: {
     subject: "Your subscription has ended",
     title: "Subscription Ended",
     subtitle: "Your access to premium features has expired",
-    body: "Your subscription has officially ended, and your access to premium features has been discontinued. We hope you enjoyed your time with Yeebli! If you’d like to continue benefiting from exclusive features, you can renew your subscription anytime by visiting your account settings. We’d love to have you back, and if you need any help re-subscribing or have any questions, don’t hesitate to contact our support team. Thank you for being part of our community!",
+    body: "Your subscription has officially ended, and your access to premium features has been discontinued. We hope you enjoyed your time with Yeebli! If you'd like to continue benefiting from exclusive features, you can renew your subscription anytime by visiting your account settings. We'd love to have you back, and if you need any help re-subscribing or have any questions, don't hesitate to contact our support team. Thank you for being part of our community!",
   },
   SUBSCRIPTION_TRIAL_ENDED: {
     subject: "Your trial has ended",
     title: "Trial Period Expired",
     subtitle: "Upgrade now to continue enjoying premium features!",
-    body: "Your trial period has ended, and access to premium features has been disabled. We hope you had a great experience exploring all that Yeebli has to offer! To continue using our premium features, you can upgrade to a full subscription at any time. Don’t miss out on everything Yeebli provides—seamless access, exclusive tools, and an enhanced user experience. Visit your account now to subscribe and unlock the full potential of our platform!",
+    body: "Your trial period has ended, and access to premium features has been disabled. We hope you had a great experience exploring all that Yeebli has to offer! To continue using our premium features, you can upgrade to a full subscription at any time. Don't miss out on everything Yeebli provides—seamless access, exclusive tools, and an enhanced user experience. Visit your account now to subscribe and unlock the full potential of our platform!",
   },
   SUBSCRIPTION_PAYMENT_FAILED: {
     subject: "Your subscription payment has failed",
@@ -123,7 +126,7 @@ const MAIL_CONTENT = {
     subject: "Your trial has started",
     title: "Welcome to Your Free Trial!",
     subtitle: "Enjoy premium features for a limited time",
-    body: "Your free trial has officially begun! For the duration of your trial period, you’ll have full access to all of Yeebli’s premium features. We encourage you to explore and take advantage of everything our platform has to offer. When your trial ends, you’ll have the opportunity to continue enjoying uninterrupted service by subscribing to one of our plans. If you have any questions during your trial, our support team is here to assist. Enjoy your experience with Yeebli!",
+    body: "Your free trial has officially begun! For the duration of your trial period, you'll have full access to all of Yeebli's premium features. We encourage you to explore and take advantage of everything our platform has to offer. When your trial ends, you'll have the opportunity to continue enjoying uninterrupted service by subscribing to one of our plans. If you have any questions during your trial, our support team is here to assist. Enjoy your experience with Yeebli!",
   },
 };
 

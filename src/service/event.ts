@@ -223,4 +223,12 @@ export class EventService {
   public async getEventDate(dateId: number) {
     return this.repository.findEventDate(dateId);
   }
+
+  public async updateEventDate(dateId: number, data: { date: string }) {
+    return this.repository.updateEventDate(dateId, data);
+  }
+
+  public async createEventDate(data: { event_id: number; date: string }) {
+    return this.repository.createEventDate(data);
+  }
 }

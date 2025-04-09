@@ -348,6 +348,11 @@ export class Server {
     event.get("/:id", eventCtrl.getEvent);
     event.get("/:id/dates", eventCtrl.getEventDates);
     event.delete("/:id/dates/:dateId", authCheck, eventCtrl.deleteEventDate);
+    event.put(
+      "/:id/dates/:dateId",
+      authCheck,
+      eventCtrl.upsertEventDate
+    );
     event.post("/", authCheck, eventValidator, eventCtrl.createEvent);
     event.put("/:id", authCheck, updateEventValidator, eventCtrl.updateEvent);
     event.delete("/:id", authCheck, eventCtrl.deleteEvent);
