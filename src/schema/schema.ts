@@ -265,7 +265,7 @@ export const leadRelations = relations(leadSchema, ({ one }) => ({
     references: [eventSchema.id],
   }),
   membership: one(membershipSchema, {
-    fields: [leadSchema.lead_status],
+    fields: [leadSchema.membership_level],
     references: [membershipSchema.id],
   }),
 }));
