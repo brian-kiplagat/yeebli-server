@@ -3,7 +3,10 @@ import { logger } from "../../lib/logger.js";
 import type { EventService } from "../../service/event.js";
 import type { LeadService } from "../../service/lead.js";
 import type { UserService } from "../../service/user.js";
-import type { UpdateEventBody, UpsertEventDateBody } from "../validator/event.ts";
+import type {
+  UpdateEventBody,
+  UpsertEventDateBody,
+} from "../validator/event.ts";
 import {
   ERRORS,
   serveBadRequest,
@@ -239,6 +242,11 @@ export class EventController {
       if (!event) {
         return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
       }
+      //check if this date exists
+      const date = await this.service.getEventDate(dateId);
+      if (!date) {
+        return serveBadRequest(c, ERRORS.EVENT_DATE_NOT_FOUND);
+      }
 
       // Check if this is the last date
       if (event.dates.length <= 1) {
@@ -298,14 +306,14 @@ export class EventController {
           return serveNotFound(c, ERRORS.EVENT_DATE_NOT_FOUND);
         }
         await this.service.updateEventDate(dateId, { date: timestamp });
+        return c.json({ message: "Event date updated successfully" });
       } else {
         await this.service.createEventDate({
           event_id: eventId,
           date: timestamp,
         });
+        return c.json({ message: "Event date created successfully" });
       }
-
-      return c.json({ message: "Event date updated successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
