@@ -22,6 +22,7 @@ import { MembershipService } from "../../service/membership.ts";
 
 import { StripeService } from "../../service/stripe.ts";
 import env from "../../lib/env.ts";
+import { BookingService } from "../../service/booking.ts";
 
 export class LeadController {
   private service: LeadService;
@@ -30,13 +31,15 @@ export class LeadController {
   private turnstileService: TurnstileService;
   private membershipService: MembershipService;
   private stripeService: StripeService;
+  private bookingService: BookingService;
   constructor(
     service: LeadService,
     userService: UserService,
     eventService: EventService,
     turnstileService: TurnstileService,
     membershipService: MembershipService,
-    stripeService: StripeService
+    stripeService: StripeService,
+    bookingService: BookingService
   ) {
     this.service = service;
     this.userService = userService;
@@ -44,6 +47,7 @@ export class LeadController {
     this.turnstileService = turnstileService;
     this.membershipService = membershipService;
     this.stripeService = stripeService;
+    this.bookingService = bookingService;
   }
 
   private async getUser(c: Context) {
@@ -131,7 +135,15 @@ export class LeadController {
         token,
         membership_level: null,
       });
-      if (lead && body.event_id) {
+      if (lead && body.event_id && body.event_date_id) {
+        //also create a booking for this event
+        const booking = await this.bookingService.create({
+          event_id: body.event_id,
+          date_id: body.event_date_id,
+          lead_id: lead[0].id,
+          passcode: token,
+        });
+        //send confirmation email to the lead
         const event = await this.eventService.getEvent(body.event_id);
         if (event) {
           const eventLink = `${env.FRONTEND_URL}/eventpage?code=${event.id}&token=${token}&email=${body.email}`;
@@ -287,7 +299,16 @@ export class LeadController {
       };
 
       const createdLead = await this.service.create(lead);
-
+      //also create a booking for this event
+      if (validatedData.registered_date && validatedData.event_id) {
+        const booking = await this.bookingService.create({
+          event_id: validatedData.event_id,
+          date_id: Number(validatedData.registered_date),
+          lead_id: createdLead[0].id,
+          passcode: token,
+        });
+      }
+      //send confirmation email to the lead
       const eventLink = `${env.FRONTEND_URL}/eventpage?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
       const bodyText =
         event.event_type == "live_venue"
@@ -311,7 +332,7 @@ export class LeadController {
         {
           success: true,
           message: "Registration successful",
-          leadId: createdLead[0].insertId,
+          leadId: createdLead[0].id,
         },
         201
       );

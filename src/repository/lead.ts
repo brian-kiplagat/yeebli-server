@@ -10,7 +10,7 @@ export interface LeadQuery {
 
 export class LeadRepository {
   public async create(lead: NewLead) {
-    return db.insert(leadSchema).values(lead);
+    return db.insert(leadSchema).values(lead).$returningId();
   }
 
   public async find(id: number) {
