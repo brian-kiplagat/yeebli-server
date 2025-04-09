@@ -52,13 +52,7 @@ export class LeadRepository {
       offset: offset,
       with: {
         event: true,
-        membership: {
-          columns: {
-            id: true,
-            name: true,
-            created_at: true,
-          },
-        },
+        membership: true,
       },
       orderBy: desc(leadSchema.created_at),
     });
@@ -92,13 +86,7 @@ export class LeadRepository {
       offset: offset,
       with: {
         event: true,
-        membership: {
-          columns: {
-            id: true,
-            name: true,
-            created_at: true,
-          },
-        },
+        membership: true,
       },
       orderBy: desc(leadSchema.created_at),
     });
