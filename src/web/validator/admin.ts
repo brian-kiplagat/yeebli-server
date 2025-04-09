@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const adminUserQuerySchema = z.object({
   page: z.coerce.number().optional().default(1),
   limit: z.coerce.number().optional().default(10),
-  role: z.enum(['master', 'owner', 'host', 'user']).optional(),
+  role: z.enum(['master', 'owner', 'host',]).optional(),
   search: z.string().optional(),
 });
 
@@ -41,7 +41,7 @@ export const adminUpdateUserSchema = z
     name: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().email().optional(),
-    role: z.enum(['master', 'owner', 'host', 'user']).optional(),
+    role: z.enum(['master', 'owner', 'host']).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update',
@@ -50,7 +50,7 @@ export const adminUpdateUserSchema = z
 export const adminCreateUserSchema = z.object({
   name: z.string(),
   email: z.string().email(),
-  role: z.enum(['master', 'owner', 'host', 'user']),
+  role: z.enum(['master', 'owner', 'host']),
   phone: z.string(),
 });
 

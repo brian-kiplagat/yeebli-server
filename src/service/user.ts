@@ -28,7 +28,7 @@ export class UserService {
     name: string,
     email: string,
     password: string,
-    role: "master" | "owner" | "host" | "user",
+    role: "master" | "owner" | "host",
     phone: string,
     additionalFields: Partial<User> = {}
   ) {

@@ -39,7 +39,7 @@ export const userSchema = mysqlTable("user", {
   email_token: varchar("email_token", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  role: mysqlEnum("role", ["master", "owner", "host", "user"]).default("user"),
+  role: mysqlEnum("role", ["master", "owner", "host"]).default("host"),
   profile_picture: text("profile_picture"),
   bio: varchar("bio", { length: 255 }),
   custom_id: varchar("custom_id", { length: 255 }),
