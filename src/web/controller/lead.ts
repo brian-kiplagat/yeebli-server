@@ -105,8 +105,12 @@ export class LeadController {
           membership: membership,
         });
       }
-
-      return c.json(lead);
+      //get bookings by lead id
+      const bookings = await this.bookingService.findByLeadId(lead.id);
+      return c.json({
+        ...lead,
+        bookings: bookings,
+      });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

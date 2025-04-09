@@ -342,3 +342,18 @@ export const teamInvitationRelations = relations(
     }),
   })
 );
+
+export const bookingRelations = relations(bookings, ({ one }) => ({
+  event: one(eventSchema, {
+    fields: [bookings.event_id],
+    references: [eventSchema.id],
+  }),
+  date: one(eventDates, {
+    fields: [bookings.date_id],
+    references: [eventDates.id],
+  }),
+  lead: one(leadSchema, {
+    fields: [bookings.lead_id],
+    references: [leadSchema.id],
+  }),
+}));
