@@ -1,3 +1,79 @@
+type DateFormat =
+  | "YYYY DD MM HH:mm" // 2025 18 03 14:30
+  | "YYYY-DD-MM HH:mm" // 2025-18-03 14:30
+  | "YYYY/DD/MM HH:mm" // 2025/18/03 14:30
+  | "YYYY.DD.MM HH:mm" // 2025.18.03 14:30
+  | "YYYY DD MM | HH:mm" // 2025 18 03 | 14:30
+  | "YYYY_DD_MM_HHmm" // 2025_18_03_14_30
+  | "YYYYDDMM HHmm" // 20251803 1430
+  | "YYYY DD MMM HH:mm" // 2025 18 Mar 14:30
+  | "YYYY-MMMM-DD HH:mm" // 2025-March-18 14:30
+  | "DD-MM-YYYY HH:mm" // 18-03-2025 14:30
+  | "DD MMM YYYY HH:mm" // 18 Mar 2025 13:28
+  | "DD MMM HH:mm"; // 18 Mar 14:30
+
+export const formatDate = (
+  date: string | Date,
+  format: DateFormat = "YYYY DD MM HH:mm"
+): string => {
+  const d = new Date(date);
+
+  // Convert UTC to local time if the date is in UTC (has 'Z' suffix)
+  if (typeof date === "string" && date.endsWith("Z")) {
+    d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+  }
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const fullMonthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const replacements: Record<string, string> = {
+    YYYY: year.toString(),
+    DD: day,
+    MM: month,
+    MMM: monthNames[d.getMonth()],
+    MMMM: fullMonthNames[d.getMonth()],
+    HH: hours,
+    mm: minutes,
+  };
+
+  return format.replace(
+    /YYYY|DD|MMM|MM|MMMM|HH|mm/g,
+    (match) => replacements[match] || match
+  );
+};
+
 export const randomString = (len: number) => {
   let text = "";
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

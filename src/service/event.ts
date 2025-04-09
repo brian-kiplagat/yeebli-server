@@ -2,6 +2,7 @@ import { logger } from "../lib/logger.js";
 import type { EventQuery, EventRepository } from "../repository/event.ts";
 import type { Asset, Booking, Event, NewEvent } from "../schema/schema.js";
 import { sendTransactionalEmail } from "../task/sendWelcomeEmail.js";
+import { formatDate } from "../util/string.ts";
 import type { LeadService } from "./lead.ts";
 import type { S3Service } from "./s3.js";
 
@@ -205,10 +206,10 @@ export class EventService {
             lead.name,
             1, // Use appropriate template ID
             {
-              subject: "Event Date Cancelled",
-              title: "Event Date Cancelled",
-              subtitle: `The event "${event.event.event_name}" has been cancelled for ${date.date}`,
-              body: `We regret to inform you that the event "${event.event.event_name}" scheduled for ${date.date} has been cancelled.`,
+              subject: "Event Cancelled",
+              title: "Event Cancelled",
+              subtitle: `The event "${event.event.event_name}" has been cancelled.`,
+              body: `We regret to inform you that the event "${event.event.event_name}" scheduled for ${formatDate(date.date, "YYYY DD MMM HH:mm")} has been cancelled by the host. We shall let you know if the event is rescheduled.`,
             }
           );
         }
