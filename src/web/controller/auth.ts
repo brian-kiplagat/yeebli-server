@@ -32,6 +32,7 @@ import type { S3Service } from "../../service/s3.js";
 import type { AssetService } from "../../service/asset.js";
 import { getContentType } from "../../util/string.ts";
 import { UserRepository } from "../../repository/user.js";
+import env from "../../lib/env.js";
 export class AuthController {
   private service: UserService;
   private businessService: BusinessService;
@@ -214,8 +215,8 @@ export class AuthController {
         subject: "Reset password",
         title: "Reset password",
         subtitle: `${token}`,
-        body: `Please click this link to reset your password: https://yeebli-e10656.webflow.io/onboarding/reset?token=${token}&email=${user.email}`,
-        cta_url: `https://yeebli-e10656.webflow.io/onboarding/reset?token=${token}&email=${user.email}`,
+        body: `Please click this link to reset your password: ${env.FRONTEND_URL}/onboarding/reset?token=${token}&email=${user.email}`,
+        cta_url: `${env.FRONTEND_URL}/onboarding/reset?token=${token}&email=${user.email}`,
       });
       return serveData(c, {
         success: true,

@@ -10,6 +10,7 @@ import {
   serveInternalServerError,
   serveNotFound,
 } from "./resp/error.js";
+import env from "../../lib/env.js";
 export class EventController {
   private service: EventService;
   private userService: UserService;
@@ -95,7 +96,7 @@ export class EventController {
       return c.json(
         {
           message: "Event created successfully",
-          link: `https://yeebli-e10656.webflow.io/eventpage?code=${eventId[0].id}`,
+          link: `${env.FRONTEND_URL}/eventpage?code=${eventId[0].id}`,
           eventId: eventId[0].id,
         },
         201

@@ -4,6 +4,7 @@ import type { UserService } from "./user.ts";
 import { sendTransactionalEmail } from "../task/sendWelcomeEmail.ts";
 import type { TeamMember, User } from "../schema/schema.ts";
 import { generateSecurePassword } from "../util/string.ts";
+import env from "../lib/env.ts";
 
 export class TeamService {
   public repo: TeamRepository;
@@ -38,7 +39,7 @@ export class TeamService {
         inviteeEmail
       );
 
-      const acceptUrl = `https://yeebli-e10656.webflow.io/onboarding/accept-team-invitation?code=${invitationId}&token=${teamId}&action=${teamName}`;
+      const acceptUrl = `${env.FRONTEND_URL}/onboarding/accept-team-invitation?code=${invitationId}&token=${teamId}&action=${teamName}`;
 
       // Send invitation email
       await sendTransactionalEmail(inviteeEmail, "Team Invitation", 1, {

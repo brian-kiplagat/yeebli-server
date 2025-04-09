@@ -28,6 +28,7 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_CALLBACK_URL: z.string(),
   GOOGLE_REDIRECT_URL: z.string(),
+  FRONTEND_URL: z.string(),
 });
 
 export default envSchema.parse(process.env);
