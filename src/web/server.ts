@@ -344,7 +344,7 @@ export class Server {
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     event.get("/", authCheck, eventQueryValidator, eventCtrl.getEvents);
-    event.get("/:id", authCheck, eventCtrl.getEvent);
+    event.get("/:id", eventCtrl.getEvent);
     event.get("/:id/dates", eventCtrl.getEventDates);
     event.delete("/:id/dates/:dateId", authCheck, eventCtrl.deleteEventDate);
     event.post("/", authCheck, eventValidator, eventCtrl.createEvent);
