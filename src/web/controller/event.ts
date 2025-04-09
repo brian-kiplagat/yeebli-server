@@ -3,7 +3,7 @@ import { logger } from "../../lib/logger.js";
 import type { EventService } from "../../service/event.js";
 import type { LeadService } from "../../service/lead.js";
 import type { UserService } from "../../service/user.js";
-import type { UpdateEventBody } from "../validator/event.ts";
+import type { UpdateEventBody, UpsertEventDateBody } from "../validator/event.ts";
 import {
   ERRORS,
   serveBadRequest,
@@ -270,7 +270,7 @@ export class EventController {
 
       const eventId = Number(c.req.param("id"));
       const dateId = Number(c.req.param("dateId"));
-      const body = await c.req.json();
+      const body: UpsertEventDateBody = await c.req.json();
       const { timestamp } = body;
 
       if (!timestamp) {

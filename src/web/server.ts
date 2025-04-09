@@ -51,6 +51,7 @@ import {
   cancelEventValidator,
   eventValidator,
   updateEventValidator,
+  upsertEventDateValidator,
 } from "./validator/event.ts";
 import { eventQueryValidator } from "./validator/event.ts";
 import { hlsUploadValidator } from "./validator/hls.ts";
@@ -347,10 +348,11 @@ export class Server {
     event.get("/", authCheck, eventQueryValidator, eventCtrl.getEvents);
     event.get("/:id", eventCtrl.getEvent);
     event.get("/:id/dates", eventCtrl.getEventDates);
-    event.delete("/:id/dates/:dateId", authCheck, eventCtrl.deleteEventDate);
+    event.delete("/:id/dates/:dateId", authCheck,  eventCtrl.deleteEventDate);
     event.put(
       "/:id/dates/:dateId",
       authCheck,
+      upsertEventDateValidator,
       eventCtrl.upsertEventDate
     );
     event.post("/", authCheck, eventValidator, eventCtrl.createEvent);
