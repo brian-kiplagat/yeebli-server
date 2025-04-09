@@ -218,4 +218,8 @@ export class EventService {
     // Delete the event date
     await this.repository.deleteEventDate(dateId);
   }
+
+  public async getEventDate(dateId: number) {
+    return this.repository.findEventDate(dateId);
+  }
 }

@@ -182,6 +182,11 @@ export class EventController {
       if (!event) {
         return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
       }
+      //check if the date id exists
+      const date = await this.service.getEventDate(eventId);
+      if (!date) {
+        return serveBadRequest(c, ERRORS.EVENT_DATE_NOT_FOUND);
+      }
       //only and master role or admin or the owner of the lead
       if (
         user.role !== "master" &&
