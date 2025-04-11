@@ -47,6 +47,7 @@ export class EventRepository {
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
       .leftJoin(bookings, eq(eventSchema.id, bookings.event_id))
       .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
+      .leftJoin(memberships, eq(eventSchema.membership_id, memberships.id))
       .where(eq(eventSchema.id, id))
       .limit(1);
     //Then, get all dates for these events in a single query
