@@ -199,12 +199,21 @@ export class LeadController {
         if (!host) {
           return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
         }
+        let successUrl = "";
+
+        if (event.event_type == "live_venue") {
+          successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
+        } else if (event.event_type == "live_video_call") {
+          successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
+        } else if (event.event_type == "prerecorded") {
+          successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
+        }
 
         if (host.stripe_account_id) {
           const checkoutSession =
             await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
               mode: "payment",
-              success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
+              success_url: successUrl,
               cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
               hostStripeAccountId: host.stripe_account_id,
               price: event.membership.price,
