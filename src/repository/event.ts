@@ -70,38 +70,34 @@ export class EventRepository {
         )
       : undefined;
 
-    // First, get all events with their basic info
     const events = await db
       .select({
         event: eventSchema,
         asset: assetsSchema,
+        membership: memberships,
         host: {
           name: userSchema.name,
           email: userSchema.email,
           profile_image: userSchema.profile_picture,
         },
+        dates: eventDates,
       })
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
+      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
+      .leftJoin(memberships, eq(eventSchema.membership_id, memberships.id))
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(eventSchema.created_at));
-
-    // Then, get all dates for these events in a single query
-    const eventIds = events.map((e) => e.event.id);
-    const dates = await db
-      .select()
-      .from(eventDates)
-      .where(inArray(eventDates.event_id, eventIds));
 
     const total = await db
       .select({ count: eventSchema.id })
       .from(eventSchema)
       .where(whereConditions);
 
-    return { events, dates, total: total.length };
+    return { events, total: total.length };
   }
 
   public async findByUserId(userId: number, query?: EventQuery) {
@@ -118,7 +114,6 @@ export class EventRepository {
         )
       : eq(eventSchema.host_id, userId);
 
-    // First, get all events with their basic info
     const events = await db
       .select({
         event: eventSchema,
@@ -129,29 +124,24 @@ export class EventRepository {
           email: userSchema.email,
           profile_image: userSchema.profile_picture,
         },
+        dates: eventDates,
       })
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
       .leftJoin(memberships, eq(eventSchema.membership_id, memberships.id))
+      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(eventSchema.created_at));
-
-    // Then, get all dates for these events in a single query
-    const eventIds = events.map((e) => e.event.id);
-    const dates = await db
-      .select()
-      .from(eventDates)
-      .where(inArray(eventDates.event_id, eventIds));
 
     const total = await db
       .select({ count: eventSchema.id })
       .from(eventSchema)
       .where(whereConditions);
 
-    return { events, dates, total: total.length };
+    return { events, total: total.length };
   }
 
   public async update(id: number, event: Partial<Event>) {

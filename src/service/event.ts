@@ -41,6 +41,13 @@ type EventWithRelations = {
     price: number;
     payment_type: "one_off" | "recurring" | null;
   } | null;
+  dates: {
+    id: number;
+    event_id: number;
+    date: string;
+    created_at: Date | null;
+    updated_at: Date | null;
+  } | null;
 };
 
 export class EventService {
