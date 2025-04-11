@@ -180,6 +180,7 @@ export class LeadController {
       if (!event) {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
+
       const lead = await this.service.findByEventIdAndToken(
         body.event_id,
         body.token
@@ -187,9 +188,43 @@ export class LeadController {
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
       }
+
+      // If event has membership requirement and lead hasn't paid
+      if (event.membership && !lead.membership_active) {
+        const host = await this.userService.find(lead.host_id);
+        if (!host) {
+          return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+        }
+
+        if (host.stripe_account_id) {
+          const checkoutSession =
+            await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
+              mode: "payment",
+              success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
+              cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+              hostStripeAccountId: host.stripe_account_id,
+              price: event.membership.price,
+              eventName: event.event_name,
+              membershipName: event.membership.name,
+              membershipId: String(event.membership.id),
+            });
+
+          return c.json({
+            isAllowed: false,
+            message: "Payment required to access this event",
+            name: lead.name,
+            email: lead.email,
+            phone: lead.phone,
+            id: lead.id,
+            checkoutSession: checkoutSession,
+          });
+        }
+      }
+
+      // If no payment required or payment already made
       return c.json({
         isAllowed: true,
-        message: "Event link is valid",
+        message: "Access granted",
         name: lead.name,
         email: lead.email,
         phone: lead.phone,
