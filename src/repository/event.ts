@@ -55,18 +55,8 @@ export class EventRepository {
 
     // Get membership information for lead levels
     const event = result[0].event;
-    const leadLevels = event.lead_level as string[];
-    const membershipDetails = await db
-      .select()
-      .from(memberships)
-      .where(
-        inArray(
-          memberships.id,
-          leadLevels.map((id) => Number(id))
-        )
-      );
 
-    return { ...result[0], dates: dates, memberships: membershipDetails };
+    return { ...result[0], dates: dates };
   }
 
   public async findAll(query?: EventQuery) {
@@ -106,43 +96,12 @@ export class EventRepository {
       .from(eventDates)
       .where(inArray(eventDates.event_id, eventIds));
 
-    // Get all unique lead level IDs across all events
-    const allLeadLevels = events.flatMap((e) => e.event.lead_level as string[]);
-    const uniqueLeadLevels = [...new Set(allLeadLevels)].map((id) =>
-      Number(id)
-    );
-
-    // Get membership information for all lead levels
-    const membershipDetails = await db
-      .select()
-      .from(memberships)
-      .where(inArray(memberships.id, uniqueLeadLevels));
-
-    // Create a map of membership ID to membership details
-    const membershipMap = new Map(
-      membershipDetails.map((m) => [m.id.toString(), m])
-    );
-
-    // Combine events with their dates and memberships
-    const eventsWithDates = events.map((event) => {
-      const eventLeadLevels = event.event.lead_level as string[];
-      const eventMemberships = eventLeadLevels
-        .map((id) => membershipMap.get(id))
-        .filter(Boolean);
-
-      return {
-        ...event,
-        dates: dates.filter((d) => d.event_id === event.event.id),
-        memberships: eventMemberships,
-      };
-    });
-
     const total = await db
       .select({ count: eventSchema.id })
       .from(eventSchema)
       .where(whereConditions);
 
-    return { events: eventsWithDates, total: total.length };
+    return { events, dates, total: total.length };
   }
 
   public async findByUserId(userId: number, query?: EventQuery) {
@@ -164,6 +123,7 @@ export class EventRepository {
       .select({
         event: eventSchema,
         asset: assetsSchema,
+        membership: memberships,
         host: {
           name: userSchema.name,
           email: userSchema.email,
@@ -173,6 +133,7 @@ export class EventRepository {
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
+      .leftJoin(memberships, eq(eventSchema.membership_id, memberships.id))
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
@@ -185,43 +146,12 @@ export class EventRepository {
       .from(eventDates)
       .where(inArray(eventDates.event_id, eventIds));
 
-    // Get all unique lead level IDs across all events
-    const allLeadLevels = events.flatMap((e) => e.event.lead_level as string[]);
-    const uniqueLeadLevels = [...new Set(allLeadLevels)].map((id) =>
-      Number(id)
-    );
-
-    // Get membership information for all lead levels
-    const membershipDetails = await db
-      .select()
-      .from(memberships)
-      .where(inArray(memberships.id, uniqueLeadLevels));
-
-    // Create a map of membership ID to membership details
-    const membershipMap = new Map(
-      membershipDetails.map((m) => [m.id.toString(), m])
-    );
-
-    // Combine events with their dates and memberships
-    const eventsWithDates = events.map((event) => {
-      const eventLeadLevels = event.event.lead_level as string[];
-      const eventMemberships = eventLeadLevels
-        .map((id) => membershipMap.get(id))
-        .filter(Boolean);
-
-      return {
-        ...event,
-        dates: dates.filter((d) => d.event_id === event.event.id),
-        memberships: eventMemberships,
-      };
-    });
-
     const total = await db
       .select({ count: eventSchema.id })
       .from(eventSchema)
       .where(whereConditions);
 
-    return { events: eventsWithDates, total: total.length };
+    return { events, dates, total: total.length };
   }
 
   public async update(id: number, event: Partial<Event>) {

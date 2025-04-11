@@ -21,16 +21,6 @@ type EventWithAsset = Event & {
     created_at: Date | null;
     updated_at: Date | null;
   }>;
-  memberships: Array<{
-    id: number;
-    name: string;
-    created_at: Date | null;
-    updated_at: Date | null;
-    user_id: number;
-    description: string | null;
-    price: number;
-    payment_type: "one_off" | "recurring" | null;
-  }>;
 };
 
 type EventWithRelations = {
@@ -41,13 +31,16 @@ type EventWithRelations = {
     email: string;
     profile_image: string | null;
   } | null;
-  dates: Array<{
+  membership?: {
     id: number;
-    event_id: number;
-    date: string;
+    name: string;
     created_at: Date | null;
     updated_at: Date | null;
-  }>;
+    user_id: number;
+    description: string | null;
+    price: number;
+    payment_type: "one_off" | "recurring" | null;
+  } | null;
 };
 
 export class EventService {
@@ -93,7 +86,7 @@ export class EventService {
     const result = await this.repository.find(id);
     if (!result) return undefined;
 
-    const { event, asset, host, dates, memberships } = result;
+    const { event, asset, host, dates } = result;
 
     // Get lead count for this event
     const leads = await this.leadService.findByEventId(event.id);
@@ -114,7 +107,6 @@ export class EventService {
         host,
         leadCount,
         dates,
-        memberships,
       };
     }
 
@@ -124,7 +116,6 @@ export class EventService {
       host,
       leadCount,
       dates,
-      memberships,
     };
   }
 
