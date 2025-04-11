@@ -103,7 +103,7 @@ export class EventService {
     const result = await this.repository.find(id);
     if (!result) return undefined;
 
-    const { event, asset, host, dates } = result;
+    const { event, asset, host, dates, membership } = result;
 
     // Get lead count for this event
     const leads = await this.leadService.findByEventId(event.id);
@@ -124,6 +124,7 @@ export class EventService {
         host,
         leadCount,
         dates,
+        membership,
       };
     }
 
@@ -133,6 +134,7 @@ export class EventService {
       host,
       leadCount,
       dates,
+      membership,
     };
   }
 
