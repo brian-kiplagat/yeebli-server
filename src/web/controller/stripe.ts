@@ -360,10 +360,10 @@ export class StripeController {
             if (lead.email && lead.name) {
               //send welcome email
               sendTransactionalEmail(String(lead.email), String(lead.name), 1, {
-                subject: "Welcome to the club",
-                title: "Welcome to the club",
-                subtitle: "You are now a member of the club",
-                body: "You are now a member of the club. If you have any questions, please contact support immediately.",
+                subject: "Your Ticket is Confirmed 🎉",
+                title: "You're All Set for the Event!",
+                subtitle: String(lead.token),
+                body: "We're thrilled to let you know that your ticket has been successfully confirmed! You’re now officially part of the experience, and we can’t wait to see you at the event. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.",
               });
             }
           }
