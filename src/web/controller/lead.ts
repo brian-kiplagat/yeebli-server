@@ -150,7 +150,7 @@ export class LeadController {
         //send confirmation email to the lead
         const event = await this.eventService.getEvent(body.event_id);
         if (event) {
-          const eventLink = `${env.FRONTEND_URL}/eventpage?code=${event.id}&token=${token}&email=${body.email}`;
+          const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${body.email}`;
           const bodyText =
             event.event_type == "live_venue"
               ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time and enjoy the experience in person. If you have any questions or need more details, feel free to visit our website: ${eventLink}. To access the event, please use this passcode: ${token}. We look forward to seeing you there!`
@@ -313,7 +313,7 @@ export class LeadController {
         });
       }
       //send confirmation email to the lead
-      const eventLink = `${env.FRONTEND_URL}/eventpage?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+      const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
       const bodyText =
         event.event_type == "live_venue"
           ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time and enjoy the experience in person. If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
@@ -380,8 +380,8 @@ export class LeadController {
       const checkoutSession =
         await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
           mode: "payment",
-          success_url: `${env.FRONTEND_URL}/eventpage?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
-          cancel_url: `${env.FRONTEND_URL}/eventpage?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+          success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
+          cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
           hostStripeAccountId: host.stripe_account_id,
           price: membership.price,
           eventName: event.event_name,

@@ -99,7 +99,7 @@ export class EventController {
       return c.json(
         {
           message: "Event created successfully",
-          link: `${env.FRONTEND_URL}/eventpage?code=${eventId[0].id}`,
+          link: `${env.FRONTEND_URL}/events/event?code=${eventId[0].id}`,
           eventId: eventId[0].id,
         },
         201
