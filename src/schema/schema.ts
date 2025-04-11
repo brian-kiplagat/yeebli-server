@@ -148,7 +148,9 @@ export const eventSchema = mysqlTable("events", {
   landing_page_url: text("landing_page_url"),
   live_venue_address: text("live_venue_address"),
   dates: json("dates"),
-  lead_level: json("lead_level"),
+  membership_id: int("membership_id")
+    .references(() => memberships.id)
+    .notNull(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   host_id: int("host_id")
     .references(() => userSchema.id)

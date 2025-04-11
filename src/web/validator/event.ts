@@ -10,7 +10,7 @@ const eventSchema = z.object({
   asset_id: z.number(),
   event_type: z.enum(["live_venue", "prerecorded", "live_video_call"]),
   status: z.enum(["active", "suspended", "cancelled"]),
-  lead_level: z.array(z.string()),
+  membership_id: z.number(),
   live_video_url: z.string().optional(),
   live_venue_address: z.string().optional(),
   success_url: z.string().optional(),
@@ -42,8 +42,10 @@ export const upsertEventDateValidator = zValidator(
   "json",
   upsertEventDateSchema
 );
+
 export const eventQueryValidator = zValidator("query", eventQuerySchema);
 export type UpsertEventDateBody = z.infer<typeof upsertEventDateSchema>;
 export type EventQuery = z.infer<typeof eventQuerySchema>;
 export type UpdateEventBody = z.infer<typeof updateEventSchema>;
 export type CancelEventBody = z.infer<typeof cancelEventSchema>;
+export type CreateEventBody = z.infer<typeof eventSchema>;

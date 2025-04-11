@@ -4,6 +4,7 @@ import type { EventService } from "../../service/event.js";
 import type { LeadService } from "../../service/lead.js";
 import type { UserService } from "../../service/user.js";
 import type {
+  CreateEventBody,
   UpdateEventBody,
   UpsertEventDateBody,
 } from "../validator/event.ts";
@@ -87,7 +88,7 @@ export class EventController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      const body = await c.req.json();
+      const body: CreateEventBody = await c.req.json();
       if (!body.dates || body.dates.length < 1) {
         return serveBadRequest(c, ERRORS.EVENT_DATE_REQUIRED);
       }
