@@ -190,7 +190,11 @@ export class LeadController {
       }
 
       // If event has membership requirement and lead hasn't paid
-      if (event.membership && !lead.membership_active) {
+      if (
+        event.membership &&
+        !lead.membership_active &&
+        event.membership.name.trim() != "Free"
+      ) {
         const host = await this.userService.find(lead.host_id);
         if (!host) {
           return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
