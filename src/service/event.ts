@@ -21,6 +21,16 @@ type EventWithAsset = Event & {
     created_at: Date | null;
     updated_at: Date | null;
   }>;
+  membership?: {
+    id: number;
+    name: string;
+    created_at: Date | null;
+    updated_at: Date | null;
+    user_id: number;
+    description: string | null;
+    price: number;
+    payment_type: "one_off" | "recurring" | null;
+  } | null;
 };
 
 type EventWithRelations = {
