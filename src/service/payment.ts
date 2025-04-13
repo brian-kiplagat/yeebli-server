@@ -3,7 +3,10 @@ import type { Payment, NewPayment } from "../schema/schema.js";
 import { logger } from "../lib/logger.js";
 
 export class PaymentService {
-  constructor(private paymentRepo: PaymentRepository) {}
+  private paymentRepo: PaymentRepository;
+  constructor(paymentRepo: PaymentRepository) {
+    this.paymentRepo = paymentRepo;
+  }
 
   public async createPayment(payment: NewPayment) {
     try {
