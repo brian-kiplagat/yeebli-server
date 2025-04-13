@@ -171,21 +171,19 @@ export class LeadController {
               // Convert the timestamp string to a number and then to a Date
               const timestamp = parseInt(date.date, 10);
               if (!isNaN(timestamp)) {
-                eventDate = formatDate(
-                  new Date(timestamp * 1000),
-                  "UK_FULL"
-                );
+                eventDate = formatDate(new Date(timestamp * 1000), "UK_FULL");
               }
             }
           }
+          const paid_event = event.membership ? true : false;
           //send confirmation email to the lead
           const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${body.email}`;
           const bodyText =
             event.event_type == "live_venue"
-              ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person. If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
+              ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
               : event.event_type == "live_video_call"
-                ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}. If you need more information, you can check our website here: ${eventLink}.`
-                : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space. Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
+                ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} If you need more information, you can check our website here: ${eventLink}.`
+                : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
 
           sendTransactionalEmail(body.email, body.name, 1, {
             subject: `${event.event_name}`,
@@ -436,21 +434,19 @@ export class LeadController {
           // Convert the timestamp string to a number and then to a Date
           const timestamp = parseInt(date.date, 10);
           if (!isNaN(timestamp)) {
-            eventDate = formatDate(
-              new Date(timestamp * 1000),
-              "UK_FULL"
-            );
+            eventDate = formatDate(new Date(timestamp * 1000), "UK_FULL");
           }
         }
       }
       //send confirmation email to the lead
       const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+      const paid_event = event.membership ? true : false;
       const bodyText =
         event.event_type == "live_venue"
-          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person. If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
+          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
           : event.event_type == "live_video_call"
-            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}. If you need more information, you can check our website here: ${eventLink}.`
-            : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space. Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
+            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} If you need more information, you can check our website here: ${eventLink}.`
+            : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
 
       sendTransactionalEmail(
         validatedData.lead_form_email,
