@@ -1,32 +1,21 @@
-import { and, desc, eq, like } from "drizzle-orm";
-import { db } from "../lib/database.js";
-import { businessSchema } from "../schema/schema.js";
-import type { BusinessQuery } from "../web/validator/business.ts";
+import { and, desc, eq, like } from 'drizzle-orm';
+import { db } from '../lib/database.js';
+import { businessSchema } from '../schema/schema.js';
+import type { BusinessQuery } from '../web/validator/business.ts';
 
 export class BusinessRepository {
   async create(business: typeof businessSchema.$inferInsert) {
-    const result = await db
-      .insert(businessSchema)
-      .values(business)
-      .$returningId();
+    const result = await db.insert(businessSchema).values(business).$returningId();
     return await this.findById(result[0].id);
   }
 
   async findById(id: number) {
-    const result = await db
-      .select()
-      .from(businessSchema)
-      .where(eq(businessSchema.id, id))
-      .limit(1);
+    const result = await db.select().from(businessSchema).where(eq(businessSchema.id, id)).limit(1);
     return result[0];
   }
 
   async findByUserId(userId: number) {
-    const result = await db
-      .select()
-      .from(businessSchema)
-      .where(eq(businessSchema.user_id, userId))
-      .limit(1);
+    const result = await db.select().from(businessSchema).where(eq(businessSchema.user_id, userId)).limit(1);
     return result[0];
   }
 
@@ -55,14 +44,8 @@ export class BusinessRepository {
     return { businesses, total: total.length };
   }
 
-  async update(
-    id: number,
-    business: Partial<typeof businessSchema.$inferSelect>
-  ) {
-    await db
-      .update(businessSchema)
-      .set(business)
-      .where(eq(businessSchema.id, id));
+  async update(id: number, business: Partial<typeof businessSchema.$inferSelect>) {
+    await db.update(businessSchema).set(business).where(eq(businessSchema.id, id));
     return await this.findById(id);
   }
 }

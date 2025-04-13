@@ -1,10 +1,10 @@
-import { and, desc, eq, like } from "drizzle-orm";
-import { db } from "../lib/database.js";
-import type { AssetRepository } from "../repository/asset.js";
-import type { Asset, NewAsset } from "../schema/schema.js";
-import { assetsSchema } from "../schema/schema.js";
-import type { AssetQuery } from "../web/validator/asset.js";
-import type { S3Service } from "./s3.js";
+import { and, desc, eq, like } from 'drizzle-orm';
+import { db } from '../lib/database.js';
+import type { AssetRepository } from '../repository/asset.js';
+import type { Asset, NewAsset } from '../schema/schema.js';
+import { assetsSchema } from '../schema/schema.js';
+import type { AssetQuery } from '../web/validator/asset.js';
+import type { S3Service } from './s3.js';
 
 export class AssetService {
   private repository: AssetRepository;
@@ -19,10 +19,10 @@ export class AssetService {
     userId: number,
     fileName: string,
     contentType: string,
-    assetType: "image" | "video" | "audio" | "document" | "profile_picture",
+    assetType: 'image' | 'video' | 'audio' | 'document' | 'profile_picture',
     fileSize: number,
     duration: number,
-    buffer?: Buffer
+    buffer?: Buffer,
   ) {
     // Generate a unique key for the file with consistent folder structure
     const key = `assets/${assetType}s/${Date.now()}-${fileName}`;
@@ -31,19 +31,11 @@ export class AssetService {
     let presignedUrl: string;
     if (buffer) {
       // If buffer is provided, upload the file
-      url = await this.s3Service.uploadFile(
-        key,
-        buffer,
-        contentType,
-        assetType
-      );
+      url = await this.s3Service.uploadFile(key, buffer, contentType, assetType);
       presignedUrl = url;
     } else {
       // Otherwise, just generate a presigned URL for client upload
-      const result = await this.s3Service.generatePresignedUrl(
-        key,
-        contentType
-      );
+      const result = await this.s3Service.generatePresignedUrl(key, contentType);
       url = result.url; // Store the permanent URL in the database
       presignedUrl = result.presignedUrl;
     }
@@ -78,14 +70,14 @@ export class AssetService {
         const presignedUrl = await this.s3Service.generateGetUrl(
           this.getKeyFromUrl(asset.asset_url),
           this.getContentType(asset),
-          86400
+          86400,
         );
 
         return {
           ...asset,
           presignedUrl,
         };
-      })
+      }),
     );
 
     return { assets: assetsWithUrls, total };
@@ -98,7 +90,7 @@ export class AssetService {
     const presignedUrl = await this.s3Service.generateGetUrl(
       this.getKeyFromUrl(asset.asset_url),
       this.getContentType(asset),
-      86400
+      86400,
     );
 
     return {
@@ -134,8 +126,8 @@ export class AssetService {
 
   async findUnprocessedVideos() {
     const { assets } = await this.repository.findByQuery({
-      asset_type: "video",
-      processing_status: "pending",
+      asset_type: 'video',
+      processing_status: 'pending',
     });
 
     return assets.filter((asset) => asset.asset_url); // Only return assets that have been uploaded
@@ -174,14 +166,14 @@ export class AssetService {
         const presignedUrl = await this.s3Service.generateGetUrl(
           this.getKeyFromUrl(asset.asset_url),
           this.getContentType(asset),
-          86400
+          86400,
         );
 
         return {
           ...asset,
           presignedUrl,
         };
-      })
+      }),
     );
 
     return { assets: assetsWithUrls, total: total.length };
@@ -194,21 +186,21 @@ export class AssetService {
 
     // Fallback to determining from asset type if content_type is not stored
     switch (asset.asset_type) {
-      case "image":
-        return "image/jpeg";
-      case "video":
-        return "video/mp4";
-      case "audio":
-        return "audio/mpeg";
-      case "document":
-        return "application/pdf";
+      case 'image':
+        return 'image/jpeg';
+      case 'video':
+        return 'video/mp4';
+      case 'audio':
+        return 'audio/mpeg';
+      case 'document':
+        return 'application/pdf';
       default:
-        return "application/octet-stream";
+        return 'application/octet-stream';
     }
   }
 
   public getKeyFromUrl(url: string): string {
-    const urlParts = url.split(".amazonaws.com/");
-    return urlParts[1] || "";
+    const urlParts = url.split('.amazonaws.com/');
+    return urlParts[1] || '';
   }
 }

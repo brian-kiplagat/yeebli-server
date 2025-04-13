@@ -1,9 +1,4 @@
-import { type User } from "../../../schema/schema.js";
-import { AssetService } from "../../../service/asset.ts";
-import { type BusinessService } from "../../../service/business.js";
-import { S3Service } from "../../../service/s3.ts";
-import { UserRepository } from "../../../repository/user.js";
-import { getContentTypeFromS3Url } from "../../../util/string.js";
+import type { User } from '../../../schema/schema.js';
 
 type UserResponse = {
   id: number;
@@ -19,14 +14,10 @@ type UserResponse = {
   is_deleted: boolean | null;
   stripe_account_id: string | null;
   subscription_status: string | null;
-  auth_provider: "local" | "google";
+  auth_provider: 'local' | 'google';
 };
 
-export async function serializeUser(
-  user: User,
-  s3Service: S3Service,
-  userRepository: UserRepository
-): Promise<UserResponse> {
+export async function serializeUser(user: User): Promise<UserResponse> {
   return {
     id: user.id,
     email: user.email,
@@ -41,6 +32,6 @@ export async function serializeUser(
     is_deleted: user.is_deleted,
     stripe_account_id: user.stripe_account_id,
     subscription_status: user.subscription_status,
-    auth_provider: user.auth_provider ?? "local",
+    auth_provider: user.auth_provider ?? 'local',
   };
 }

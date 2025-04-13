@@ -1,10 +1,6 @@
-import { eq } from "drizzle-orm";
-import { db } from "../lib/database.ts";
-import {
-  type Contact,
-  type NewContact,
-  contactSchema,
-} from "../schema/schema.js";
+import { eq } from 'drizzle-orm';
+import { db } from '../lib/database.ts';
+import { type Contact, type NewContact, contactSchema } from '../schema/schema.js';
 
 export class ContactRepository {
   public async create(contact: NewContact) {
@@ -17,10 +13,13 @@ export class ContactRepository {
     });
   }
 
+  public async findById(id: number) {
+    return db.query.contactSchema.findFirst({
+      where: eq(contactSchema.id, id),
+    });
+  }
+
   public async update(id: number, contact: Partial<Contact>) {
-    return db
-      .update(contactSchema)
-      .set(contact)
-      .where(eq(contactSchema.id, id));
+    return db.update(contactSchema).set(contact).where(eq(contactSchema.id, id));
   }
 }

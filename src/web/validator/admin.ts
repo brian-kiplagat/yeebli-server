@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const adminUserQuerySchema = z.object({
   page: z.coerce.number().optional().default(1),
   limit: z.coerce.number().optional().default(10),
-  role: z.enum(['master', 'owner', 'host',]).optional(),
+  role: z.enum(['master', 'owner', 'host']).optional(),
   search: z.string().optional(),
 });
 

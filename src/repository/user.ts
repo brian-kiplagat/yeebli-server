@@ -1,11 +1,6 @@
-import { eq } from "drizzle-orm";
-import { db } from "../lib/database.ts";
-import {
-  type NewUser,
-  type User,
-  userSchema,
-  userRelations,
-} from "../schema/schema.js";
+import { eq } from 'drizzle-orm';
+import { db } from '../lib/database.ts';
+import { type NewUser, type User, userRelations, userSchema } from '../schema/schema.js';
 
 export class UserRepository {
   public async create(user: NewUser) {
@@ -29,7 +24,7 @@ export class UserRepository {
       },
     });
     if (user && !user.auth_provider) {
-      user.auth_provider = "local";
+      user.auth_provider = 'local';
     }
     return user;
   }

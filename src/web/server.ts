@@ -37,6 +37,16 @@ import { GoogleController } from "./controller/google.js";
 import { HLSController } from "./controller/hls.js";
 import { LeadController } from "./controller/lead.ts";
 
+import { BusinessRepository } from "../repository/business.js";
+import { ContactRepository } from "../repository/contact.ts";
+import { MembershipRepository } from "../repository/membership.ts";
+import { TeamRepository } from "../repository/team.js";
+import { BusinessService } from "../service/business.js";
+import { ContactService } from "../service/contact.ts";
+import { MembershipService } from "../service/membership.ts";
+import { TeamService } from "../service/team.js";
+import { BusinessController } from "./controller/business.js";
+import { MembershipController } from "./controller/membership.ts";
 import {
   ERRORS,
   serveInternalServerError,
@@ -45,8 +55,13 @@ import {
 import { S3Controller } from "./controller/s3.js";
 import { StripeController } from "./controller/stripe.js";
 import { SubscriptionController } from "./controller/subscription.js";
+import { TeamController } from "./controller/team.js";
 import { adminCreateUserValidator } from "./validator/admin.ts";
 import { assetQueryValidator } from "./validator/asset.ts";
+import {
+  businessQueryValidator,
+  businessValidator,
+} from "./validator/business.js";
 import {
   cancelEventValidator,
   eventValidator,
@@ -68,6 +83,12 @@ import {
 } from "./validator/membership.ts";
 import { subscriptionRequestValidator } from "./validator/subscription.ts";
 import {
+  createTeamValidator,
+  inviteMemberValidator,
+  revokeAccessValidator,
+  teamQueryValidator,
+} from "./validator/team.ts";
+import {
   emailVerificationValidator,
   inAppResetPasswordValidator,
   loginValidator,
@@ -77,27 +98,7 @@ import {
   resetPasswordValidator,
   updateUserDetailsValidator,
 } from "./validator/user.js";
-import { BusinessRepository } from "../repository/business.js";
-import { BusinessService } from "../service/business.js";
-import { BusinessController } from "./controller/business.js";
-import {
-  businessValidator,
-  businessQueryValidator,
-} from "./validator/business.js";
-import { MembershipController } from "./controller/membership.ts";
-import { MembershipRepository } from "../repository/membership.ts";
-import { MembershipService } from "../service/membership.ts";
-import { TeamRepository } from "../repository/team.js";
-import { TeamService } from "../service/team.js";
-import { TeamController } from "./controller/team.js";
-import {
-  createTeamValidator,
-  inviteMemberValidator,
-  revokeAccessValidator,
-  teamQueryValidator,
-} from "./validator/team.ts";
-import { ContactService } from "../service/contact.ts";
-import { ContactRepository } from "../repository/contact.ts";
+import { ContactController } from "./controller/contact.ts";
 
 export class Server {
   private app: Hono;
@@ -161,7 +162,7 @@ export class Server {
     const bookingService = new BookingService(bookingRepo);
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
-  
+
     const userService = new UserService(
       userRepo,
       stripeService,
@@ -180,7 +181,6 @@ export class Server {
       assetService,
       teamService
     );
-    
 
     // Setup workers
     this.registerWorker(userService);
@@ -247,6 +247,7 @@ export class Server {
     // Add team service and controller
 
     const teamController = new TeamController(teamService, userService);
+    const contactController = new ContactController(contactService);
 
     // Add Google service and controller
     const googleService = new GoogleService(userService, stripeService);
@@ -270,6 +271,7 @@ export class Server {
     this.registerBusinessRoutes(api, businessController);
     this.registerMembershipRoutes(api, membershipController);
     this.registerTeamRoutes(api, teamController);
+    this.registerContactRoutes(api, contactController);
   }
 
   private registerUserRoutes(
@@ -357,7 +359,7 @@ export class Server {
     event.get("/", authCheck, eventQueryValidator, eventCtrl.getEvents);
     event.get("/:id", eventCtrl.getEvent);
     event.get("/:id/dates", eventCtrl.getEventDates);
-    event.delete("/:id/dates/:dateId", authCheck,  eventCtrl.deleteEventDate);
+    event.delete("/:id/dates/:dateId", authCheck, eventCtrl.deleteEventDate);
     event.put(
       "/:id/dates/:dateId",
       authCheck,
@@ -527,6 +529,22 @@ export class Server {
     membership.delete("/:id", authCheck, membershipCtrl.deleteMembership);
 
     api.route("/membership", membership);
+  }
+
+  private registerContactRoutes(api: Hono, contactCtrl: ContactController) {
+    const contact = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    contact.post("/login", contactCtrl.login);
+    contact.get("/me", authCheck, contactCtrl.me);
+    contact.post("/send-token", contactCtrl.sendToken);
+    contact.post("/verify-registration", contactCtrl.verifyRegistrationToken);
+    contact.post("/request-reset-password", contactCtrl.requestResetPassword);
+    contact.post("/reset-password", contactCtrl.resetPassword);
+    contact.post("/reset-password-in-app", contactCtrl.resetPasswordInApp);
+    contact.put("/details", authCheck, contactCtrl.updateContactDetails);
+
+    api.route("/contact", contact);
   }
 
   private registerTeamRoutes(api: Hono, teamCtrl: TeamController) {

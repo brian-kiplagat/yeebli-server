@@ -1,11 +1,11 @@
-import { logger } from "../lib/logger.js";
-import type { BusinessRepository } from "../repository/business.js";
-import { NewBusiness } from "../schema/schema.ts";
-import type { BusinessQuery, BusinessBody } from "../web/validator/business.ts";
-import type { S3Service } from "./s3.js";
-import type { AssetService } from "./asset.js";
-import { getContentType, extractExtensionfromS3Url } from "../util/string.ts";
-import { TeamService } from "./team.ts";
+import { logger } from '../lib/logger.js';
+import type { BusinessRepository } from '../repository/business.js';
+import { NewBusiness } from '../schema/schema.ts';
+import { extractExtensionfromS3Url, getContentType } from '../util/string.ts';
+import type { BusinessBody, BusinessQuery } from '../web/validator/business.ts';
+import type { AssetService } from './asset.js';
+import type { S3Service } from './s3.js';
+import type { TeamService } from './team.ts';
 
 export class BusinessService {
   private repository: BusinessRepository;
@@ -17,7 +17,7 @@ export class BusinessService {
     repository: BusinessRepository,
     s3Service: S3Service,
     assetService: AssetService,
-    teamService: TeamService
+    teamService: TeamService,
   ) {
     this.repository = repository;
     this.s3Service = s3Service;
@@ -25,15 +25,11 @@ export class BusinessService {
     this.teamService = teamService;
   }
 
-  private async handleLogoUpload(
-    userId: number,
-    logoBase64: string,
-    fileName: string
-  ) {
+  private async handleLogoUpload(userId: number, logoBase64: string, fileName: string) {
     try {
       // Remove the data:image/xyz;base64, prefix
-      const base64Data = logoBase64.replace(/^data:image\/\w+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
+      const base64Data = logoBase64.replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
       const contentType = getContentType(logoBase64);
 
       // Let AssetService handle the upload and path generation
@@ -41,15 +37,15 @@ export class BusinessService {
         userId,
         fileName,
         contentType,
-        "profile_picture",
+        'profile_picture',
         buffer.length,
         0,
-        buffer
+        buffer,
       );
 
       return { assetId: assetObject.asset };
     } catch (error) {
-      logger.error("Failed to upload logo:", error);
+      logger.error('Failed to upload logo:', error);
       throw error;
     }
   }
@@ -74,7 +70,7 @@ export class BusinessService {
         },
       };
     } catch (error) {
-      logger.error("Failed to get business by user:", error);
+      logger.error('Failed to get business by user:', error);
       throw error;
     }
   }
@@ -83,7 +79,7 @@ export class BusinessService {
     try {
       return await this.repository.findAll(query);
     } catch (error) {
-      logger.error("Failed to get all businesses:", error);
+      logger.error('Failed to get all businesses:', error);
       throw error;
     }
   }
@@ -96,15 +92,10 @@ export class BusinessService {
       let logoAssetId = existingBusiness?.logo_asset_id || null;
 
       if (business.logo) {
-        if (business.logo.startsWith("data:image")) {
+        if (business.logo.startsWith('data:image')) {
           // Handle logo upload if it's a base64 string
-          const fileName =
-            business.logoFileName || `business-logo-${userId}.jpg`;
-          const logoData = await this.handleLogoUpload(
-            userId,
-            business.logo,
-            fileName
-          );
+          const fileName = business.logoFileName || `business-logo-${userId}.jpg`;
+          const logoData = await this.handleLogoUpload(userId, business.logo, fileName);
           logoAssetId = logoData.assetId;
         } else {
           // If logo is not a base64 string and not updating, keep existing logo_asset_id
@@ -121,10 +112,7 @@ export class BusinessService {
       let updatedBusiness;
       if (existingBusiness) {
         // Update existing business
-        updatedBusiness = await this.repository.update(
-          existingBusiness.id,
-          businessData
-        );
+        updatedBusiness = await this.repository.update(existingBusiness.id, businessData);
       } else {
         // Create business and team in parallel
         const [createdBusiness, createdTeam] = await Promise.all([
@@ -138,7 +126,7 @@ export class BusinessService {
       // Return business with resolved asset URLs
       return await this.getBusinessByUserId(userId);
     } catch (error) {
-      logger.error("Failed to upsert business:", error);
+      logger.error('Failed to upsert business:', error);
       throw error;
     }
   }
@@ -160,30 +148,26 @@ export class BusinessService {
         presignedLogoUrl: asset.presignedUrl,
       };
     } catch (error) {
-      logger.error("Failed to get business logo:", error);
+      logger.error('Failed to get business logo:', error);
       throw error;
     }
   }
 
-  public updateBusinessLogo = async (
-    businessId: number,
-    imageBase64: string,
-    fileName: string
-  ) => {
+  public updateBusinessLogo = async (businessId: number, imageBase64: string, fileName: string) => {
     try {
       // Convert base64 to buffer
-      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
 
       // Create asset using AssetService
       const { asset: assetId } = await this.assetService.createAsset(
         businessId,
         fileName,
         getContentType(imageBase64),
-        "profile_picture",
+        'profile_picture',
         buffer.length,
         0,
-        buffer
+        buffer,
       );
 
       // Update business with just the asset ID
@@ -194,24 +178,24 @@ export class BusinessService {
       // Get the updated business with presigned URL
       const business = await this.repository.findById(businessId);
       if (!business) {
-        throw new Error("Business not found after update");
+        throw new Error('Business not found after update');
       }
 
       const asset = await this.assetService.getAsset(assetId);
       if (!asset?.asset_url) {
-        throw new Error("Failed to get asset URL");
+        throw new Error('Failed to get asset URL');
       }
 
       return {
         success: true,
-        message: "Business logo uploaded successfully",
+        message: 'Business logo uploaded successfully',
         business: {
           ...business,
           logo: asset.asset_url,
         },
       };
     } catch (error) {
-      logger.error("Error uploading business logo:", error);
+      logger.error('Error uploading business logo:', error);
       throw error;
     }
   };

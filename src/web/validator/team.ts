@@ -1,13 +1,13 @@
-import { validator } from "hono/validator";
-import { z } from "zod";
-import { validateSchema } from "./validator.js";
+import { validator } from 'hono/validator';
+import { z } from 'zod';
+import { validateSchema } from './validator.js';
 
 const inviteMemberSchema = z.object({
   invitee_email: z.string().email(),
   team_id: z.number().int().positive(),
 });
 
-const inviteMemberValidator = validator("json", (value, c) => {
+const inviteMemberValidator = validator('json', (value, c) => {
   return validateSchema(c, inviteMemberSchema, value);
 });
 
@@ -17,7 +17,7 @@ const teamQuerySchema = z.object({
   search: z.string().optional(),
 });
 
-const teamQueryValidator = validator("query", (value, c) => {
+const teamQueryValidator = validator('query', (value, c) => {
   return validateSchema(c, teamQuerySchema, value);
 });
 
@@ -25,7 +25,7 @@ const createTeamSchema = z.object({
   name: z.string().min(1).max(255),
 });
 
-const createTeamValidator = validator("json", (value, c) => {
+const createTeamValidator = validator('json', (value, c) => {
   return validateSchema(c, createTeamSchema, value);
 });
 
@@ -34,7 +34,7 @@ const revokeAccessSchema = z.object({
   member_id: z.number().int().positive(),
 });
 
-const revokeAccessValidator = validator("json", (value, c) => {
+const revokeAccessValidator = validator('json', (value, c) => {
   return validateSchema(c, revokeAccessSchema, value);
 });
 

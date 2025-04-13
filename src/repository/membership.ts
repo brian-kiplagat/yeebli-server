@@ -1,7 +1,7 @@
-import { and, desc, eq, like } from "drizzle-orm";
-import { db } from "../lib/database.ts";
-import { memberships } from "../schema/schema.ts";
-import type { NewMembership, Membership } from "../schema/schema.ts";
+import { and, desc, eq, like } from 'drizzle-orm';
+import { db } from '../lib/database.ts';
+import { memberships } from '../schema/schema.ts';
+import type { Membership, NewMembership } from '../schema/schema.ts';
 
 export type MembershipQuery = {
   page?: number;
@@ -16,11 +16,7 @@ export class MembershipRepository {
   }
 
   async find(id: number): Promise<Membership | undefined> {
-    const result = await db
-      .select()
-      .from(memberships)
-      .where(eq(memberships.id, id))
-      .limit(1);
+    const result = await db.select().from(memberships).where(eq(memberships.id, id)).limit(1);
     return result[0];
   }
 

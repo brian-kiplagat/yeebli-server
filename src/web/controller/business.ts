@@ -1,14 +1,9 @@
-import type { Context } from "hono";
-import { logger } from "../../lib/logger.js";
-import type { BusinessService } from "../../service/business.js";
-import type { UserService } from "../../service/user.js";
-import {
-  ERRORS,
-  serveBadRequest,
-  serveInternalServerError,
- 
-} from "./resp/error.js";
-import { BusinessBody } from "../validator/business.ts";
+import type { Context } from 'hono';
+import { logger } from '../../lib/logger.js';
+import type { BusinessService } from '../../service/business.js';
+import type { UserService } from '../../service/user.js';
+import type { BusinessBody } from '../validator/business.ts';
+import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
 
 export class BusinessController {
   private service: BusinessService;
@@ -20,7 +15,7 @@ export class BusinessController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get("jwtPayload").email;
+    const email = c.get('jwtPayload').email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -53,14 +48,10 @@ export class BusinessController {
         const business = await this.service.getBusinessByUserId(user.id);
 
         if (!business) {
-          return serveBadRequest(c, "Business not found");
+          return serveBadRequest(c, 'Business not found');
         }
 
-        await this.service.updateBusinessLogo(
-          business.id,
-          imageBase64,
-          fileName
-        );
+        await this.service.updateBusinessLogo(business.id, imageBase64, fileName);
       }
       const business = await this.service.upsertBusiness(user.id, {
         ...body,
@@ -68,7 +59,7 @@ export class BusinessController {
       });
 
       return c.json({
-        message: "Business information saved successfully",
+        message: 'Business information saved successfully',
         business,
       });
     } catch (error) {
@@ -84,7 +75,7 @@ export class BusinessController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      if (user.role !== "master" && user.role !== "owner") {
+      if (user.role !== 'master' && user.role !== 'owner') {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -102,6 +93,4 @@ export class BusinessController {
       return serveInternalServerError(c, error);
     }
   };
-
- 
 }
