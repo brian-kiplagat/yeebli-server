@@ -168,7 +168,7 @@ export class LeadController {
               Number(body.event_date_id)
             );
             if (date) {
-              eventDate = formatDate(date.date, "YYYY DD MM HH:mm");
+              eventDate = formatDate(new Date(date.date), "YYYY DD MM HH:mm");
             }
           }
           //send confirmation email to the lead
@@ -426,7 +426,7 @@ export class LeadController {
           Number(validatedData.registered_date)
         );
         if (date) {
-          eventDate = formatDate(date.date, "YYYY DD MM HH:mm");
+           eventDate = formatDate(new Date(date.date), "YYYY DD MM HH:mm");
         }
       }
       //send confirmation email to the lead
