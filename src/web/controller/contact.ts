@@ -21,16 +21,19 @@ import { serveData } from "./resp/resp.js";
 import { serializeContact } from "./serializer/contact.js";
 import { verify } from "../../lib/encryption.ts";
 import { type JWTPayload, encode } from "../../lib/jwt.js";
-
+import { PaymentService } from "../../service/payment.ts";
 export class ContactController {
   private contactService: ContactService;
   private stripeService: StripeService;
+  private paymentService: PaymentService;
   constructor(
     contactService: ContactService,
-    stripeService: StripeService
+    stripeService: StripeService,
+    paymentService: PaymentService
   ) {
     this.contactService = contactService;
     this.stripeService = stripeService;
+    this.paymentService = paymentService;
   }
 
   private getContact = async (c: Context) => {
@@ -178,8 +181,10 @@ export class ContactController {
       if (!contact) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
+      //get payments
+      const payments = await this.paymentService.findByContactId(contact.id);
       const serializedContact = await serializeContact(contact);
-      return serveData(c, { contact: serializedContact });
+      return serveData(c, { contact: serializedContact, payments });
     } catch (error: any) {
       logger.error(error);
       return serveInternalServerError(c, error);
