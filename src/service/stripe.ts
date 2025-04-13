@@ -224,7 +224,7 @@ export class StripeService {
     }
   ) {
     try {
-      return await this.stripe.checkout.sessions.create({
+      const sessionParams: Stripe.Checkout.SessionCreateParams = {
         payment_method_types: ["card"],
         line_items: [
           {
@@ -242,16 +242,25 @@ export class StripeService {
         customer: customerId,
         success_url: params.success_url,
         cancel_url: params.cancel_url,
-        payment_intent_data: {
-          on_behalf_of: params.hostStripeAccountId,
-        },
         metadata: {
           leadId: lead.id.toString(),
           type: "lead_upgrade",
           membershipId: params.membershipId,
         },
-        
-      });
+      };
+
+      if (params.mode === "payment") {
+        sessionParams.payment_intent_data = {
+          on_behalf_of: params.hostStripeAccountId,
+          setup_future_usage: "off_session",
+        };
+      } else if (params.mode === "subscription") {
+        sessionParams.subscription_data = {
+          on_behalf_of: params.hostStripeAccountId,
+        };
+      }
+
+      return await this.stripe.checkout.sessions.create(sessionParams);
     } catch (error) {
       logger.error("Failed to create lead upgrade session:", error);
       throw error;
