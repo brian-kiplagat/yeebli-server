@@ -217,9 +217,20 @@ export class LeadController {
           return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
         }
         if (host.stripe_account_id) {
+          // Ensure contact has a Stripe customer ID
+          if (!contact.stripe_customer_id) {
+            const stripeCustomer = await this.stripeService.createCustomer(
+              contact.email
+            );
+            await this.contactService.update(contact.id, {
+              stripe_customer_id: stripeCustomer.id,
+            });
+            contact.stripe_customer_id = stripeCustomer.id;
+          }
+
           const checkoutSession =
             await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
-              customer: contact.stripe_customer_id || "",
+              customer: contact.stripe_customer_id,
               mode: "payment",
               success_url: successUrl,
               cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
@@ -437,10 +448,22 @@ export class LeadController {
       if (!contact) {
         return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
       }
+
+      // Ensure contact has a Stripe customer ID
+      if (!contact.stripe_customer_id) {
+        const stripeCustomer = await this.stripeService.createCustomer(
+          contact.email
+        );
+        await this.contactService.update(contact.id, {
+          stripe_customer_id: stripeCustomer.id,
+        });
+        contact.stripe_customer_id = stripeCustomer.id;
+      }
+
       //create checkout session with stripe service, amount is membership price
       const checkoutSession =
         await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
-          customer: contact.stripe_customer_id || "",
+          customer: contact.stripe_customer_id,
           mode: "payment",
           success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
           cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
