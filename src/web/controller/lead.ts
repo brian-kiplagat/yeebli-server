@@ -252,6 +252,7 @@ export class LeadController {
             lead_id: lead.id,
             event_id: Number(lead.event_id),
             membership_id: event.membership.id,
+            checkout_session_id: checkoutSession.session.id,
             stripe_customer_id: contact.stripe_customer_id,
             amount: String(event.membership.price),
             currency: "gbp",
