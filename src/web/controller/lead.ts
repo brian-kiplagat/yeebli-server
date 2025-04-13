@@ -5,7 +5,7 @@ import type { NewLead } from "../../schema/schema.js";
 import type { EventService } from "../../service/event.ts";
 import type { LeadService } from "../../service/lead.js";
 import type { MembershipService } from "../../service/membership.ts";
-import type { TurnstileService } from "../../service/turnstile.js";
+import type { TurnstileService } from "../../service/turnstile.ts";
 import type { UserService } from "../../service/user.ts";
 import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
 import {
@@ -24,6 +24,7 @@ import env from "../../lib/env.ts";
 import type { BookingService } from "../../service/booking.ts";
 import type { StripeService } from "../../service/stripe.ts";
 import { ContactService } from "../../service/contact.ts";
+import type { PaymentService } from "../../service/payment.ts";
 
 export class LeadController {
   private service: LeadService;
@@ -34,6 +35,7 @@ export class LeadController {
   private stripeService: StripeService;
   private bookingService: BookingService;
   private contactService: ContactService;
+  private paymentService: PaymentService;
   constructor(
     service: LeadService,
     userService: UserService,
@@ -42,7 +44,8 @@ export class LeadController {
     membershipService: MembershipService,
     stripeService: StripeService,
     bookingService: BookingService,
-    contactService: ContactService
+    contactService: ContactService,
+    paymentService: PaymentService
   ) {
     this.service = service;
     this.userService = userService;
@@ -52,6 +55,7 @@ export class LeadController {
     this.stripeService = stripeService;
     this.bookingService = bookingService;
     this.contactService = contactService;
+    this.paymentService = paymentService;
   }
 
   private async getUser(c: Context) {
@@ -426,6 +430,7 @@ export class LeadController {
       if (!lead.event_id) {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
+
       //get membership
       const membership = await this.membershipService.getMembership(
         body.membership_id
@@ -433,19 +438,23 @@ export class LeadController {
       if (!membership) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
+
       //get host user
       const host = await this.userService.find(lead.host_id);
       if (!host) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
+
       //get event
       const event = await this.eventService.getEvent(lead.event_id);
       if (!event) {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
+
       if (!host.stripe_account_id) {
         return serveBadRequest(c, ERRORS.STRIPE_ACCOUNT_ID_NOT_FOUND);
       }
+
       //get the contact for this lead email
       const contact = await this.contactService.findByEmail(lead.email || "");
       if (!contact) {
@@ -464,7 +473,7 @@ export class LeadController {
       }
 
       //create checkout session with stripe service, amount is membership price
-      const checkoutSession =
+      const { session, paymentIntentId } =
         await this.stripeService.createLeadUpgradeCheckoutSession(
           lead,
           contact.stripe_customer_id,
@@ -479,7 +488,28 @@ export class LeadController {
             membershipId: String(membership.id),
           }
         );
-      return c.json(checkoutSession);
+
+      // Create payment record
+      if (paymentIntentId) {
+        await this.paymentService.createPayment({
+          contact_id: contact.id,
+          lead_id: lead.id,
+          event_id: lead.event_id,
+          membership_id: membership.id,
+          stripe_payment_intent_id: paymentIntentId,
+          stripe_customer_id: contact.stripe_customer_id,
+          amount: String(membership.price),
+          currency: "gbp",
+          status: "pending",
+          payment_type: "one_off",
+          metadata: {
+            eventName: event.event_name,
+            membershipName: membership.name,
+          },
+        });
+      }
+
+      return c.json(session);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

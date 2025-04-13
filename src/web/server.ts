@@ -99,6 +99,8 @@ import {
   updateUserDetailsValidator,
 } from "./validator/user.js";
 import { ContactController } from "./controller/contact.ts";
+import { PaymentService } from "../service/payment.ts";
+import { PaymentRepository } from "../repository/payment.ts";
 
 export class Server {
   private app: Hono;
@@ -143,7 +145,7 @@ export class Server {
     const teamRepo = new TeamRepository();
     const contactRepo = new ContactRepository();
     const businessRepo = new BusinessRepository();
-
+    const paymentRepo = new PaymentRepository();
     // Setup services
     const contactService = new ContactService(contactRepo);
     const s3Service = new S3Service();
@@ -174,7 +176,7 @@ export class Server {
       userService
     );
     const teamService = new TeamService(teamRepo, userService);
-
+    const paymentService = new PaymentService(paymentRepo);
     const businessService = new BusinessService(
       businessRepo,
       s3Service,
@@ -201,7 +203,8 @@ export class Server {
       membershipService,
       stripeService,
       bookingService,
-      contactService
+      contactService,
+      paymentService
     );
     const eventController = new EventController(
       eventService,

@@ -260,7 +260,12 @@ export class StripeService {
         };
       }
 
-      return await this.stripe.checkout.sessions.create(sessionParams);
+      const session = await this.stripe.checkout.sessions.create(sessionParams);
+
+      return {
+        session,
+        paymentIntentId: session.payment_intent?.toString(),
+      };
     } catch (error) {
       logger.error("Failed to create lead upgrade session:", error);
       throw error;
