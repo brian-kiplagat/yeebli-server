@@ -229,17 +229,20 @@ export class LeadController {
           }
 
           const checkoutSession =
-            await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
-              customer: contact.stripe_customer_id,
-              mode: "payment",
-              success_url: successUrl,
-              cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
-              hostStripeAccountId: host.stripe_account_id,
-              price: event.membership.price,
-              eventName: event.event_name,
-              membershipName: event.membership.name,
-              membershipId: String(event.membership.id),
-            });
+            await this.stripeService.createLeadUpgradeCheckoutSession(
+              lead,
+              contact.stripe_customer_id,
+              {
+                mode: "payment",
+                success_url: successUrl,
+                cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+                hostStripeAccountId: host.stripe_account_id,
+                price: event.membership.price,
+                eventName: event.event_name,
+                membershipName: event.membership.name,
+                membershipId: String(event.membership.id),
+              }
+            );
 
           return c.json({
             isAllowed: false,
@@ -462,17 +465,20 @@ export class LeadController {
 
       //create checkout session with stripe service, amount is membership price
       const checkoutSession =
-        await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
-          customer: contact.stripe_customer_id,
-          mode: "payment",
-          success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
-          cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
-          hostStripeAccountId: host.stripe_account_id,
-          price: membership.price,
-          eventName: event.event_name,
-          membershipName: membership.name,
-          membershipId: String(membership.id),
-        });
+        await this.stripeService.createLeadUpgradeCheckoutSession(
+          lead,
+          contact.stripe_customer_id,
+          {
+            mode: "payment",
+            success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
+            cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+            hostStripeAccountId: host.stripe_account_id,
+            price: membership.price,
+            eventName: event.event_name,
+            membershipName: membership.name,
+            membershipId: String(membership.id),
+          }
+        );
       return c.json(checkoutSession);
     } catch (error) {
       logger.error(error);
