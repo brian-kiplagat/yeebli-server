@@ -250,7 +250,7 @@ export class StripeService {
           type: "lead_upgrade",
           membershipId: params.membershipId,
         },
-        customer_email: String(lead.email), // Just for receipt
+        
       });
     } catch (error) {
       logger.error("Failed to create lead upgrade session:", error);
