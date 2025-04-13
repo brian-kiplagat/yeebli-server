@@ -173,7 +173,7 @@ export class LeadController {
               if (!isNaN(timestamp)) {
                 eventDate = formatDate(
                   new Date(timestamp * 1000),
-                  "YYYY DD MM HH:mm"
+                  "UK_FULL"
                 );
               }
             }
@@ -438,7 +438,7 @@ export class LeadController {
           if (!isNaN(timestamp)) {
             eventDate = formatDate(
               new Date(timestamp * 1000),
-              "YYYY DD MM HH:mm"
+              "UK_FULL"
             );
           }
         }
