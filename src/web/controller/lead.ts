@@ -247,6 +247,21 @@ export class LeadController {
                 membershipId: String(event.membership.id),
               }
             );
+          await this.paymentService.createPayment({
+            contact_id: contact.id,
+            lead_id: lead.id,
+            event_id: Number(lead.event_id),
+            membership_id: event.membership.id,
+            stripe_customer_id: contact.stripe_customer_id,
+            amount: String(event.membership.price),
+            currency: "gbp",
+            status: "pending",
+            payment_type: "one_off",
+            metadata: {
+              eventName: event.event_name,
+              membershipName: event.membership.name,
+            },
+          });
 
           return c.json({
             isAllowed: false,
@@ -416,101 +431,6 @@ export class LeadController {
       );
     } catch (error) {
       logger.error("Error handling external form:", error);
-      return serveInternalServerError(c, error);
-    }
-  };
-
-  public upgradeLead = async (c: Context) => {
-    try {
-      const body: LeadUpgradeBody = await c.req.json();
-      const lead = await this.service.find(body.lead_id);
-      if (!lead) {
-        return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
-      }
-      if (!lead.event_id) {
-        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
-      }
-
-      //get membership
-      const membership = await this.membershipService.getMembership(
-        body.membership_id
-      );
-      if (!membership) {
-        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
-      }
-
-      //get host user
-      const host = await this.userService.find(lead.host_id);
-      if (!host) {
-        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
-      }
-
-      //get event
-      const event = await this.eventService.getEvent(lead.event_id);
-      if (!event) {
-        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
-      }
-
-      if (!host.stripe_account_id) {
-        return serveBadRequest(c, ERRORS.STRIPE_ACCOUNT_ID_NOT_FOUND);
-      }
-
-      //get the contact for this lead email
-      const contact = await this.contactService.findByEmail(lead.email || "");
-      if (!contact) {
-        return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
-      }
-
-      // Ensure contact has a Stripe customer ID
-      if (!contact.stripe_customer_id) {
-        const stripeCustomer = await this.stripeService.createCustomer(
-          contact.email
-        );
-        await this.contactService.update(contact.id, {
-          stripe_customer_id: stripeCustomer.id,
-        });
-        contact.stripe_customer_id = stripeCustomer.id;
-      }
-
-      //create checkout session with stripe service, amount is membership price
-      const { session } =
-        await this.stripeService.createLeadUpgradeCheckoutSession(
-          lead,
-          contact.stripe_customer_id,
-          {
-            mode: "payment",
-            success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
-            cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
-            hostStripeAccountId: host.stripe_account_id,
-            price: membership.price,
-            eventName: event.event_name,
-            membershipName: membership.name,
-            membershipId: String(membership.id),
-          }
-        );
-
-      // Create payment record
-     
-        await this.paymentService.createPayment({
-          contact_id: contact.id,
-          lead_id: lead.id,
-          event_id: lead.event_id,
-          membership_id: membership.id,
-          stripe_customer_id: contact.stripe_customer_id,
-          amount: String(membership.price),
-          currency: "gbp",
-          status: "pending",
-          payment_type: "one_off",
-          metadata: {
-            eventName: event.event_name,
-            membershipName: membership.name,
-          },
-        });
-     
-
-      return c.json(session);
-    } catch (error) {
-      logger.error(error);
       return serveInternalServerError(c, error);
     }
   };

@@ -340,12 +340,7 @@ export class Server {
       eventLinkValidator,
       leadCtrl.validateEventLink
     );
-    lead.post(
-      "/lead-upgrade",
-      authCheck,
-      leadUpgradeValidator,
-      leadCtrl.upgradeLead
-    );
+
     lead.put("/:id", authCheck, updateLeadValidator, leadCtrl.updateLead);
     lead.delete("/:id", authCheck, leadCtrl.deleteLead);
 
