@@ -227,11 +227,11 @@ export class LeadController {
           return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
         }
         let successUrl = "";
-
+        const currentTimestamp = Math.floor(Date.now() / 1000);
         if (event.event_type == "live_venue") {
-          successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
+          successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
         } else if (event.event_type == "live_video_call") {
-          successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
+          successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
         } else if (event.event_type == "prerecorded") {
           successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
         }
