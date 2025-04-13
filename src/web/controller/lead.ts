@@ -1,19 +1,29 @@
-import type { Context } from 'hono';
-import { v4 as uuidv4 } from 'uuid';
-import { logger } from '../../lib/logger.ts';
-import type { NewLead } from '../../schema/schema.js';
-import type { EventService } from '../../service/event.ts';
-import type { LeadService } from '../../service/lead.js';
-import type { MembershipService } from '../../service/membership.ts';
-import type { TurnstileService } from '../../service/turnstile.js';
-import type { UserService } from '../../service/user.ts';
-import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
-import { type EventLinkBody, type LeadBody, type LeadUpgradeBody, externalFormSchema } from '../validator/lead.ts';
-import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
+import type { Context } from "hono";
+import { v4 as uuidv4 } from "uuid";
+import { logger } from "../../lib/logger.ts";
+import type { NewLead } from "../../schema/schema.js";
+import type { EventService } from "../../service/event.ts";
+import type { LeadService } from "../../service/lead.js";
+import type { MembershipService } from "../../service/membership.ts";
+import type { TurnstileService } from "../../service/turnstile.js";
+import type { UserService } from "../../service/user.ts";
+import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
+import {
+  type EventLinkBody,
+  type LeadBody,
+  type LeadUpgradeBody,
+  externalFormSchema,
+} from "../validator/lead.ts";
+import {
+  ERRORS,
+  serveBadRequest,
+  serveInternalServerError,
+} from "./resp/error.js";
 
-import env from '../../lib/env.ts';
-import type { BookingService } from '../../service/booking.ts';
-import type { StripeService } from '../../service/stripe.ts';
+import env from "../../lib/env.ts";
+import type { BookingService } from "../../service/booking.ts";
+import type { StripeService } from "../../service/stripe.ts";
+import { ContactService } from "../../service/contact.ts";
 
 export class LeadController {
   private service: LeadService;
@@ -23,6 +33,7 @@ export class LeadController {
   private membershipService: MembershipService;
   private stripeService: StripeService;
   private bookingService: BookingService;
+  private contactService: ContactService;
   constructor(
     service: LeadService,
     userService: UserService,
@@ -31,6 +42,7 @@ export class LeadController {
     membershipService: MembershipService,
     stripeService: StripeService,
     bookingService: BookingService,
+    contactService: ContactService
   ) {
     this.service = service;
     this.userService = userService;
@@ -39,10 +51,11 @@ export class LeadController {
     this.membershipService = membershipService;
     this.stripeService = stripeService;
     this.bookingService = bookingService;
+    this.contactService = contactService;
   }
 
   private async getUser(c: Context) {
-    const email = c.get('jwtPayload').email;
+    const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -61,7 +74,7 @@ export class LeadController {
         search,
       };
 
-      if (user.role === 'master' || user.role === 'owner') {
+      if (user.role === "master" || user.role === "owner") {
         const leads = await this.service.findAll(query);
         return c.json(leads);
       }
@@ -81,14 +94,16 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = Number(c.req.param('id'));
+      const leadId = Number(c.req.param("id"));
       const lead = await this.service.find(leadId);
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
       //get the membership if there  and spread it into the lead
       if (lead.membership_level) {
-        const membership = await this.membershipService.getMembership(lead.membership_level);
+        const membership = await this.membershipService.getMembership(
+          lead.membership_level
+        );
         return c.json({
           ...lead,
           membership: membership,
@@ -141,9 +156,9 @@ export class LeadController {
         if (event) {
           const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${body.email}`;
           const bodyText =
-            event.event_type == 'live_venue'
+            event.event_type == "live_venue"
               ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time and enjoy the experience in person. If you have any questions or need more details, feel free to visit our website: ${eventLink}. To access the event, please use this passcode: ${token}. We look forward to seeing you there!`
-              : event.event_type == 'live_video_call'
+              : event.event_type == "live_video_call"
                 ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early. If you need more information, you can check our website here: ${eventLink}. Your access passcode is: ${token}. We can't wait to connect with you online!`
                 : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space. Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
 
@@ -170,42 +185,54 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
 
-      const lead = await this.service.findByEventIdAndToken(body.event_id, body.token);
+      const lead = await this.service.findByEventIdAndToken(
+        body.event_id,
+        body.token
+      );
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
       }
 
       // If event has membership requirement and lead hasn't paid
-      if (event.membership && !lead.membership_active && event.membership.name.trim() != 'Free') {
+      if (
+        event.membership &&
+        !lead.membership_active &&
+        event.membership.name.trim() != "Free"
+      ) {
         const host = await this.userService.find(lead.host_id);
         if (!host) {
           return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
         }
-        let successUrl = '';
+        let successUrl = "";
 
-        if (event.event_type == 'live_venue') {
+        if (event.event_type == "live_venue") {
           successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
-        } else if (event.event_type == 'live_video_call') {
+        } else if (event.event_type == "live_video_call") {
           successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
-        } else if (event.event_type == 'prerecorded') {
+        } else if (event.event_type == "prerecorded") {
           successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
         }
-
+        const contact = await this.contactService.findByEmail(lead.email || "");
+        if (!contact) {
+          return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
+        }
         if (host.stripe_account_id) {
-          const checkoutSession = await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
-            mode: 'payment',
-            success_url: successUrl,
-            cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
-            hostStripeAccountId: host.stripe_account_id,
-            price: event.membership.price,
-            eventName: event.event_name,
-            membershipName: event.membership.name,
-            membershipId: String(event.membership.id),
-          });
+          const checkoutSession =
+            await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
+              customer: contact.stripe_customer_id || "",
+              mode: "payment",
+              success_url: successUrl,
+              cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+              hostStripeAccountId: host.stripe_account_id,
+              price: event.membership.price,
+              eventName: event.event_name,
+              membershipName: event.membership.name,
+              membershipId: String(event.membership.id),
+            });
 
           return c.json({
             isAllowed: false,
-            message: 'Payment required to access this event',
+            message: "Payment required to access this event",
             name: lead.name,
             email: lead.email,
             phone: lead.phone,
@@ -218,7 +245,7 @@ export class LeadController {
       // If no payment required or payment already made
       return c.json({
         isAllowed: true,
-        message: 'Access granted',
+        message: "Access granted",
         name: lead.name,
         email: lead.email,
         phone: lead.phone,
@@ -241,19 +268,23 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = Number(c.req.param('id'));
+      const leadId = Number(c.req.param("id"));
       const lead = await this.service.find(leadId);
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
       //only and master role or admin or the owner of the lead can update the lead
-      if (user.role !== 'master' && user.role !== 'owner' && lead.userId !== user.id) {
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        lead.userId !== user.id
+      ) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       const body = await c.req.json();
       await this.service.update(leadId, body);
-      return c.json({ message: 'Lead updated successfully' });
+      return c.json({ message: "Lead updated successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -267,18 +298,22 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = Number(c.req.param('id'));
+      const leadId = Number(c.req.param("id"));
       const lead = await this.service.find(leadId);
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
       //only and master role or admin or the owner of the lead
-      if (user.role !== 'master' && user.role !== 'owner' && lead.userId !== user.id) {
+      if (
+        user.role !== "master" &&
+        user.role !== "owner" &&
+        lead.userId !== user.id
+      ) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       await this.service.delete(leadId);
-      return c.json({ message: 'Lead deleted successfully' });
+      return c.json({ message: "Lead deleted successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -291,11 +326,14 @@ export class LeadController {
       const validatedData = externalFormSchema.parse(formData);
 
       // Verify Turnstile token
-      const ip = c.req.header('CF-Connecting-IP');
-      const isValid = await this.turnstileService.verify(validatedData['cf-turnstile-response'], ip);
+      const ip = c.req.header("CF-Connecting-IP");
+      const isValid = await this.turnstileService.verify(
+        validatedData["cf-turnstile-response"],
+        ip
+      );
 
       if (!isValid) {
-        return serveBadRequest(c, 'Invalid Turnstile token');
+        return serveBadRequest(c, "Invalid Turnstile token");
       }
 
       const token = Math.floor(100000 + Math.random() * 900000).toString();
@@ -313,11 +351,11 @@ export class LeadController {
         host_id: validatedData.host_id,
         membership_level: null,
         membership_active: false,
-        form_identifier: 'external_form',
-        status_identifier: 'Form',
+        form_identifier: "external_form",
+        status_identifier: "Form",
         userId: validatedData.host_id,
         token: token,
-        source_url: c.req.header('Referer') || 'direct',
+        source_url: c.req.header("Referer") || "direct",
       };
 
       const createdLead = await this.service.create(lead);
@@ -333,28 +371,33 @@ export class LeadController {
       //send confirmation email to the lead
       const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
       const bodyText =
-        event.event_type == 'live_venue'
+        event.event_type == "live_venue"
           ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time and enjoy the experience in person. If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
-          : event.event_type == 'live_video_call'
+          : event.event_type == "live_video_call"
             ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early. If you need more information, you can check our website here: ${eventLink}.`
             : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space. Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
 
-      sendTransactionalEmail(validatedData.lead_form_email, validatedData.lead_form_name, 1, {
-        subject: 'Welcome to the event',
-        title: 'Welcome to the event',
-        subtitle: `You have been registered for the event`,
-        body: bodyText,
-      });
+      sendTransactionalEmail(
+        validatedData.lead_form_email,
+        validatedData.lead_form_name,
+        1,
+        {
+          subject: "Welcome to the event",
+          title: "Welcome to the event",
+          subtitle: `You have been registered for the event`,
+          body: bodyText,
+        }
+      );
       return c.json(
         {
           success: true,
-          message: 'Registration successful',
+          message: "Registration successful",
           leadId: createdLead[0].id,
         },
-        201,
+        201
       );
     } catch (error) {
-      logger.error('Error handling external form:', error);
+      logger.error("Error handling external form:", error);
       return serveInternalServerError(c, error);
     }
   };
@@ -370,7 +413,9 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
       //get membership
-      const membership = await this.membershipService.getMembership(body.membership_id);
+      const membership = await this.membershipService.getMembership(
+        body.membership_id
+      );
       if (!membership) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
@@ -387,17 +432,24 @@ export class LeadController {
       if (!host.stripe_account_id) {
         return serveBadRequest(c, ERRORS.STRIPE_ACCOUNT_ID_NOT_FOUND);
       }
+      //get the contact for this lead email
+      const contact = await this.contactService.findByEmail(lead.email || "");
+      if (!contact) {
+        return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
+      }
       //create checkout session with stripe service, amount is membership price
-      const checkoutSession = await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
-        mode: 'payment',
-        success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
-        cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
-        hostStripeAccountId: host.stripe_account_id,
-        price: membership.price,
-        eventName: event.event_name,
-        membershipName: membership.name,
-        membershipId: String(membership.id),
-      });
+      const checkoutSession =
+        await this.stripeService.createLeadUpgradeCheckoutSession(lead, {
+          customer: contact.stripe_customer_id || "",
+          mode: "payment",
+          success_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`,
+          cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+          hostStripeAccountId: host.stripe_account_id,
+          price: membership.price,
+          eventName: event.event_name,
+          membershipName: membership.name,
+          membershipId: String(membership.id),
+        });
       return c.json(checkoutSession);
     } catch (error) {
       logger.error(error);

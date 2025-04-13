@@ -200,7 +200,8 @@ export class Server {
       turnstileService,
       membershipService,
       stripeService,
-      bookingService
+      bookingService,
+      contactService
     );
     const eventController = new EventController(
       eventService,

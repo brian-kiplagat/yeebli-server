@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  CONTACT_NOT_FOUND: 'Ops, we cant find a contact with this email, please check if you have the correct details',
   STRIPE_ACCOUNT_ID_NOT_FOUND: 'The host has not configured payments, as a result you cannot initiate a payment.',
   LEAD_WITH_TOKEN_NOT_FOUND: 'Ops, we cant find a lead with this token, please check if you have the correct details',
   EVENT_DATE_ID_REQUIRED: 'If you invite a lead to an event, please also provide an event date.',

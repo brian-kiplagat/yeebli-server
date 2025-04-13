@@ -207,6 +207,7 @@ export class StripeService {
   public async createLeadUpgradeCheckoutSession(
     lead: Lead,
     params: {
+      customer: string;
       mode: 'payment' | 'subscription';
       success_url: string;
       cancel_url: string;
