@@ -248,7 +248,10 @@ export class Server {
     // Add team service and controller
 
     const teamController = new TeamController(teamService, userService);
-    const contactController = new ContactController(contactService);
+    const contactController = new ContactController(
+      contactService,
+      stripeService
+    );
 
     // Add Google service and controller
     const googleService = new GoogleService(userService, stripeService);
@@ -538,6 +541,7 @@ export class Server {
 
     contact.post("/login", contactCtrl.login);
     contact.get("/me", authCheck, contactCtrl.me);
+    contact.get("/payment-methods", authCheck, contactCtrl.paymentMethods);
     contact.post("/send-token", contactCtrl.sendToken);
     contact.post("/verify-registration", contactCtrl.verifyRegistrationToken);
     contact.post("/request-reset-password", contactCtrl.requestResetPassword);

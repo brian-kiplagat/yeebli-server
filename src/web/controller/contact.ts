@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import { logger } from "../../lib/logger.js";
 import type { ContactService } from "../../service/contact.js";
+import type { StripeService } from "../../service/stripe.js";
 import type {
   EmailVerificationBody,
   InAppResetPasswordBody,
@@ -22,7 +23,15 @@ import { verify } from "../../lib/encryption.ts";
 import { type JWTPayload, encode } from "../../lib/jwt.js";
 
 export class ContactController {
-  constructor(private contactService: ContactService) {}
+  private contactService: ContactService;
+  private stripeService: StripeService;
+  constructor(
+    contactService: ContactService,
+    stripeService: StripeService
+  ) {
+    this.contactService = contactService;
+    this.stripeService = stripeService;
+  }
 
   private getContact = async (c: Context) => {
     const email = c.get("jwtPayload").email;
@@ -171,6 +180,27 @@ export class ContactController {
       }
       const serializedContact = await serializeContact(contact);
       return serveData(c, { contact: serializedContact });
+    } catch (error: any) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public paymentMethods = async (c: Context) => {
+    try {
+      const contact = await this.getContact(c);
+      if (!contact) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      if (!contact.stripe_customer_id) {
+        return serveBadRequest(c, ERRORS.STRIPE_CUSTOMER_ID_NOT_FOUND);
+      }
+
+      const paymentMethods = await this.stripeService.getCustomerPaymentMethods(
+        contact.stripe_customer_id
+      );
+      return serveData(c, paymentMethods);
     } catch (error: any) {
       logger.error(error);
       return serveInternalServerError(c, error);
