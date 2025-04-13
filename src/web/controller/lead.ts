@@ -175,7 +175,7 @@ export class LeadController {
               }
             }
           }
-          const paid_event = event.membership ? true : false;
+          const paid_event = event.membership?.name.trim() != "Free" ? true : false;
           //send confirmation email to the lead
           const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${body.email}`;
           const bodyText =
