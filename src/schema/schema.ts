@@ -308,9 +308,6 @@ export const paymentSchema = mysqlTable("payments", {
   membership_id: int("membership_id")
     .references(() => memberships.id)
     .notNull(),
-  stripe_payment_intent_id: varchar("stripe_payment_intent_id", { length: 255 })
-    .notNull()
-    .unique(),
   stripe_customer_id: varchar("stripe_customer_id", { length: 255 }).notNull(),
   stripe_payment_method_id: varchar("stripe_payment_method_id", {
     length: 255,
@@ -330,20 +327,9 @@ export const paymentSchema = mysqlTable("payments", {
     "subscription",
   ]).notNull(),
   metadata: json("metadata"),
-  error_message: text("error_message"),
-  refund_status: mysqlEnum("refund_status", [
-    "none",
-    "partial",
-    "full",
-  ]).default("none"),
-  refunded_amount: decimal("refunded_amount", {
-    precision: 10,
-    scale: 2,
-  }).default("0"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
-
 
 export type Lead = typeof leadSchema.$inferSelect & {
   event?: Event | null;
@@ -419,7 +405,6 @@ export const paymentRelations = relations(paymentSchema, ({ one }) => ({
     references: [memberships.id],
   }),
 }));
-
 
 // Define relations
 export const teamRelations = relations(teamSchema, ({ many }) => ({

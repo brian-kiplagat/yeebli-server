@@ -473,7 +473,7 @@ export class LeadController {
       }
 
       //create checkout session with stripe service, amount is membership price
-      const { session, paymentIntentId } =
+      const { session } =
         await this.stripeService.createLeadUpgradeCheckoutSession(
           lead,
           contact.stripe_customer_id,
@@ -490,13 +490,12 @@ export class LeadController {
         );
 
       // Create payment record
-      if (paymentIntentId) {
+     
         await this.paymentService.createPayment({
           contact_id: contact.id,
           lead_id: lead.id,
           event_id: lead.event_id,
           membership_id: membership.id,
-          stripe_payment_intent_id: paymentIntentId,
           stripe_customer_id: contact.stripe_customer_id,
           amount: String(membership.price),
           currency: "gbp",
@@ -507,7 +506,7 @@ export class LeadController {
             membershipName: membership.name,
           },
         });
-      }
+     
 
       return c.json(session);
     } catch (error) {

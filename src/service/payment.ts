@@ -26,17 +26,6 @@ export class PaymentService {
     }
   }
 
-  public async findByPaymentIntentId(paymentIntentId: string) {
-    try {
-      return await this.paymentRepo.findPaymentByPaymentIntentId(
-        paymentIntentId
-      );
-    } catch (error) {
-      logger.error("Error finding payment by intent ID:", error);
-      throw error;
-    }
-  }
-
   public async findByContactId(contactId: number) {
     try {
       return await this.paymentRepo.findPaymentsByContactId(contactId);

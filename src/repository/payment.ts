@@ -8,12 +8,6 @@ export class PaymentRepository {
     return db.insert(paymentSchema).values(data).$returningId();
   }
 
-  public async findPaymentByPaymentIntentId(paymentIntentId: string) {
-    return db.query.paymentSchema.findFirst({
-      where: eq(paymentSchema.stripe_payment_intent_id, paymentIntentId),
-    });
-  }
-
   public async findPaymentsByContactId(contactId: number) {
     return db.query.paymentSchema.findMany({
       where: eq(paymentSchema.contact_id, contactId),
