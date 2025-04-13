@@ -24,11 +24,11 @@ import { type JWTPayload, encode } from "../../lib/jwt.js";
 export class ContactController {
   constructor(private contactService: ContactService) {}
 
-  private async getContact(c: Context) {
-    const contactId = c.get("contactId");
-    const contact = await this.contactService.getContactById(contactId);
+  private getContact = async (c: Context) => {
+    const email = c.get("jwtPayload").email;
+    const contact = await this.contactService.findByEmail(email);
     return contact;
-  }
+  };
 
   public login = async (c: Context) => {
     try {
