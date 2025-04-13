@@ -168,7 +168,14 @@ export class LeadController {
               Number(body.event_date_id)
             );
             if (date) {
-              eventDate = formatDate(new Date(date.date), "YYYY DD MM HH:mm");
+              // Convert the timestamp string to a number and then to a Date
+              const timestamp = parseInt(date.date, 10);
+              if (!isNaN(timestamp)) {
+                eventDate = formatDate(
+                  new Date(timestamp * 1000),
+                  "YYYY DD MM HH:mm"
+                );
+              }
             }
           }
           //send confirmation email to the lead
@@ -426,7 +433,14 @@ export class LeadController {
           Number(validatedData.registered_date)
         );
         if (date) {
-           eventDate = formatDate(new Date(date.date), "YYYY DD MM HH:mm");
+          // Convert the timestamp string to a number and then to a Date
+          const timestamp = parseInt(date.date, 10);
+          if (!isNaN(timestamp)) {
+            eventDate = formatDate(
+              new Date(timestamp * 1000),
+              "YYYY DD MM HH:mm"
+            );
+          }
         }
       }
       //send confirmation email to the lead
