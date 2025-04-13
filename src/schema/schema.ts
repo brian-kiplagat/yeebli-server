@@ -309,7 +309,7 @@ export const paymentSchema = mysqlTable("payments", {
     .references(() => memberships.id)
     .notNull(),
   stripe_customer_id: varchar("stripe_customer_id", { length: 255 }).notNull(),
-  stripe_payment_method_id: varchar("stripe_payment_method_id", {
+  checkout_session_id: varchar("checkout_session_id", {
     length: 255,
   }),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),

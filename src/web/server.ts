@@ -230,7 +230,8 @@ export class Server {
       stripeService,
       userService,
       subscriptionRepo,
-      leadService
+      leadService,
+      paymentService
     );
     const subscriptionController = new SubscriptionController(
       subscriptionService,

@@ -260,6 +260,7 @@ export class LeadController {
             metadata: {
               eventName: event.event_name,
               membershipName: event.membership.name,
+              sessionId: checkoutSession.session.id,
             },
           });
 

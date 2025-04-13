@@ -20,4 +20,11 @@ export class PaymentRepository {
   ) {
     return db.update(paymentSchema).set(data).where(eq(paymentSchema.id, id));
   }
+
+  public async updatePaymentBySessionId(
+    sessionId: string,
+    data: Partial<typeof paymentSchema.$inferInsert>
+  ) {
+    return db.update(paymentSchema).set(data).where(eq(paymentSchema.checkout_session_id, sessionId));
+  }
 }

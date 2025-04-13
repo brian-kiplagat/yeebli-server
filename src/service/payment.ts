@@ -26,6 +26,15 @@ export class PaymentService {
     }
   }
 
+  public async updatePaymentBySessionId(sessionId: string, payment: Partial<Payment>) {
+    try {
+      return await this.paymentRepo.updatePaymentBySessionId(sessionId, payment);
+    } catch (error) {
+      logger.error("Error updating payment:", error);
+      throw error;
+    }
+  }
+
   public async findByContactId(contactId: number) {
     try {
       return await this.paymentRepo.findPaymentsByContactId(contactId);
