@@ -344,6 +344,13 @@
       "when": 1744367573862,
       "tag": "0049_needy_captain_flint",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "5",
+      "when": 1744530180550,
+      "tag": "0050_bouncy_synch",
+      "breakpoints": true
     }
   ]
 }

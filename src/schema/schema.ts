@@ -74,6 +74,40 @@ export const userSchema = mysqlTable("user", {
   ),
 });
 
+export const contactSchema = mysqlTable("contacts", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull(),
+  email: varchar("email", { length: 100 }).notNull().unique(),
+  phone: varchar("phone", { length: 100 }).notNull().default(""),
+  password: varchar("password", { length: 255 }).notNull(),
+  reset_token: varchar("reset_token", { length: 255 }),
+  email_token: varchar("email_token", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  role: mysqlEnum("role", ["lead", "user"]).default("lead"),
+  profile_picture: text("profile_picture"),
+  bio: varchar("bio", { length: 255 }),
+  custom_id: varchar("custom_id", { length: 255 }),
+  is_verified: boolean("is_verified").default(false),
+  stripe_customer_id: varchar("stripe_customer_id", { length: 255 }),
+  subscription_id: varchar("subscription_id", { length: 255 }),
+  subscription_status: mysqlEnum("subscription_status", [
+    "trialing",
+    "active",
+    "past_due",
+    "canceled",
+    "incomplete",
+    "incomplete_expired",
+    "paused",
+    "unpaid",
+  ]),
+  google_id: varchar("google_id", { length: 255 }),
+  google_access_token: varchar("google_access_token", { length: 255 }),
+  auth_provider: mysqlEnum("auth_provider", ["local", "google"]).default(
+    "local"
+  ),
+});
+
 export const businessSchema = mysqlTable("businesses", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 50 }).notNull(),
@@ -288,6 +322,8 @@ export type EventDate = typeof eventDates.$inferSelect;
 export type NewEventDate = typeof eventDates.$inferInsert;
 export type Asset = typeof assetsSchema.$inferSelect;
 export type NewAsset = typeof assetsSchema.$inferInsert;
+export type Contact = typeof contactSchema.$inferSelect;
+export type NewContact = typeof contactSchema.$inferInsert;
 
 export type User = typeof userSchema.$inferSelect & {
   business?: typeof businessSchema.$inferSelect | null;

@@ -96,6 +96,8 @@ import {
   revokeAccessValidator,
   teamQueryValidator,
 } from "./validator/team.ts";
+import { ContactService } from "../service/contact.ts";
+import { ContactRepository } from "../repository/contact.ts";
 
 export class Server {
   private app: Hono;
@@ -138,13 +140,19 @@ export class Server {
     const assetRepo = new AssetRepository();
     const subscriptionRepo = new SubscriptionRepository();
     const teamRepo = new TeamRepository();
-
+    const contactRepo = new ContactRepository();
     const businessRepo = new BusinessRepository();
 
     // Setup services
+    const contactService = new ContactService(contactRepo);
     const s3Service = new S3Service();
     const turnstileService = new TurnstileService();
-    const leadService = new LeadService(leadRepo);
+    const stripeService = new StripeService();
+    const leadService = new LeadService(
+      leadRepo,
+      contactService,
+      stripeService
+    );
     const eventService = new EventService(eventRepo, s3Service, leadService);
     const adminService = new AdminService(adminRepo);
     const bookingRepo = new BookingRepository();
@@ -153,7 +161,7 @@ export class Server {
     const bookingService = new BookingService(bookingRepo);
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
-    const stripeService = new StripeService();
+  
     const userService = new UserService(
       userRepo,
       stripeService,
@@ -172,6 +180,7 @@ export class Server {
       assetService,
       teamService
     );
+    
 
     // Setup workers
     this.registerWorker(userService);
