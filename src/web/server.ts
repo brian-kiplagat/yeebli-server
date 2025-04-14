@@ -101,6 +101,14 @@ import {
 import { ContactController } from "./controller/contact.ts";
 import { PaymentService } from "../service/payment.ts";
 import { PaymentRepository } from "../repository/payment.ts";
+import { CallbackController } from "./controller/callback.ts";
+import { CallbackService } from "../service/callback.ts";
+import { CallbackRepository } from "../repository/callback.ts";
+import {
+  callbackValidator,
+  updateCallbackValidator,
+  callbackQueryValidator,
+} from "./validator/callback.ts";
 
 export class Server {
   private app: Hono;
@@ -146,6 +154,7 @@ export class Server {
     const contactRepo = new ContactRepository();
     const businessRepo = new BusinessRepository();
     const paymentRepo = new PaymentRepository();
+    const callbackRepo = new CallbackRepository();
     // Setup services
     const contactService = new ContactService(contactRepo);
     const s3Service = new S3Service();
@@ -183,6 +192,7 @@ export class Server {
       assetService,
       teamService
     );
+    const callbackService = new CallbackService(callbackRepo);
 
     // Setup workers
     this.registerWorker(userService);
@@ -266,6 +276,12 @@ export class Server {
       userRepo
     );
 
+    // Setup controllers
+    const callbackController = new CallbackController(
+      callbackService,
+      userService
+    );
+
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
     this.registerLeadRoutes(api, leadController);
@@ -281,6 +297,7 @@ export class Server {
     this.registerMembershipRoutes(api, membershipController);
     this.registerTeamRoutes(api, teamController);
     this.registerContactRoutes(api, contactController);
+    this.registerCallbackRoutes(api, callbackController);
   }
 
   private registerUserRoutes(
@@ -587,6 +604,57 @@ export class Server {
     );
 
     api.route("/team", team);
+  }
+
+  private registerCallbackRoutes(api: Hono, callbackCtrl: CallbackController) {
+    const callback = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    // Create a new callback
+    callback.post("/", callbackValidator, callbackCtrl.createCallback);
+
+    // Get a specific callback
+    callback.get("/:id", authCheck, callbackCtrl.getCallback);
+
+    // Get callbacks by lead ID
+    callback.get(
+      "/lead/:leadId",
+      authCheck,
+      callbackQueryValidator,
+      callbackCtrl.getCallbacksByLeadId
+    );
+
+    // Get all uncalled callbacks
+    callback.get(
+      "/uncalled",
+      authCheck,
+      callbackQueryValidator,
+      callbackCtrl.getUncalledCallbacks
+    );
+
+    // Get all scheduled callbacks
+    callback.get(
+      "/scheduled",
+      authCheck,
+      callbackQueryValidator,
+      callbackCtrl.getScheduledCallbacks
+    );
+
+    // Update a callback
+    callback.put(
+      "/:id",
+      authCheck,
+      updateCallbackValidator,
+      callbackCtrl.updateCallback
+    );
+
+    // Delete a callback
+    callback.delete("/:id", authCheck, callbackCtrl.deleteCallback);
+
+    // Mark a callback as called
+    callback.post("/:id/called", authCheck, callbackCtrl.markCallbackAsCalled);
+
+    api.route("/callback", callback);
   }
 
   private registerWorker(userService: UserService) {

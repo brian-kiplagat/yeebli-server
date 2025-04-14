@@ -331,6 +331,19 @@ export const paymentSchema = mysqlTable("payments", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
+export const callbackSchema = mysqlTable("callbacks", {
+  id: serial("id").primaryKey(),
+  lead_id: int("lead_id")
+    .references(() => leadSchema.id)
+    .notNull(),
+  callback_type: mysqlEnum("callback_type", ["instant", "scheduled"]).notNull(),
+  scheduled_time: timestamp("scheduled_time"),
+  status: mysqlEnum("status", ["called", "uncalled"]).default("uncalled"),
+  notes: text("notes"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
 export type Lead = typeof leadSchema.$inferSelect & {
   event?: Event | null;
   membership?: Membership | null;
@@ -359,6 +372,8 @@ export type NewTeamMember = typeof teamMemberSchema.$inferInsert;
 
 export type NewUser = typeof userSchema.$inferInsert;
 export type NewBusiness = typeof businessSchema.$inferInsert;
+export type Callback = typeof callbackSchema.$inferSelect;
+export type NewCallback = typeof callbackSchema.$inferInsert;
 
 // Define relations
 export const userRelations = relations(userSchema, ({ one }) => ({
@@ -448,6 +463,13 @@ export const bookingRelations = relations(bookings, ({ one }) => ({
   }),
   lead: one(leadSchema, {
     fields: [bookings.lead_id],
+    references: [leadSchema.id],
+  }),
+}));
+
+export const callbackRelations = relations(callbackSchema, ({ one }) => ({
+  lead: one(leadSchema, {
+    fields: [callbackSchema.lead_id],
     references: [leadSchema.id],
   }),
 }));
