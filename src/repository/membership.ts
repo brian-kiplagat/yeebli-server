@@ -1,7 +1,7 @@
-import { and, desc, eq, like } from 'drizzle-orm';
-import { db } from '../lib/database.ts';
-import { memberships } from '../schema/schema.ts';
-import type { Membership, NewMembership } from '../schema/schema.ts';
+import { and, desc, eq, like } from "drizzle-orm";
+import { db } from "../lib/database.ts";
+import { memberships, eventSchema } from "../schema/schema.ts";
+import type { Membership, NewMembership } from "../schema/schema.ts";
 
 export type MembershipQuery = {
   page?: number;
@@ -16,7 +16,11 @@ export class MembershipRepository {
   }
 
   async find(id: number): Promise<Membership | undefined> {
-    const result = await db.select().from(memberships).where(eq(memberships.id, id)).limit(1);
+    const result = await db
+      .select()
+      .from(memberships)
+      .where(eq(memberships.id, id))
+      .limit(1);
     return result[0];
   }
 
@@ -32,7 +36,7 @@ export class MembershipRepository {
     const plans = await db
       .select()
       .from(memberships)
-      .where(whereConditions.length ? and(...whereConditions) : undefined)
+      .where(and(...whereConditions))
       .limit(limit)
       .offset(offset)
       .orderBy(desc(memberships.created_at));
@@ -40,7 +44,7 @@ export class MembershipRepository {
     const total = await db
       .select({ count: memberships.id })
       .from(memberships)
-      .where(whereConditions.length ? and(...whereConditions) : undefined);
+      .where(and(...whereConditions));
 
     return { plans, total: total.length };
   }
@@ -76,5 +80,12 @@ export class MembershipRepository {
       .where(and(...whereConditions));
 
     return { plans, total: total.length };
+  }
+
+  async getEventsByMembership(membershipId: number) {
+    return await db
+      .select()
+      .from(eventSchema)
+      .where(eq(eventSchema.membership_id, membershipId));
   }
 }

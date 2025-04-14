@@ -142,6 +142,11 @@ export class MembershipController {
       if (plan.user_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
+      //if membership si lnked to any event, do not delete
+      const events = await this.service.getEventsByMembership(planId);
+      if (events.length > 0) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_LINKED_TO_EVENT);
+      }
 
       await this.service.deleteMembership(planId);
       return c.json({ message: 'Membership deleted successfully' });
