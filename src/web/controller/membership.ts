@@ -1,11 +1,19 @@
-import type { Context } from 'hono';
-import { logger } from '../../lib/logger.ts';
+import type { Context } from "hono";
+import { logger } from "../../lib/logger.ts";
 
-import type { UserService } from '../../service/user.ts';
+import type { UserService } from "../../service/user.ts";
 
-import type { MembershipService } from '../../service/membership.ts';
-import type { CreateMembershipBody, UpdateMembershipBody } from '../validator/membership.ts';
-import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.ts';
+import type { MembershipService } from "../../service/membership.ts";
+import type {
+  CreateMembershipBody,
+  UpdateMembershipBody,
+} from "../validator/membership.ts";
+import {
+  ERRORS,
+  serveBadRequest,
+  serveInternalServerError,
+  serveNotFound,
+} from "./resp/error.ts";
 
 export class MembershipController {
   private service: MembershipService;
@@ -17,7 +25,7 @@ export class MembershipController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get('jwtPayload').email;
+    const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -37,7 +45,7 @@ export class MembershipController {
       };
 
       // Admin users (master/owner) can see all memberships
-      if (user.role === 'master' || user.role === 'owner') {
+      if (user.role === "master" || user.role === "owner") {
         const plans = await this.service.getAllMemberships(query);
         return c.json(plans);
       }
@@ -58,7 +66,7 @@ export class MembershipController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const planId = Number(c.req.param('id'));
+      const planId = Number(c.req.param("id"));
       const plan = await this.service.getMembership(planId);
 
       if (!plan) {
@@ -87,10 +95,10 @@ export class MembershipController {
 
       return c.json(
         {
-          message: 'Membership created successfully',
+          message: "Membership created successfully",
           planId: planId,
         },
-        201,
+        201
       );
     } catch (error) {
       logger.error(error);
@@ -105,7 +113,7 @@ export class MembershipController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const planId = Number(c.req.param('id'));
+      const planId = Number(c.req.param("id"));
       const plan = await this.service.getMembership(planId);
 
       if (!plan) {
@@ -119,7 +127,7 @@ export class MembershipController {
       const body: UpdateMembershipBody = await c.req.json();
       await this.service.updateMembership(planId, body);
 
-      return c.json({ message: 'Membership updated successfully' });
+      return c.json({ message: "Membership updated successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -133,7 +141,7 @@ export class MembershipController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const planId = Number(c.req.param('id'));
+      const planId = Number(c.req.param("id"));
       const plan = await this.service.getMembership(planId);
 
       if (!plan) {
@@ -144,12 +152,13 @@ export class MembershipController {
       }
       //if membership si lnked to any event, do not delete
       const events = await this.service.getEventsByMembership(planId);
-      if (events.length > 0) {
+      const hasActiveEvents = events.some((event) => event.status === "active");
+      if (hasActiveEvents) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_LINKED_TO_EVENT);
       }
 
       await this.service.deleteMembership(planId);
-      return c.json({ message: 'Membership deleted successfully' });
+      return c.json({ message: "Membership deleted successfully" });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

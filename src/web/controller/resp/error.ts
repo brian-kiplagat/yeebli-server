@@ -32,7 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
-  MEMBERSHIP_LINKED_TO_EVENT: 'This membership is linked to an event. Please cancel the event first then try again.',
+  MEMBERSHIP_LINKED_TO_EVENT: 'This membership is linked to an event. Deleting this will cause issues with existing contacts registered for the event. Please cancel the event first then try again.',
   CONTACT_NOT_FOUND: 'Ops, we cant find a contact with this email, please check if you have the correct details',
   STRIPE_ACCOUNT_ID_NOT_FOUND: 'The host has not configured payments, as a result you cannot initiate a payment.',
   LEAD_WITH_TOKEN_NOT_FOUND: 'Ops, we cant find a lead with this token, please check if you have the correct details',
