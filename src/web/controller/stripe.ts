@@ -128,11 +128,11 @@ export class StripeController {
       return c.json({ error: "Failed to get account status" }, 500);
     }
   };
-  private async getUser(c: Context) {
+  private getUser = async (c: Context) => {
     const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
-  }
+  };
 
   public initiateOAuth = async (c: Context) => {
     try {
@@ -237,7 +237,7 @@ export class StripeController {
     }
   };
 
-  private async handleAccountUpdate(account: any) {
+  private handleAccountUpdate = async (account: any) => {
     try {
       const userId = account.metadata.userId;
       if (!userId) return;
@@ -259,9 +259,9 @@ export class StripeController {
       logger.error(error);
       throw error;
     }
-  }
+  };
 
-  private async handleSubscriptionUpdate(subscription: any) {
+  private handleSubscriptionUpdate = async (subscription: any) => {
     try {
       const userId = subscription.metadata.userId;
       if (!userId) return;
@@ -326,9 +326,9 @@ export class StripeController {
       logger.error(error);
       throw error;
     }
-  }
+  };
 
-  private async handleTrialEnding(subscription: any) {
+  private handleTrialEnding = async (subscription: any) => {
     try {
       const userId = subscription.metadata.userId;
       if (!userId) return;
@@ -349,9 +349,9 @@ export class StripeController {
       logger.error(error);
       throw error;
     }
-  }
+  };
 
-  private async handleCheckoutCompleted(session: any) {
+  private handleCheckoutCompleted = async (session: any) => {
     try {
       //check for metadata type lead_upgrade
       const type = session.metadata.type;
@@ -414,9 +414,9 @@ export class StripeController {
       logger.error(error);
       throw error;
     }
-  }
+  };
 
-  public async getProduct(c: Context) {
+  public getProduct = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
@@ -432,5 +432,5 @@ export class StripeController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 }
