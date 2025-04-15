@@ -593,7 +593,7 @@ export class Server {
       teamQueryValidator,
       teamCtrl.getMyInvitations
     );
-    team.delete("/invitations/:id", authCheck, teamCtrl.rejectInvitation);
+    team.delete("/invitations/:id", authCheck, teamCtrl.deleteInvitation);
     team.post("/invitations/:id/accept", teamCtrl.acceptInvitation);
     team.post("/invitations/:id/reject", teamCtrl.rejectInvitation);
     team.get("/my-team/members", authCheck, teamCtrl.getMyTeamMembers);
