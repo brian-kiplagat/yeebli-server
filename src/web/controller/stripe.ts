@@ -272,7 +272,7 @@ export class StripeController {
       );
 
       //get plan id and product id from metadata
-      const planId = subscription.metadata.planId;
+      const priceId = subscription.metadata.priceId;
       const productId = subscription.metadata.productId;
 
       // Update user's subscription status
@@ -280,7 +280,7 @@ export class StripeController {
         subscription_status: subscription.status,
         subscription_id: subscription.id,
         stripe_product_id: productId,
-        stripe_price_id: planId,
+        stripe_price_id: priceId,
         trial_ends_at: subscription.trial_end
           ? new Date(subscription.trial_end * 1000)
           : null,
