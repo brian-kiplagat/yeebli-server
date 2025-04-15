@@ -14,7 +14,7 @@ export class CallbackService {
       const callback = await this.repository.createCallback(data);
       return callback[0].id;
     } catch (error) {
-      logger.error("Failed to create callback:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -23,7 +23,7 @@ export class CallbackService {
     try {
       return await this.repository.findCallbackByLeadIdAndEventIdAndCallbackType(leadId, eventId, callbackType);
     } catch (error) {
-      logger.error("Failed to get callback by lead ID and event ID and callback type:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -31,7 +31,7 @@ export class CallbackService {
     try {
       return await this.repository.findCallbackById(id);
     } catch (error) {
-      logger.error("Failed to get callback:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -40,7 +40,7 @@ export class CallbackService {
     try {
       return await this.repository.findCallbacksByLeadId(leadId);
     } catch (error) {
-      logger.error("Failed to get callbacks by lead ID:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -49,7 +49,7 @@ export class CallbackService {
     try {
       return await this.repository.findUncalledCallbacks(hostId);
     } catch (error) {
-      logger.error("Failed to get uncalled callbacks:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -58,7 +58,7 @@ export class CallbackService {
     try {
       return await this.repository.findScheduledCallbacks();
     } catch (error) {
-      logger.error("Failed to get scheduled callbacks:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -72,7 +72,7 @@ export class CallbackService {
 
       await this.repository.updateCallback(id, data);
     } catch (error) {
-      logger.error("Failed to update callback:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -81,7 +81,7 @@ export class CallbackService {
     try {
       await this.repository.deleteCallback(id);
     } catch (error) {
-      logger.error("Failed to delete callback:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -90,7 +90,7 @@ export class CallbackService {
     try {
       await this.repository.markCallbackAsCalled(id);
     } catch (error) {
-      logger.error("Failed to mark callback as called:", error);
+      logger.error(error);
       throw error;
     }
   }
