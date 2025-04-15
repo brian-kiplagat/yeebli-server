@@ -131,6 +131,10 @@ export class TeamService {
     return await this.repo.getTeamByHostId(userId);
   }
 
+  public async getInvitation(invitationId: number) {
+    return await this.repo.getInvitation(invitationId);
+  }
+
   public async revokeAccess(teamId: number, userId: number) {
     try {
       // Remove the team member
