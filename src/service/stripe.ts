@@ -288,9 +288,14 @@ export class StripeService {
     }
   }
 
-  public async getProduct(productId: string) {
+  public async getProduct(productId: string, priceId: string) {
     try {
-      return await this.stripe.products.retrieve(productId);
+      const product = await this.stripe.products.retrieve(productId);
+      const price = await this.stripe.prices.retrieve(priceId);
+      return {
+        product,
+        price,
+      };
     } catch (error) {
       logger.error(error);
       throw error;
