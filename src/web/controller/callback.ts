@@ -1,13 +1,8 @@
 import { Context } from "hono";
 import type { CallbackService } from "../../service/callback.ts";
-import type { NewCallback } from "../../schema/schema.ts";
 import {
-  callbackValidator,
-  updateCallbackValidator,
-  callbackQueryValidator,
   type CallbackBody,
   type UpdateCallbackBody,
-  type CallbackQuery,
 } from "../validator/callback.ts";
 import {
   ERRORS,
