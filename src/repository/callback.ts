@@ -1,6 +1,6 @@
 import { db } from "../lib/database.ts";
 import { callbackSchema } from "../schema/schema.ts";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import type { NewCallback } from "../schema/schema.ts";
 
 export class CallbackRepository {
@@ -29,6 +29,20 @@ export class CallbackRepository {
   public async findScheduledCallbacks() {
     return db.query.callbackSchema.findMany({
       where: eq(callbackSchema.callback_type, "scheduled"),
+    });
+  }
+
+  public async findCallbackByLeadIdAndEventIdAndCallbackType(
+    leadId: number,
+    eventId: number,
+    callbackType: "instant" | "scheduled"
+  ) {
+    return db.query.callbackSchema.findFirst({
+      where: and(
+        eq(callbackSchema.lead_id, leadId),
+        eq(callbackSchema.event_id, eventId),
+        eq(callbackSchema.callback_type, callbackType)
+      ),
     });
   }
 

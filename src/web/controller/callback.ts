@@ -40,6 +40,13 @@ export class CallbackController {
       if (body.callback_type === "scheduled" && !body.scheduled_time) {
         return serveBadRequest(c, ERRORS.SCHEDULED_TIME_REQUIRED);
       }
+
+      //a lead can only create one callback per event and callback type
+      const existingCallback = await this.service.getCallbackByLeadIdAndEventIdAndCallbackType(body.lead_id, body.event_id, body.callback_type);
+      if (existingCallback) {
+        return serveBadRequest(c, ERRORS.CALLBACK_ALREADY_EXISTS);
+      }
+
       const callbackId = await this.service.createCallback({
         ...body,
         scheduled_time: body.scheduled_time

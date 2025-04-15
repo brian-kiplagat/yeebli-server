@@ -19,6 +19,14 @@ export class CallbackService {
     }
   }
 
+  public async getCallbackByLeadIdAndEventIdAndCallbackType(leadId: number, eventId: number, callbackType: "instant" | "scheduled"): Promise<Callback | undefined> {
+    try {
+      return await this.repository.findCallbackByLeadIdAndEventIdAndCallbackType(leadId, eventId, callbackType);
+    } catch (error) {
+      logger.error("Failed to get callback by lead ID and event ID and callback type:", error);
+      throw error;
+    }
+  }
   public async getCallback(id: number): Promise<Callback | undefined> {
     try {
       return await this.repository.findCallbackById(id);
