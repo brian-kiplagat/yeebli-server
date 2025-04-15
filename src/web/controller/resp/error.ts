@@ -33,7 +33,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 
 const ERRORS = {
   SCHEDULED_TIME_REQUIRED: 'Scheduled time is required for scheduled callbacks',
-  CALLBACK_ALREADY_EXISTS: 'A callback of this type already exists for this lead and event',
+  CALLBACK_ALREADY_EXISTS: 'You have already scheduled a callback of this type for this event',
   SUBSCRIPTION_NOT_FOUND: "Subscription not found. Nothing left to cancel.",
   PRODUCT_ID_NOT_FOUND: 'Product not found. Please check the product id',
   CALLBACK_NOT_FOUND: 'Callback not found',
