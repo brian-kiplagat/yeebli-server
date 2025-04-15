@@ -6,7 +6,11 @@ import type { LeadService } from "../../service/lead.js";
 import type { StripeService } from "../../service/stripe.js";
 import type { UserService } from "../../service/user.js";
 import { sendTransactionalEmail } from "../../task/sendWelcomeEmail.ts";
-import { ERRORS, MAIL_CONTENT } from "./resp/error.ts";
+import {
+  ERRORS,
+  MAIL_CONTENT,
+  serveInternalServerError,
+} from "./resp/error.ts";
 import { serveBadRequest } from "./resp/error.ts";
 import { PaymentService } from "../../service/payment.ts";
 export class StripeController {
@@ -73,7 +77,7 @@ export class StripeController {
         accountId: account.id,
       });
     } catch (error) {
-      logger.error("Error in createConnectAccount:", error);
+      logger.error(error);
       return c.json({ error: "Failed to create Stripe Connect account" }, 500);
     }
   };
@@ -101,7 +105,7 @@ export class StripeController {
         status: user.stripe_account_status,
       });
     } catch (error) {
-      logger.error("Error in getAccountStatus:", error);
+      logger.error(error);
       return c.json({ error: "Failed to get account status" }, 500);
     }
   };
@@ -120,7 +124,7 @@ export class StripeController {
       );
       return c.json(cardDetails);
     } catch (error) {
-      logger.error("Error in getAccountStatus:", error);
+      logger.error(error);
       return c.json({ error: "Failed to get account status" }, 500);
     }
   };
@@ -149,7 +153,7 @@ export class StripeController {
 
       return c.json({ url: oauthUrl });
     } catch (error) {
-      logger.error("Error initiating OAuth:", error);
+      logger.error(error);
       return c.json({ error: "Failed to initiate OAuth" }, 500);
     }
   };
@@ -183,7 +187,7 @@ export class StripeController {
         accountId: response.stripe_user_id,
       });
     } catch (error) {
-      logger.error("Error handling OAuth callback:", error);
+      logger.error(error);
       return c.json({ error: "Failed to complete OAuth connection" }, 500);
     }
   };
@@ -222,7 +226,7 @@ export class StripeController {
 
       return c.json({ received: true });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return c.json(
         {
           error: "Webhook handler failed",
@@ -252,7 +256,7 @@ export class StripeController {
         stripe_account_status: status,
       });
     } catch (error) {
-      logger.error("Error handling account update:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -319,7 +323,7 @@ export class StripeController {
           break;
       }
     } catch (error) {
-      logger.error("Error handling subscription update:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -342,7 +346,7 @@ export class StripeController {
         MAIL_CONTENT.SUBSCRIPTION_TRIAL_ENDED
       );
     } catch (error) {
-      logger.error("Error handling trial ending:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -407,21 +411,26 @@ export class StripeController {
         );
       }
     } catch (error) {
-      logger.error("Error handling checkout completion:", error);
+      logger.error(error);
       throw error;
     }
   }
 
   public async getProduct(c: Context) {
-    const user = await this.getUser(c);
-    if (!user) {
-      return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      const productId = String(c.req.param("id"));
+      if (!productId) {
+        return serveBadRequest(c, ERRORS.PRODUCT_ID_NOT_FOUND);
+      }
+      const product = await this.stripeService.getProduct(productId);
+      return c.json({ product });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
     }
-    const productId = String(c.req.param("id"));
-    if (!productId) {
-      return serveBadRequest(c, ERRORS.PRODUCT_ID_NOT_FOUND);
-    }
-    const product = await this.stripeService.getProduct(productId);
-    return c.json({ product });
   }
 }
