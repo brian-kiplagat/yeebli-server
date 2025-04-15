@@ -1,15 +1,19 @@
-import { logger } from '../lib/logger.ts';
-import type { SubscriptionRepository } from '../repository/subscription.ts';
-import type { User } from '../schema/schema.ts';
-import type { StripeService } from './stripe.ts';
-import type { UserService } from './user.ts';
+import { logger } from "../lib/logger.ts";
+import type { SubscriptionRepository } from "../repository/subscription.ts";
+import type { User } from "../schema/schema.ts";
+import type { StripeService } from "./stripe.ts";
+import type { UserService } from "./user.ts";
 
 export class SubscriptionService {
   private subscriptionRepo: SubscriptionRepository;
   private stripeService: StripeService;
   private userService: UserService;
 
-  constructor(subscriptionRepo: SubscriptionRepository, stripeService: StripeService, userService: UserService) {
+  constructor(
+    subscriptionRepo: SubscriptionRepository,
+    stripeService: StripeService,
+    userService: UserService
+  ) {
     this.subscriptionRepo = subscriptionRepo;
     this.stripeService = stripeService;
     this.userService = userService;
@@ -20,11 +24,11 @@ export class SubscriptionService {
     priceId: string,
     productId: string,
     successUrl: string,
-    cancelUrl: string,
+    cancelUrl: string
   ) {
     try {
       if (!user.stripe_customer_id) {
-        throw new Error('User has no Stripe customer ID');
+        throw new Error("User has no Stripe customer ID");
       }
 
       const session = await this.stripeService.createCheckoutSession({
@@ -35,19 +39,18 @@ export class SubscriptionService {
             quantity: 1,
           },
         ],
-        mode: 'subscription',
+        mode: "subscription",
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
           userId: String(user.id),
-          type: 'subscription',
+          type: "subscription",
         },
         subscription_data: {
           trial_period_days: 14,
           metadata: {
             userId: String(user.id),
             productId: productId,
-            priceId: priceId,
           },
         },
       });
@@ -55,44 +58,41 @@ export class SubscriptionService {
       // Store the checkout session in our database
       await this.subscriptionRepo.createSubscription({
         user_id: user.id,
-        object: 'checkout.session',
+        object: "checkout.session",
         amount_subtotal: session.amount_subtotal || 0,
         amount_total: session.amount_total || 0,
         session_id: session.id,
-        cancel_url: session.cancel_url || '',
-        success_url: session.success_url || '',
+        cancel_url: session.cancel_url || "",
+        success_url: session.success_url || "",
         created: Number(session.created),
-        currency: session.currency || '',
-        mode: session.mode || '',
-        payment_status: session.payment_status || '',
-        status: session.status || '',
+        currency: session.currency || "",
+        mode: session.mode || "",
+        payment_status: session.payment_status || "",
+        status: session.status || "",
         subscription_id: session.subscription?.toString() || null,
       });
 
       return session;
     } catch (error) {
       console.log(error);
-      logger.error('Error creating subscription checkout session:', error);
+      logger.error("Error creating subscription checkout session:", error);
       throw error;
     }
   }
 
-  public async cancelSubscription(userId: number) {
+  public async cancelSubscription(userId: number, subscriptionId: string) {
     try {
-      const user = await this.userService.find(userId);
-      if (!user?.subscription_id) {
-        throw new Error('No active subscription found');
-      }
-
-      const subscription = await this.stripeService.cancelSubscription(user.subscription_id);
+      const subscription =
+        await this.stripeService.cancelSubscription(subscriptionId);
 
       await this.userService.update(userId, {
-        subscription_status: 'canceled',
+        subscription_status: "canceled",
+        subscription_id: null,
       });
 
       return subscription;
     } catch (error) {
-      logger.error('Error canceling subscription:', error);
+      logger.error("Error canceling subscription:", error);
       throw error;
     }
   }
@@ -101,7 +101,7 @@ export class SubscriptionService {
     try {
       return await this.subscriptionRepo.findSubscriptionsByUserId(userId);
     } catch (error) {
-      logger.error('Error getting subscriptions:', error);
+      logger.error("Error getting subscriptions:", error);
       throw error;
     }
   }

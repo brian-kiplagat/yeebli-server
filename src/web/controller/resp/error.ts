@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  SUBSCRIPTION_NOT_FOUND: "Subscription not found. Nothing left to cancel.",
   PRODUCT_ID_NOT_FOUND: 'Product not found. Please check the product id',
   CALLBACK_NOT_FOUND: 'Callback not found',
   MEMBERSHIP_LINKED_TO_EVENT: 'This membership is linked to an event. Deleting this will cause issues with existing contacts registered for the event. Please cancel the event first then try again.',
