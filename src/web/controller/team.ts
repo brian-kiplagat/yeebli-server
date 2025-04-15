@@ -365,7 +365,7 @@ export class TeamController {
       }
 
       // Delete the invitation
-      await this.service.repo.deleteInvitation(invitationId);
+      await this.service.deleteInvitation(invitationId);
 
       return c.json({
         success: true,

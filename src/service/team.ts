@@ -145,4 +145,13 @@ export class TeamService {
       throw error;
     }
   }
+
+  public async deleteInvitation(invitationId: number) {
+    try {
+      return await this.repo.deleteInvitation(invitationId);
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
+  }
 }
