@@ -1,4 +1,4 @@
-import { and, desc, eq, like } from "drizzle-orm";
+import { and, desc, eq, like, asc } from "drizzle-orm";
 import { db } from "../lib/database.ts";
 import { memberships, eventSchema } from "../schema/schema.ts";
 import type { Membership, NewMembership } from "../schema/schema.ts";
@@ -39,7 +39,7 @@ export class MembershipRepository {
       .where(and(...whereConditions))
       .limit(limit)
       .offset(offset)
-      .orderBy(desc(memberships.created_at));
+      .orderBy(asc(memberships.price));
 
     const total = await db
       .select({ count: memberships.id })
@@ -72,7 +72,7 @@ export class MembershipRepository {
       .where(and(...whereConditions))
       .limit(limit)
       .offset(offset)
-      .orderBy(desc(memberships.created_at));
+      .orderBy(asc(memberships.price));
 
     const total = await db
       .select({ count: memberships.id })
