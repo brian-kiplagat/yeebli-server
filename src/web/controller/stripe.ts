@@ -418,6 +418,9 @@ export class StripeController {
       return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
     }
     const productId = String(c.req.param("id"));
+    if (!productId) {
+      return serveBadRequest(c, ERRORS.PRODUCT_ID_NOT_FOUND);
+    }
     const product = await this.stripeService.getProduct(productId);
     return c.json({ product });
   }

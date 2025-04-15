@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  PRODUCT_ID_NOT_FOUND: 'Product not found. Please check the product id',
   CALLBACK_NOT_FOUND: 'Callback not found',
   MEMBERSHIP_LINKED_TO_EVENT: 'This membership is linked to an event. Deleting this will cause issues with existing contacts registered for the event. Please cancel the event first then try again.',
   CONTACT_NOT_FOUND: 'Ops, we cant find a contact with this email, please check if you have the correct details',
