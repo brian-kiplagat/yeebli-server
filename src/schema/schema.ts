@@ -338,6 +338,9 @@ export const callbackSchema = mysqlTable("callbacks", {
   lead_id: int("lead_id")
     .references(() => leadSchema.id)
     .notNull(),
+  event_id: int("event_id")
+    .references(() => eventSchema.id)
+    .notNull(),
   callback_type: mysqlEnum("callback_type", ["instant", "scheduled"]).notNull(),
   scheduled_time: timestamp("scheduled_time"),
   status: mysqlEnum("status", ["called", "uncalled"]).default("uncalled"),
@@ -473,5 +476,9 @@ export const callbackRelations = relations(callbackSchema, ({ one }) => ({
   lead: one(leadSchema, {
     fields: [callbackSchema.lead_id],
     references: [leadSchema.id],
+  }),
+  event: one(eventSchema, {
+    fields: [callbackSchema.event_id],
+    references: [eventSchema.id],
   }),
 }));

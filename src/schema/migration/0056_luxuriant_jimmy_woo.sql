@@ -1,0 +1,2 @@
+ALTER TABLE `callbacks` ADD `event_id` int NOT NULL;
+ALTER TABLE `callbacks` ADD CONSTRAINT `callbacks_event_id_events_id_fk` FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE no action ON UPDATE no action;
