@@ -107,7 +107,6 @@ import { CallbackRepository } from "../repository/callback.ts";
 import {
   callbackValidator,
   updateCallbackValidator,
-  callbackQueryValidator,
 } from "./validator/callback.ts";
 
 export class Server {
@@ -623,7 +622,6 @@ export class Server {
     callback.get(
       "/lead/:leadId",
       authCheck,
-      callbackQueryValidator,
       callbackCtrl.getCallbacksByLeadId
     );
 
@@ -631,7 +629,6 @@ export class Server {
     callback.get(
       "/uncalled",
       authCheck,
-      callbackQueryValidator,
       callbackCtrl.getUncalledCallbacks
     );
 
@@ -639,7 +636,6 @@ export class Server {
     callback.get(
       "/scheduled",
       authCheck,
-      callbackQueryValidator,
       callbackCtrl.getScheduledCallbacks
     );
 

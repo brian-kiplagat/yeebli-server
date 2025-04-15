@@ -24,7 +24,11 @@ export class CallbackController {
   private userService: UserService;
   private eventService: EventService;
 
-  constructor(service: CallbackService, userService: UserService, eventService: EventService) {
+  constructor(
+    service: CallbackService,
+    userService: UserService,
+    eventService: EventService
+  ) {
     this.service = service;
     this.userService = userService;
     this.eventService = eventService;
@@ -45,7 +49,12 @@ export class CallbackController {
       }
 
       //a lead can only create one callback per event and callback type
-      const existingCallback = await this.service.getCallbackByLeadIdAndEventIdAndCallbackType(body.lead_id, body.event_id, body.callback_type);
+      const existingCallback =
+        await this.service.getCallbackByLeadIdAndEventIdAndCallbackType(
+          body.lead_id,
+          body.event_id,
+          body.callback_type
+        );
       if (existingCallback) {
         return serveBadRequest(c, ERRORS.CALLBACK_ALREADY_EXISTS);
       }
