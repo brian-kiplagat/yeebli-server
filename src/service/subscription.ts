@@ -1,6 +1,7 @@
 import { logger } from "../lib/logger.ts";
 import type { SubscriptionRepository } from "../repository/subscription.ts";
 import type { User } from "../schema/schema.ts";
+import { sendTransactionalEmail } from "../task/sendWelcomeEmail.ts";
 import type { StripeService } from "./stripe.ts";
 import type { UserService } from "./user.ts";
 
@@ -80,16 +81,26 @@ export class SubscriptionService {
     }
   }
 
-  public async cancelSubscription(userId: number, subscriptionId: string) {
+  public async cancelSubscription(
+    userId: number,
+    email: string,
+    name: string,
+    subscriptionId: string
+  ) {
     try {
-      const subscription =
-        await this.stripeService.cancelSubscription(subscriptionId);
-
-      await this.userService.update(userId, {
-        subscription_status: "canceled",
-        subscription_id: null,
+      const [subscription, user] = await Promise.all([
+        this.stripeService.cancelSubscription(subscriptionId),
+        this.userService.update(userId, {
+          subscription_status: "canceled",
+          subscription_id: null,
+        }),
+      ]);
+      await sendTransactionalEmail(email, name, 1, {
+        subject: "You have cancelled your subscription",
+        title: "We Are Sorry to See You Go",
+        subtitle: "Your subscription has been cancelled",
+        body: `We're truly sorry to see you leave. Your subscription has been successfully cancelled, and your premium access has now ended. If you have any feedback about your experience or if there's anything we could have done better, we'd love to hear from you. If you ever change your mind, you can easily regain full access to all premium features by subscribing again at any time. Our support team is always here to help—feel free to reach out whenever you need. Thank you for being with us.`,
       });
-
       return subscription;
     } catch (error) {
       logger.error("Error canceling subscription:", error);

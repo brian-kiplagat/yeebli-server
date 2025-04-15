@@ -70,6 +70,8 @@ export class SubscriptionController {
 
       await this.subscriptionService.cancelSubscription(
         user.id,
+        user.email,
+        user.name,
         user.subscription_id
       );
       return serveData(c, { message: "Subscription cancelled successfully" });
