@@ -72,6 +72,8 @@ export const userSchema = mysqlTable("user", {
   auth_provider: mysqlEnum("auth_provider", ["local", "google"]).default(
     "local"
   ),
+  stripe_product_id: varchar("stripe_product_id", { length: 255 }),
+  stripe_price_id: varchar("stripe_price_id", { length: 255 }),
 });
 
 export const contactSchema = mysqlTable("contacts", {

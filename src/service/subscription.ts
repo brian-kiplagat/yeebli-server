@@ -47,6 +47,7 @@ export class SubscriptionService {
           metadata: {
             userId: String(user.id),
             productId: productId,
+            priceId: priceId,
           },
         },
       });

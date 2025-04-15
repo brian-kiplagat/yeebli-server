@@ -271,10 +271,16 @@ export class StripeController {
         `Processing subscription event: ${subscription.status} for user ${userId}`
       );
 
+      //get plan id and product id from metadata
+      const planId = subscription.metadata.planId;
+      const productId = subscription.metadata.productId;
+
       // Update user's subscription status
       await this.userService.update(Number.parseInt(userId), {
         subscription_status: subscription.status,
         subscription_id: subscription.id,
+        stripe_product_id: productId,
+        stripe_price_id: planId,
         trial_ends_at: subscription.trial_end
           ? new Date(subscription.trial_end * 1000)
           : null,
