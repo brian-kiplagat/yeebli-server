@@ -37,7 +37,7 @@ export class StripeService {
         code,
       });
     } catch (error) {
-      logger.error("Error handling OAuth callback:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -52,7 +52,7 @@ export class StripeService {
     try {
       return await this.stripe.subscriptions.create(params);
     } catch (error) {
-      logger.error("Error creating subscription:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -61,7 +61,7 @@ export class StripeService {
     try {
       return await this.stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
-      logger.error("Error canceling subscription:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -79,7 +79,7 @@ export class StripeService {
         ],
       });
     } catch (error) {
-      logger.error("Error updating subscription:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -88,7 +88,7 @@ export class StripeService {
     try {
       return await this.stripe.subscriptions.retrieve(subscriptionId);
     } catch (error) {
-      logger.error("Error retrieving subscription:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -101,7 +101,7 @@ export class StripeService {
       });
       return paymentMethods.data;
     } catch (error) {
-      logger.error("Error retrieving customer payment methods:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -114,7 +114,7 @@ export class StripeService {
         env.STRIPE_WEBHOOK_SECRET
       );
     } catch (error) {
-      logger.error("Error constructing webhook event:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -126,7 +126,7 @@ export class StripeService {
     try {
       return await this.stripe.products.create(params);
     } catch (error) {
-      logger.error("Error creating product:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -142,7 +142,7 @@ export class StripeService {
     try {
       return await this.stripe.prices.create(params);
     } catch (error) {
-      logger.error("Error creating price:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -162,7 +162,7 @@ export class StripeService {
         },
       });
     } catch (error) {
-      logger.error("Error creating Connect account:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -176,7 +176,7 @@ export class StripeService {
         type: "account_onboarding",
       });
     } catch (error) {
-      logger.error("Error creating account link:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -185,7 +185,7 @@ export class StripeService {
     try {
       return await this.stripe.accounts.retrieve(accountId);
     } catch (error) {
-      logger.error("Error retrieving account status:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -205,6 +205,7 @@ export class StripeService {
     try {
       return await this.stripe.checkout.sessions.create(params);
     } catch (error) {
+      logger.error(error);
       throw error;
     }
   }
@@ -267,7 +268,7 @@ export class StripeService {
         paymentIntentId: session.payment_intent?.toString(),
       };
     } catch (error) {
-      logger.error("Failed to create lead upgrade session:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -282,7 +283,7 @@ export class StripeService {
         metadata,
       });
     } catch (error) {
-      logger.error("Error creating customer:", error);
+      logger.error(error);
       throw error;
     }
   }
@@ -291,7 +292,7 @@ export class StripeService {
     try {
       return await this.stripe.products.retrieve(productId);
     } catch (error) {
-      logger.error("Error retrieving product:", error);
+      logger.error(error);
       throw error;
     }
   }
