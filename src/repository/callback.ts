@@ -20,9 +20,12 @@ export class CallbackRepository {
     });
   }
 
-  public async findUncalledCallbacks() {
+  public async findUncalledCallbacks(hostId: number) {
     return db.query.callbackSchema.findMany({
-      where: eq(callbackSchema.status, "uncalled"),
+      where: and(
+        eq(callbackSchema.status, "uncalled"),
+        eq(callbackSchema.host_id, hostId)
+      ),
     });
   }
 

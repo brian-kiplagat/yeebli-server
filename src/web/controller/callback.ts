@@ -121,7 +121,7 @@ export class CallbackController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const callbacks = await this.service.getUncalledCallbacks();
+      const callbacks = await this.service.getUncalledCallbacks(user.id);
       return c.json(callbacks);
     } catch (error) {
       logger.error(error);

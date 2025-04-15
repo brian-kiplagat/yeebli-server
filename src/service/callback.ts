@@ -45,9 +45,9 @@ export class CallbackService {
     }
   }
 
-  public async getUncalledCallbacks(): Promise<Callback[]> {
+  public async getUncalledCallbacks(hostId: number): Promise<Callback[]> {
     try {
-      return await this.repository.findUncalledCallbacks();
+      return await this.repository.findUncalledCallbacks(hostId);
     } catch (error) {
       logger.error("Failed to get uncalled callbacks:", error);
       throw error;
