@@ -290,8 +290,10 @@ export class StripeService {
 
   public async getProduct(productId: string, priceId: string) {
     try {
-      const product = await this.stripe.products.retrieve(productId);
-      const price = await this.stripe.prices.retrieve(priceId);
+      const [product, price] = await Promise.all([
+        this.stripe.products.retrieve(productId),
+        this.stripe.prices.retrieve(priceId),
+      ]);
       return {
         product,
         price,

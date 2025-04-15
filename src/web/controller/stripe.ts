@@ -427,8 +427,11 @@ export class StripeController {
       if (!productId) {
         return serveBadRequest(c, ERRORS.PRODUCT_ID_NOT_FOUND);
       }
-      const product = await this.stripeService.getProduct(productId, priceId);
-      return c.json({ product });
+      const { product, price } = await this.stripeService.getProduct(
+        productId,
+        priceId
+      );
+      return c.json({ product, price });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
