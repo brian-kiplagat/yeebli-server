@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  SCHEDULED_TIME_REQUIRED: 'Scheduled time is required for scheduled callbacks',
   SUBSCRIPTION_NOT_FOUND: "Subscription not found. Nothing left to cancel.",
   PRODUCT_ID_NOT_FOUND: 'Product not found. Please check the product id',
   CALLBACK_NOT_FOUND: 'Callback not found',

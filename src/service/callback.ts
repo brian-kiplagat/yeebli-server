@@ -11,12 +11,8 @@ export class CallbackService {
 
   public async createCallback(data: NewCallback): Promise<number> {
     try {
-      // Validate scheduled time for scheduled callbacks
-      if (data.callback_type === "scheduled" && !data.scheduled_time) {
-        throw new Error("Scheduled time is required for scheduled callbacks");
-      }
-
-      return await this.repository.createCallback(data);
+      const callback = await this.repository.createCallback(data);
+      return callback[0].id;
     } catch (error) {
       logger.error("Failed to create callback:", error);
       throw error;
@@ -61,13 +57,10 @@ export class CallbackService {
 
   public async updateCallback(
     id: number,
-    data: Partial<typeof callbackSchema.$inferInsert>
+    data: Partial<Callback>
   ): Promise<void> {
     try {
-      // Validate scheduled time for scheduled callbacks
-      if (data.callback_type === "scheduled" && !data.scheduled_time) {
-        throw new Error("Scheduled time is required for scheduled callbacks");
-      }
+      
 
       await this.repository.updateCallback(id, data);
     } catch (error) {

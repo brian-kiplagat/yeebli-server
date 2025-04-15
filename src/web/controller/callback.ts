@@ -35,9 +35,11 @@ export class CallbackController {
 
   public createCallback = async (c: Context) => {
     try {
-      
-
       const body: CallbackBody = await c.req.json();
+      // Validate scheduled time for scheduled callbacks
+      if (body.callback_type === "scheduled" && !body.scheduled_time) {
+        return serveBadRequest(c, ERRORS.SCHEDULED_TIME_REQUIRED);
+      }
       const callbackId = await this.service.createCallback({
         ...body,
         scheduled_time: body.scheduled_time
@@ -134,7 +136,10 @@ export class CallbackController {
 
       const id = parseInt(c.req.param("id"));
       const body: UpdateCallbackBody = await c.req.json();
-
+      // Validate scheduled time for scheduled callbacks
+      if (body.callback_type === "scheduled" && !body.scheduled_time) {
+        return serveBadRequest(c, ERRORS.SCHEDULED_TIME_REQUIRED);
+      }
       await this.service.updateCallback(id, {
         ...body,
         scheduled_time: body.scheduled_time
