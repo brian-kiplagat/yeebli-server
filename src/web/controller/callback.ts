@@ -33,7 +33,7 @@ export class CallbackController {
     const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
-  }
+  };
 
   public createCallback = async (c: Context) => {
     try {
