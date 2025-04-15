@@ -279,7 +279,8 @@ export class Server {
     // Setup controllers
     const callbackController = new CallbackController(
       callbackService,
-      userService
+      userService,
+      eventService
     );
 
     // Register routes

@@ -17,14 +17,17 @@ import {
 } from "./resp/error.ts";
 import { logger } from "../../lib/logger.ts";
 import { UserService } from "../../service/user.ts";
+import { EventService } from "../../service/event.ts";
 
 export class CallbackController {
   private service: CallbackService;
   private userService: UserService;
+  private eventService: EventService;
 
-  constructor(service: CallbackService, userService: UserService) {
+  constructor(service: CallbackService, userService: UserService, eventService: EventService) {
     this.service = service;
     this.userService = userService;
+    this.eventService = eventService;
   }
 
   private async getUser(c: Context) {
@@ -47,8 +50,15 @@ export class CallbackController {
         return serveBadRequest(c, ERRORS.CALLBACK_ALREADY_EXISTS);
       }
 
+      //confirm the event exists
+      const event = await this.eventService.getEvent(body.event_id);
+      if (!event) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+
       const callbackId = await this.service.createCallback({
         ...body,
+        host_id: event.host_id,
         scheduled_time: body.scheduled_time
           ? new Date(body.scheduled_time)
           : null,

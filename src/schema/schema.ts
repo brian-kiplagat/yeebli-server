@@ -341,6 +341,9 @@ export const callbackSchema = mysqlTable("callbacks", {
   event_id: int("event_id")
     .references(() => eventSchema.id)
     .notNull(),
+  host_id: int("host_id")
+    .references(() => userSchema.id)
+    .notNull(), 
   callback_type: mysqlEnum("callback_type", ["instant", "scheduled"]).notNull(),
   scheduled_time: timestamp("scheduled_time"),
   status: mysqlEnum("status", ["called", "uncalled"]).default("uncalled"),
@@ -480,5 +483,9 @@ export const callbackRelations = relations(callbackSchema, ({ one }) => ({
   event: one(eventSchema, {
     fields: [callbackSchema.event_id],
     references: [eventSchema.id],
+  }),
+  host: one(userSchema, {
+    fields: [callbackSchema.host_id],
+    references: [userSchema.id],
   }),
 }));

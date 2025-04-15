@@ -1,0 +1,2 @@
+ALTER TABLE `callbacks` ADD `host_id` int NOT NULL;--> statement-breakpoint
+ALTER TABLE `callbacks` ADD CONSTRAINT `callbacks_host_id_user_id_fk` FOREIGN KEY (`host_id`) REFERENCES `user`(`id`) ON DELETE no action ON UPDATE no action;
