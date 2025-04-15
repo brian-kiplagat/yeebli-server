@@ -286,4 +286,13 @@ export class StripeService {
       throw error;
     }
   }
+
+  public async getProduct(productId: string) {
+    try {
+      return await this.stripe.products.retrieve(productId);
+    } catch (error) {
+      logger.error("Error retrieving product:", error);
+      throw error;
+    }
+  }
 }

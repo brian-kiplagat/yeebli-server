@@ -461,6 +461,7 @@ export class Server {
       authCheck,
       stripeCtrl.handleOAuthCallback
     );
+    stripe.get("/product/:id", authCheck, stripeCtrl.getProduct);
     stripe.get("/list/payment/methods", authCheck, stripeCtrl.getCardDetails);
 
     // Webhook

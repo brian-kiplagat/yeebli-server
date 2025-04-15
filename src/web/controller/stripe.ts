@@ -411,4 +411,14 @@ export class StripeController {
       throw error;
     }
   }
+
+  public async getProduct(c: Context) {
+    const user = await this.getUser(c);
+    if (!user) {
+      return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+    }
+    const productId = String(c.req.param("id"));
+    const product = await this.stripeService.getProduct(productId);
+    return c.json({ product });
+  }
 }
