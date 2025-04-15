@@ -29,7 +29,7 @@ export class CallbackController {
     this.eventService = eventService;
   }
 
-  private async getUser(c: Context) {
+  private getUser = async (c: Context) => {
     const email = c.get("jwtPayload").email;
     const user = await this.userService.findByEmail(email);
     return user;
