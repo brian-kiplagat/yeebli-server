@@ -343,10 +343,7 @@ export class LeadController {
 
       // If event has membership requirement and lead hasn't paid
       if (event.membership && !lead.membership_active) {
-        return c.json({
-          isAllowed: false,
-          message: "Payment required to access this event",
-        });
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_ACTIVE);
       }
 
       return c.json({

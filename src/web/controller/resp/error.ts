@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  MEMBERSHIP_NOT_ACTIVE: 'This lead has not paid for the membership',
   EVENT_ALREADY_CANCELLED: 'This event has already been cancelled',
   SCHEDULED_TIME_REQUIRED: 'Scheduled time is required for scheduled callbacks',
   CALLBACK_ALREADY_EXISTS: 'You have already scheduled a callback of this type for this event',
