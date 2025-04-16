@@ -4,6 +4,7 @@ import {
   teamInvitationSchema,
   teamMemberSchema,
   teamSchema,
+  userSchema,
 } from "../schema/schema.ts";
 import { TeamQuery } from "../web/validator/team.ts";
 
@@ -45,15 +46,40 @@ export class TeamRepository {
       whereConditions.push(like(teamSchema.name, `%${search}%`));
     }
 
-    return await db.query.teamMemberSchema.findMany({
-      where: (member, { and }) => and(...whereConditions),
-      with: {
-        user: true,
-        team: true,
-      },
-      limit,
-      offset,
-    });
+    const members = await db
+      .select({
+        id: teamMemberSchema.id,
+        team_id: teamMemberSchema.team_id,
+        user_id: teamMemberSchema.user_id,
+        role: teamMemberSchema.role,
+        created_at: teamMemberSchema.created_at,
+        updated_at: teamMemberSchema.updated_at,
+        user: {
+          id: userSchema.id,
+          name: userSchema.name,
+          email: userSchema.email,
+          phone: userSchema.phone,
+          role: userSchema.role,
+        },
+        team: {
+          id: teamSchema.id,
+          name: teamSchema.name,
+        },
+      })
+      .from(teamMemberSchema)
+      .leftJoin(teamSchema, eq(teamMemberSchema.team_id, teamSchema.id))
+      .leftJoin(userSchema, eq(teamMemberSchema.user_id, userSchema.id))
+      .where(and(...whereConditions))
+      .limit(limit)
+      .offset(offset);
+
+    const total = await db
+      .select({ count: teamMemberSchema.id })
+      .from(teamMemberSchema)
+      .leftJoin(teamSchema, eq(teamMemberSchema.team_id, teamSchema.id))
+      .where(and(...whereConditions));
+
+    return { members, total: total.length };
   }
 
   public async getUserTeams(userId: number) {

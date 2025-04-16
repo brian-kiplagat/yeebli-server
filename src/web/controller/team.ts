@@ -255,7 +255,7 @@ export class TeamController {
       }
 
       // Format response to include only name, email, phone, and role
-      const formattedMembers = members.map((member) => ({
+      const formattedMembers = members.members.map((member) => ({
         name: member.user?.name || "Unknown",
         email: member.user?.email || "Unknown",
         phone: member.user?.phone || "Unknown",
@@ -331,7 +331,7 @@ export class TeamController {
 
       // Verify that the user is a member of the team
       const teamMembers = await this.service.getTeamMembers(team_id);
-      const isMember = teamMembers.some(
+      const isMember = teamMembers.members.some(
         (member) => member.user_id === member_id
       );
       if (!isMember) {
