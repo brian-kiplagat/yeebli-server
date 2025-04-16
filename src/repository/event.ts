@@ -171,6 +171,10 @@ export class EventRepository {
     return db.select().from(bookings).where(eq(bookings.date_id, dateId));
   }
 
+  public async findBookingsByEventId(eventId: number) {
+    return db.select().from(bookings).where(eq(bookings.event_id, eventId));
+  }
+
   public async deleteEventDate(dateId: number) {
     return db.delete(eventDates).where(eq(eventDates.id, dateId));
   }
