@@ -222,6 +222,7 @@ export class StripeService {
       eventName: string;
       membershipName: string;
       membershipId: string;
+      eventId: string;
     }
   ) {
     try {
@@ -246,6 +247,7 @@ export class StripeService {
         metadata: {
           leadId: lead.id.toString(),
           type: "lead_upgrade",
+          eventId: params.eventId,
           membershipId: params.membershipId,
         },
       };

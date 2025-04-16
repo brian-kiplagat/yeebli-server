@@ -272,6 +272,7 @@ export class LeadController {
                 eventName: event.event_name,
                 membershipName: event.membership.name,
                 membershipId: String(event.membership.id),
+                eventId: String(event.id),
               }
             );
           await this.paymentService.createPayment({

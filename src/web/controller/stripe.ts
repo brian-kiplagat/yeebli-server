@@ -13,24 +13,29 @@ import {
 } from "./resp/error.ts";
 import { serveBadRequest } from "./resp/error.ts";
 import { PaymentService } from "../../service/payment.ts";
+import { EventService } from "../../service/event.ts";
+import env from "../../lib/env.ts";
 export class StripeController {
   private stripeService: StripeService;
   private userService: UserService;
   private subscriptionRepo: SubscriptionRepository;
   private leadService: LeadService;
   private paymentService: PaymentService;
+  private eventService: EventService;
   constructor(
     stripeService: StripeService,
     userService: UserService,
     subscriptionRepo: SubscriptionRepository,
     leadService: LeadService,
-    paymentService: PaymentService
+    paymentService: PaymentService,
+    eventService: EventService
   ) {
     this.stripeService = stripeService;
     this.userService = userService;
     this.subscriptionRepo = subscriptionRepo;
     this.leadService = leadService;
     this.paymentService = paymentService;
+    this.eventService = eventService;
   }
 
   public createConnectAccount = async (c: Context) => {
@@ -366,6 +371,10 @@ export class StripeController {
           const leadId = session.metadata.leadId;
           const sessionId = session.id;
           const lead = await this.leadService.find(Number.parseInt(leadId));
+          const eventId = session.metadata.eventId;
+          const event = await this.eventService.getEvent(
+            Number.parseInt(eventId)
+          );
           if (lead) {
             await this.leadService.update(lead.id, {
               membership_active: true,
@@ -377,11 +386,18 @@ export class StripeController {
             });
             if (lead.email && lead.name) {
               //send welcome email
+              const body =
+                event?.event_type === "live_venue"
+                  ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name} with ${event?.membership?.name} access. The venue is located at ${event?.live_venue_address}. We can't wait to see you there! If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
+                  : event?.event_type === "live_video_call"
+                    ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name} with ${event?.membership?.name} access. You can join the event using this link: ${event?.live_video_url}. We can't wait to see you there! If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
+                    : `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name} with ${event?.membership?.name} access. Your event link is ${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}. You can access the event content at any time. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`;
+
               sendTransactionalEmail(String(lead.email), String(lead.name), 1, {
                 subject: "Your Ticket is Confirmed 🎉",
                 title: "You're All Set for the Event!",
                 subtitle: String(lead.token),
-                body: "We're thrilled to let you know that your ticket has been successfully confirmed! You’re now officially part of the experience, and we can’t wait to see you at the event. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.",
+                body: body,
               });
             }
           }
