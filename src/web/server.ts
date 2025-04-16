@@ -349,10 +349,14 @@ export class Server {
     api.route("/user", user);
   }
 
-  private registerLeadRoutes(api: Hono, leadCtrl: LeadController, teamService: TeamService) {
+  private registerLeadRoutes(
+    api: Hono,
+    leadCtrl: LeadController,
+    teamService: TeamService
+  ) {
     const lead = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
-
+    lead.use(teamAccess(teamService));
     lead.get("/", authCheck, leadCtrl.getLeads);
     lead.get("/:id", authCheck, leadCtrl.getLead);
     lead.post("/", authCheck, leadValidator, leadCtrl.createLead);
@@ -377,7 +381,7 @@ export class Server {
       leadCtrl.handleExternalForm
     );
 
-    api.route("/lead", lead.use(teamAccess(teamService)));
+    api.route("/lead", lead);
   }
 
   private registerEventRoutes(api: Hono, eventCtrl: EventController) {
@@ -603,7 +607,12 @@ export class Server {
     team.delete("/invitations/:id", authCheck, teamCtrl.deleteInvitation);
     team.post("/invitations/:id/accept", teamCtrl.acceptInvitation);
     team.post("/invitations/:id/reject", teamCtrl.rejectInvitation);
-    team.get("/my-team/members", teamQueryValidator, authCheck, teamCtrl.getMyTeamMembers);
+    team.get(
+      "/my-team/members",
+      teamQueryValidator,
+      authCheck,
+      teamCtrl.getMyTeamMembers
+    );
     team.get("/my-teams", authCheck, teamCtrl.getMyTeams);
     team.post(
       "/revoke-access",
@@ -626,25 +635,13 @@ export class Server {
     callback.get("/:id", authCheck, callbackCtrl.getCallback);
 
     // Get callbacks by lead ID
-    callback.get(
-      "/lead/:leadId",
-      authCheck,
-      callbackCtrl.getCallbacksByLeadId
-    );
+    callback.get("/lead/:leadId", authCheck, callbackCtrl.getCallbacksByLeadId);
 
     // Get all uncalled callbacks
-    callback.get(
-      "/uncalled",
-      authCheck,
-      callbackCtrl.getUncalledCallbacks
-    );
+    callback.get("/uncalled", authCheck, callbackCtrl.getUncalledCallbacks);
 
     // Get all scheduled callbacks
-    callback.get(
-      "/scheduled",
-      authCheck,
-      callbackCtrl.getScheduledCallbacks
-    );
+    callback.get("/scheduled", authCheck, callbackCtrl.getScheduledCallbacks);
 
     // Update a callback
     callback.put(
