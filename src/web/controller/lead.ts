@@ -227,6 +227,8 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
       }
 
+      let setupPayments = false;
+
       // If event has membership requirement and lead hasn't paid
       if (
         event.membership &&
@@ -252,6 +254,7 @@ export class LeadController {
         }
         if (host.stripe_account_id) {
           // Ensure contact has a Stripe customer ID
+
           if (!contact.stripe_customer_id) {
             const stripeCustomer = await this.stripeService.createCustomer(
               contact.email
@@ -302,6 +305,7 @@ export class LeadController {
             email: lead.email,
             phone: lead.phone,
             id: lead.id,
+            setupPayments: true,
             checkoutSession: checkoutSession,
           });
         }
@@ -315,6 +319,7 @@ export class LeadController {
         email: lead.email,
         phone: lead.phone,
         id: lead.id,
+        setupPayments: setupPayments,
         created_at: lead.created_at,
         updated_at: lead.updated_at,
         membership_level: lead.membership_level,
@@ -457,7 +462,7 @@ export class LeadController {
       if (
         ["live_venue", "live_video_call"].includes(String(event.event_type))
       ) {
-        eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}&membership_id=${event.membership?.id}`;
+        eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
       } else {
         eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
       }
