@@ -185,7 +185,7 @@ export class LeadController {
           if (
             ["live_venue", "live_video_call"].includes(String(event.event_type))
           ) {
-            eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
+            eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}&membership_id=${event.membership?.id}`;
           } else {
             eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${body.email}`;
           }
@@ -457,7 +457,7 @@ export class LeadController {
       if (
         ["live_venue", "live_video_call"].includes(String(event.event_type))
       ) {
-        eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+        eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}&membership_id=${event.membership?.id}`;
       } else {
         eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
       }
