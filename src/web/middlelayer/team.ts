@@ -1,7 +1,7 @@
 import { createMiddleware } from "hono/factory";
 import { TeamService } from "../../service/team.js";
 import { ERRORS, serveBadRequest } from "../controller/resp/error.js";
-
+import { logger } from "../../lib/logger.js";
 export const teamAccess = (teamService: TeamService) =>
   createMiddleware(async (c, next) => {
     const teamId = c.req.query("teamId");
@@ -15,7 +15,7 @@ export const teamAccess = (teamService: TeamService) =>
       if (!members || members.length === 0) {
         return serveBadRequest(c, ERRORS.TEAM_NOT_FOUND);
       }
-
+      logger.info(members);
       // Find the host member
       const hostMember = members.find((member) => member.role === "host");
       if (!hostMember) {
