@@ -325,6 +325,40 @@ export class LeadController {
     }
   };
 
+  public validateTicketPayment = async (c: Context) => {
+    try {
+      const body: EventLinkBody = await c.req.json();
+      const event = await this.eventService.getEvent(body.event_id);
+      if (!event) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+
+      const lead = await this.service.findByEventIdAndToken(
+        body.event_id,
+        body.token
+      );
+      if (!lead) {
+        return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
+      }
+
+      // If event has membership requirement and lead hasn't paid
+      if (event.membership && !lead.membership_active) {
+        return c.json({
+          isAllowed: false,
+          message: "Payment required to access this event",
+        });
+      }
+
+      return c.json({
+        isAllowed: true,
+        message: "Access granted",
+      });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
   public updateLead = async (c: Context) => {
     try {
       const user = await this.getUser(c);

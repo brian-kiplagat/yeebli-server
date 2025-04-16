@@ -359,6 +359,11 @@ export class Server {
       eventLinkValidator,
       leadCtrl.validateEventLink
     );
+    lead.post(
+      "/validate-ticket-payment",
+      eventLinkValidator,
+      leadCtrl.validateTicketPayment
+    );
 
     lead.put("/:id", authCheck, updateLeadValidator, leadCtrl.updateLead);
     lead.delete("/:id", authCheck, leadCtrl.deleteLead);
