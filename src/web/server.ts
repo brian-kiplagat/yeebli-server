@@ -535,7 +535,7 @@ export class Server {
       membershipQueryValidator,
       membershipCtrl.getMemberships
     );
-    membership.get("/:id", authCheck, membershipCtrl.getMembership);
+    membership.get("/:id", membershipCtrl.getMembership);
     membership.post(
       "/",
       authCheck,

@@ -61,11 +61,6 @@ export class MembershipController {
 
   public getMembership = async (c: Context) => {
     try {
-      const user = await this.getUser(c);
-      if (!user) {
-        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
-      }
-
       const planId = Number(c.req.param("id"));
       const plan = await this.service.getMembership(planId);
 
