@@ -1,14 +1,13 @@
 import { createMiddleware } from "hono/factory";
 import { TeamService } from "../../service/team.js";
 import { ERRORS, serveBadRequest } from "../controller/resp/error.js";
-import { logger } from "../../lib/logger.js";
 
 export const teamAccess = (teamService: TeamService) =>
   createMiddleware(async (c, next) => {
     const teamId = c.req.query("teamId");
 
     if (teamId) {
-      const userId = c.get("jwtPayload").id;
+      const email = c.get("jwtPayload").email;
 
       // Get team with its members
       const { members } = await teamService.getTeamMembers(Number(teamId));
@@ -26,7 +25,9 @@ export const teamAccess = (teamService: TeamService) =>
       }
 
       // Check if user is a member
-      const isMember = membersArray.some((member) => member.user_id === userId);
+      const isMember = membersArray.some(
+        (member) => member?.user?.email === email
+      );
       if (!isMember) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
