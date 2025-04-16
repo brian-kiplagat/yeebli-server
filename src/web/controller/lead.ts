@@ -181,14 +181,8 @@ export class LeadController {
           const paid_event =
             event.membership?.name.trim() != "Free" ? true : false;
           //send confirmation email to the lead
-          let eventLink = "";
-          if (
-            ["live_venue", "live_video_call"].includes(String(event.event_type))
-          ) {
-            eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}&membership_id=${event.membership?.id}`;
-          } else {
-            eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${body.email}`;
-          }
+          const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}&membership_id=${event.membership?.id}`;
+
           const bodyText =
             event.event_type == "live_venue"
               ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Check our website here: ${eventLink} for more information.`
@@ -457,15 +451,8 @@ export class LeadController {
           }
         }
       }
-      //send confirmation email to the lead
-      let eventLink = "";
-      if (
-        ["live_venue", "live_video_call"].includes(String(event.event_type))
-      ) {
-        eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
-      } else {
-        eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
-      }
+      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+
       const paid_event = event.membership ? true : false;
       const bodyText =
         event.event_type == "live_venue"
