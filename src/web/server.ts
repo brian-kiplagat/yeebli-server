@@ -356,10 +356,8 @@ export class Server {
   ) {
     const lead = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
-    lead.use(teamAccess(teamService));
-    lead.get("/", authCheck, leadCtrl.getLeads);
-    lead.get("/:id", authCheck, leadCtrl.getLead);
-    lead.post("/", authCheck, leadValidator, leadCtrl.createLead);
+
+    // Unauthenticated routes
     lead.post(
       "/lead-validate-event",
       eventLinkValidator,
@@ -370,16 +368,22 @@ export class Server {
       eventLinkValidator,
       leadCtrl.validateTicketPayment
     );
-
-    lead.put("/:id", authCheck, updateLeadValidator, leadCtrl.updateLead);
-    lead.delete("/:id", authCheck, leadCtrl.deleteLead);
-
-    // New external form endpoint - no auth required
     lead.post(
       "/external-form",
       externalFormValidator,
       leadCtrl.handleExternalForm
     );
+
+    // Apply auth middleware for authenticated routes
+    lead.use(authCheck);
+    lead.use(teamAccess(teamService));
+
+    // Authenticated routes
+    lead.get("/", leadCtrl.getLeads);
+    lead.get("/:id", leadCtrl.getLead);
+    lead.post("/", leadValidator, leadCtrl.createLead);
+    lead.put("/:id", updateLeadValidator, leadCtrl.updateLead);
+    lead.delete("/:id", leadCtrl.deleteLead);
 
     api.route("/lead", lead);
   }
