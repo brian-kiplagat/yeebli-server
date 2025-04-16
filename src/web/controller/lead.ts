@@ -78,9 +78,17 @@ export class LeadController {
         limit: limit ? Number.parseInt(limit) : undefined,
         search,
       };
+      // Get hostId from context if team access is used
+      const hostId = c.get("hostId");
 
       if (user.role === "master" || user.role === "owner") {
         const leads = await this.service.findAll(query);
+        return c.json(leads);
+      }
+
+      // If hostId exists (team access), get leads for that host
+      if (hostId) {
+        const leads = await this.service.findByUserId(hostId, query);
         return c.json(leads);
       }
 
