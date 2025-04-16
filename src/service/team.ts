@@ -198,6 +198,10 @@ export class TeamService {
     }
   }
 
+  public async isTeamMember(teamId: number, userId: number) {
+    return await this.repo.isTeamMember(teamId, userId);
+  }
+
   public async deleteInvitation(invitationId: number) {
     try {
       return await this.repo.deleteInvitation(invitationId);

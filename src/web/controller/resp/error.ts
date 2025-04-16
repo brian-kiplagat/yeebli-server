@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  TEAM_NOT_FOUND: 'Ops, we could not find the team you are looking for. Confirm the team id and try again.',
   MEMBERSHIP_NOT_ACTIVE: 'This lead has not paid for the membership',
   EVENT_ALREADY_CANCELLED: 'This event has already been cancelled',
   SCHEDULED_TIME_REQUIRED: 'Scheduled time is required for scheduled callbacks',

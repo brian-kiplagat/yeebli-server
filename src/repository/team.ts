@@ -34,6 +34,9 @@ export class TeamRepository {
   public async getTeamById(id: number) {
     return await db.query.teamSchema.findFirst({
       where: (team, { eq }) => eq(team.id, id),
+      with: {
+        members: true,
+      },
     });
   }
 
@@ -100,6 +103,13 @@ export class TeamRepository {
     return !!member;
   }
 
+  public async isTeamMember(teamId: number, userId: number) {
+    const member = await db.query.teamMemberSchema.findFirst({
+      where: (member, { and, eq }) =>
+        and(eq(member.team_id, teamId), eq(member.user_id, userId)),
+    });
+    return !!member;
+  }
   public async addTeamMember(
     teamId: number,
     userId: number,

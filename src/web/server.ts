@@ -108,6 +108,7 @@ import {
   callbackValidator,
   updateCallbackValidator,
 } from "./validator/callback.ts";
+import { teamAccess } from "./middlelayer/team.ts";
 
 export class Server {
   private app: Hono;
@@ -285,7 +286,7 @@ export class Server {
 
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
-    this.registerLeadRoutes(api, leadController);
+    this.registerLeadRoutes(api, leadController, teamService);
     this.registerEventRoutes(api, eventController);
     this.registerAdminRoutes(api, adminController);
     this.registerS3Routes(api, s3Controller);
@@ -348,7 +349,7 @@ export class Server {
     api.route("/user", user);
   }
 
-  private registerLeadRoutes(api: Hono, leadCtrl: LeadController) {
+  private registerLeadRoutes(api: Hono, leadCtrl: LeadController, teamService: TeamService) {
     const lead = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
@@ -376,7 +377,7 @@ export class Server {
       leadCtrl.handleExternalForm
     );
 
-    api.route("/lead", lead);
+    api.route("/lead", lead.use(teamAccess(teamService)));
   }
 
   private registerEventRoutes(api: Hono, eventCtrl: EventController) {
