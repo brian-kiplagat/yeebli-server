@@ -287,16 +287,16 @@ export class Server {
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
     this.registerLeadRoutes(api, leadController, teamService);
-    this.registerEventRoutes(api, eventController);
+    this.registerEventRoutes(api, eventController, teamService);
     this.registerAdminRoutes(api, adminController);
     this.registerS3Routes(api, s3Controller);
-    this.registerAssetRoutes(api, assetController);
+    this.registerAssetRoutes(api, assetController, teamService);
     this.registerHLSRoutes(api, hlsController);
     this.registerStripeRoutes(api, stripeController);
     this.registerSubscriptionRoutes(api, subscriptionController);
     this.registerBookingRoutes(api, bookingCtrl);
     this.registerBusinessRoutes(api, businessController);
-    this.registerMembershipRoutes(api, membershipController);
+    this.registerMembershipRoutes(api, membershipController, teamService);
     this.registerTeamRoutes(api, teamController);
     this.registerContactRoutes(api, contactController);
     this.registerCallbackRoutes(api, callbackController);
@@ -388,29 +388,34 @@ export class Server {
     api.route("/lead", lead);
   }
 
-  private registerEventRoutes(api: Hono, eventCtrl: EventController) {
+  private registerEventRoutes(
+    api: Hono,
+    eventCtrl: EventController,
+    teamService: TeamService
+  ) {
     const event = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    event.get("/", authCheck, eventQueryValidator, eventCtrl.getEvents);
+    // Unauthenticated routes
     event.get("/:id", eventCtrl.getEvent);
     event.get("/:id/dates", eventCtrl.getEventDates);
-    event.delete("/:id/dates/:dateId", authCheck, eventCtrl.deleteEventDate);
+
+    // Apply auth middleware for authenticated routes
+    event.use(authCheck);
+    event.use(teamAccess(teamService));
+
+    // Authenticated routes
+    event.get("/", eventQueryValidator, eventCtrl.getEvents);
+    event.delete("/:id/dates/:dateId", eventCtrl.deleteEventDate);
     event.put(
       "/:id/dates/:dateId",
-      authCheck,
       upsertEventDateValidator,
       eventCtrl.upsertEventDate
     );
-    event.post("/", authCheck, eventValidator, eventCtrl.createEvent);
-    event.put("/:id", authCheck, updateEventValidator, eventCtrl.updateEvent);
-    event.delete("/:id", authCheck, eventCtrl.deleteEvent);
-    event.post(
-      "/cancel",
-      authCheck,
-      cancelEventValidator,
-      eventCtrl.cancelEvent
-    );
+    event.post("/", eventValidator, eventCtrl.createEvent);
+    event.put("/:id", updateEventValidator, eventCtrl.updateEvent);
+    event.delete("/:id", eventCtrl.deleteEvent);
+    event.post("/cancel", cancelEventValidator, eventCtrl.cancelEvent);
 
     api.route("/event", event);
   }
@@ -443,15 +448,26 @@ export class Server {
     api.route("/s3", s3);
   }
 
-  private registerAssetRoutes(api: Hono, assetCtrl: AssetController) {
+  private registerAssetRoutes(
+    api: Hono,
+    assetCtrl: AssetController,
+    teamService: TeamService
+  ) {
     const asset = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    asset.get("/", authCheck, assetQueryValidator, assetCtrl.getAssets);
-    asset.get("/:id", authCheck, assetCtrl.getAsset);
-    asset.post("/", authCheck, assetCtrl.createAsset);
-    asset.put("/:id/rename", authCheck, assetCtrl.renameAsset);
-    asset.delete("/:id", authCheck, assetCtrl.deleteAsset);
+    // Unauthenticated routes
+
+    // Apply auth middleware for authenticated routes
+    asset.use(authCheck);
+    asset.use(teamAccess(teamService));
+
+    // Authenticated routes
+    asset.get("/:id", assetCtrl.getAsset);
+    asset.get("/", assetQueryValidator, assetCtrl.getAssets);
+    asset.post("/", assetCtrl.createAsset);
+    asset.put("/:id/rename", assetCtrl.renameAsset);
+    asset.delete("/:id", assetCtrl.deleteAsset);
 
     api.route("/asset", asset);
   }
@@ -539,31 +555,32 @@ export class Server {
 
   private registerMembershipRoutes(
     api: Hono,
-    membershipCtrl: MembershipController
+    membershipCtrl: MembershipController,
+    teamService: TeamService
   ) {
     const membership = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
+    // Unauthenticated routes
+    membership.get("/:id", membershipCtrl.getMembership);
+
+    // Apply auth middleware for authenticated routes
+    membership.use(authCheck);
+    membership.use(teamAccess(teamService));
+
+    // Authenticated routes
     membership.get(
       "/",
-      authCheck,
       membershipQueryValidator,
       membershipCtrl.getMemberships
     );
-    membership.get("/:id", membershipCtrl.getMembership);
-    membership.post(
-      "/",
-      authCheck,
-      membershipValidator,
-      membershipCtrl.createMembership
-    );
+    membership.post("/", membershipValidator, membershipCtrl.createMembership);
     membership.put(
       "/:id",
-      authCheck,
       membershipValidator,
       membershipCtrl.updateMembership
     );
-    membership.delete("/:id", authCheck, membershipCtrl.deleteMembership);
+    membership.delete("/:id", membershipCtrl.deleteMembership);
 
     api.route("/membership", membership);
   }

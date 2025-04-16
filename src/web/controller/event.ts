@@ -54,7 +54,12 @@ export class EventController {
         const events = await this.service.getAllEvents(query);
         return c.json(events);
       }
-
+      // Get hostId from context and if hostId exists (team access), get resources for that host
+      const hostId = c.get("hostId");
+      if (hostId) {
+        const events = await this.service.getEventsByUser(hostId, query);
+        return c.json(events);
+      }
       const events = await this.service.getEventsByUser(user.id, query);
       return c.json(events);
     } catch (error) {

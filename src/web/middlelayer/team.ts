@@ -29,7 +29,7 @@ export const teamAccess = (teamService: TeamService) =>
         (member) => member?.user?.email === email
       );
       if (!isMember) {
-        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
+        return serveBadRequest(c, ERRORS.TEAM_MEMBER_NOT_FOUND);
       }
 
       // Set the host ID in the context for downstream use
