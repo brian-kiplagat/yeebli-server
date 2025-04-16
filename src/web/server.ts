@@ -240,7 +240,8 @@ export class Server {
       userService,
       subscriptionRepo,
       leadService,
-      paymentService
+      paymentService,
+      eventService
     );
     const subscriptionController = new SubscriptionController(
       subscriptionService,
