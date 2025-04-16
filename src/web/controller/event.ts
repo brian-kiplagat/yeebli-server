@@ -144,6 +144,10 @@ export class EventController {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
+      if (event.status === 'cancelled') {
+        return serveBadRequest(c, ERRORS.EVENT_ALREADY_CANCELLED);
+      }
+
       await this.service.cancelEvent(eventId, body.status);
       return c.json({ message: 'Event cancelled successfully' });
     } catch (error) {

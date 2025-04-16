@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  EVENT_ALREADY_CANCELLED: 'This event has already been cancelled',
   SCHEDULED_TIME_REQUIRED: 'Scheduled time is required for scheduled callbacks',
   CALLBACK_ALREADY_EXISTS: 'You have already scheduled a callback of this type for this event',
   SUBSCRIPTION_NOT_FOUND: "Subscription not found. Nothing left to cancel.",
