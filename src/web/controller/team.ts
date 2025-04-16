@@ -127,8 +127,13 @@ export class TeamController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
+      //get the team where the user is host
+      const team = await this.service.repo.getTeamByHostId(user.id);
+      if (!team) {
+        return serveBadRequest(c, "You are not a host of any team");
+      }
 
-      const invitations = await this.service.getTeamInvitations(user.id);
+      const invitations = await this.service.getTeamInvitations(team.id);
 
       return c.json(invitations);
     } catch (error) {
