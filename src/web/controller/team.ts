@@ -68,13 +68,13 @@ export class TeamController {
       const { invitee_email, team_id } = body;
 
       // Check if inviter is the host of the team
-      const isHost = await this.service.repo.isTeamHost(team_id, user.id);
+      const isHost = await this.service.isTeamHost(team_id, user.id);
       if (!isHost) {
         return serveBadRequest(c, "Only the team host can invite members");
       }
 
       // Get team details
-      const team = await this.service.repo.getTeamById(team_id);
+      const team = await this.service.getTeamById(team_id);
       if (!team) {
         return serveBadRequest(c, "Team not found");
       }
@@ -84,14 +84,14 @@ export class TeamController {
         await this.service.userService.findByEmail(invitee_email);
       if (existingUser) {
         // Check if invitee is already a team member
-        const userTeams = await this.service.repo.getUserTeams(existingUser.id);
+        const userTeams = await this.service.getUserTeams(existingUser.id);
         if (userTeams.some((team: TeamMember) => team.team_id === team_id)) {
           return serveBadRequest(c, "User is already a member of this team");
         }
       } else {
         // Check if there's already a pending invitation for this email
         const existingInvitations =
-          await this.service.repo.getInvitationsByEmail(invitee_email);
+          await this.service.getMyInvitations(invitee_email);
         if (
           existingInvitations.some(
             (inv) => inv.team_id === team_id && inv.status === "pending"
@@ -129,7 +129,7 @@ export class TeamController {
       }
 
       //get the team where the user is host
-      const team = await this.service.repo.getTeamByHostId(user.id);
+      const team = await this.service.getTeamByHostId(user.id);
       if (!team) {
         return serveBadRequest(c, "You are not a host of any team");
       }
@@ -241,12 +241,12 @@ export class TeamController {
         search,
       };
       // Get the team where user is host
-      const teamMember = await this.service.repo.getTeamByHostId(user.id);
+      const teamMember = await this.service.getTeamByHostId(user.id);
       if (!teamMember) {
         return serveBadRequest(c, "You are not a host of any team");
       }
 
-      const members = await this.service.repo.getTeamMembers(
+      const members = await this.service.getTeamMembers(
         teamMember.team_id,
         query
       );
@@ -281,12 +281,12 @@ export class TeamController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const teamMembers = await this.service.repo.getUserTeams(user.id);
+      const teamMembers = await this.service.getUserTeams(user.id);
 
       // Get team details for each team
       const teamDetails = await Promise.all(
         teamMembers.map(async (member) => {
-          const teamInfo = await this.service.repo.getTeamById(member.team_id);
+          const teamInfo = await this.service.getTeamById(member.team_id);
           return {
             team_id: member.team_id,
             team_name: teamInfo?.name || "Unknown Team",
@@ -319,7 +319,7 @@ export class TeamController {
       }
 
       // Verify that the requester is the host
-      const isHost = await this.service.repo.isTeamHost(team_id, user.id);
+      const isHost = await this.service.isTeamHost(team_id, user.id);
       if (!isHost) {
         return serveBadRequest(c, "Only the team host can revoke access");
       }
@@ -330,7 +330,7 @@ export class TeamController {
       }
 
       // Verify that the user is a member of the team
-      const teamMembers = await this.service.repo.getTeamMembers(team_id);
+      const teamMembers = await this.service.getTeamMembers(team_id);
       const isMember = teamMembers.some(
         (member) => member.user_id === member_id
       );
