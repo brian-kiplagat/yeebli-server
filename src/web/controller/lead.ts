@@ -25,7 +25,7 @@ import type { BookingService } from "../../service/booking.ts";
 import type { StripeService } from "../../service/stripe.ts";
 import { ContactService } from "../../service/contact.ts";
 import type { PaymentService } from "../../service/payment.ts";
-import { formatDate } from "../../util/string.ts";
+import { formatDate, formatDateToLocale } from "../../util/string.ts";
 
 export class LeadController {
   private service: LeadService;
@@ -171,13 +171,24 @@ export class LeadController {
               // Convert the timestamp string to a number and then to a Date
               const timestamp = parseInt(date.date, 10);
               if (!isNaN(timestamp)) {
-                eventDate = formatDate(new Date(timestamp * 1000), "UK_FULL");
+                eventDate = formatDateToLocale(
+                  new Date(timestamp * 1000),
+                  "Europe/London"
+                );
               }
             }
           }
-          const paid_event = event.membership?.name.trim() != "Free" ? true : false;
+          const paid_event =
+            event.membership?.name.trim() != "Free" ? true : false;
           //send confirmation email to the lead
-          const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${body.email}`;
+          let eventLink = "";
+          if (
+            ["live_venue", "live_video_call"].includes(String(event.event_type))
+          ) {
+            eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
+          } else {
+            eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${body.email}`;
+          }
           const bodyText =
             event.event_type == "live_venue"
               ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Check our website here: ${eventLink} for more information.`
@@ -434,12 +445,22 @@ export class LeadController {
           // Convert the timestamp string to a number and then to a Date
           const timestamp = parseInt(date.date, 10);
           if (!isNaN(timestamp)) {
-            eventDate = formatDate(new Date(timestamp * 1000), "UK_FULL");
+            eventDate = formatDateToLocale(
+              new Date(timestamp * 1000),
+              "Europe/London"
+            );
           }
         }
       }
       //send confirmation email to the lead
-      const eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+      let eventLink = "";
+      if (
+        ["live_venue", "live_video_call"].includes(String(event.event_type))
+      ) {
+        eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+      } else {
+        eventLink = `${env.FRONTEND_URL}/events/event?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+      }
       const paid_event = event.membership ? true : false;
       const bodyText =
         event.event_type == "live_venue"

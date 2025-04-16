@@ -91,6 +91,23 @@ export const formatDate = (
   );
 };
 
+export const formatDateToLocale = (
+  date: string | Date,
+  timezone: string = "Europe/London"
+): string => {
+  return date.toLocaleString("en-GB", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: timezone,
+    timeZoneName: "short",
+  });
+};
+
 export const randomString = (len: number) => {
   let text = "";
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
