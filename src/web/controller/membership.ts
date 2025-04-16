@@ -49,7 +49,7 @@ export class MembershipController {
         const plans = await this.service.getAllMemberships(query);
         return c.json(plans);
       }
-      // Get hostId from context and if hostId exists (team access), get memberships for that host
+      // Get hostId from context and if hostId exists (team access), get resources for that host
       const hostId = c.get("hostId");
       if (hostId) {
         const plans = await this.service.getMembershipsByUser(hostId, query);
