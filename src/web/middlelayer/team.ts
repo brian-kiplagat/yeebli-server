@@ -2,6 +2,7 @@ import { createMiddleware } from "hono/factory";
 import { TeamService } from "../../service/team.js";
 import { ERRORS, serveBadRequest } from "../controller/resp/error.js";
 import { logger } from "../../lib/logger.js";
+
 export const teamAccess = (teamService: TeamService) =>
   createMiddleware(async (c, next) => {
     const teamId = c.req.query("teamId");
@@ -12,18 +13,20 @@ export const teamAccess = (teamService: TeamService) =>
       // Get team with its members
       const { members } = await teamService.getTeamMembers(Number(teamId));
 
-      if (!members || members.length === 0) {
+      if (!members) {
         return serveBadRequest(c, ERRORS.TEAM_NOT_FOUND);
       }
-      logger.info(members);
-      // Find the host member
-      const hostMember = members.find((member) => member.role === "host");
+
+      // Convert members object to array and find host
+      const membersArray = Object.values(members);
+      const hostMember = membersArray.find((member) => member.role === "host");
+
       if (!hostMember) {
         return serveBadRequest(c, ERRORS.TEAM_NOT_FOUND);
       }
 
       // Check if user is a member
-      const isMember = members.some((member) => member.user_id === userId);
+      const isMember = membersArray.some((member) => member.user_id === userId);
       if (!isMember) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
