@@ -1,10 +1,11 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, like } from "drizzle-orm";
 import { db } from "../lib/database.ts";
 import {
   teamInvitationSchema,
   teamMemberSchema,
   teamSchema,
 } from "../schema/schema.ts";
+import { TeamQuery } from "../web/validator/team.ts";
 
 export class TeamRepository {
   public async createTeam(name: string, hostId: number) {
@@ -35,12 +36,23 @@ export class TeamRepository {
     });
   }
 
-  public async getTeamMembers(teamId: number) {
+  public async getTeamMembers(teamId: number, query?: TeamQuery) {
+    const { page = 1, limit = 10, search } = query || {};
+    const offset = (page - 1) * limit;
+
+    const whereConditions = [eq(teamMemberSchema.team_id, teamId)];
+    if (search) {
+      whereConditions.push(like(teamSchema.name, `%${search}%`));
+    }
+
     return await db.query.teamMemberSchema.findMany({
-      where: (member, { eq }) => eq(member.team_id, teamId),
+      where: (member, { and }) => and(...whereConditions),
       with: {
         user: true,
+        team: true,
       },
+      limit,
+      offset,
     });
   }
 

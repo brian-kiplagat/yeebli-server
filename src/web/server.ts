@@ -596,7 +596,7 @@ export class Server {
     team.delete("/invitations/:id", authCheck, teamCtrl.deleteInvitation);
     team.post("/invitations/:id/accept", teamCtrl.acceptInvitation);
     team.post("/invitations/:id/reject", teamCtrl.rejectInvitation);
-    team.get("/my-team/members", authCheck, teamCtrl.getMyTeamMembers);
+    team.get("/my-team/members", teamQueryValidator, authCheck, teamCtrl.getMyTeamMembers);
     team.get("/my-teams", authCheck, teamCtrl.getMyTeams);
     team.post(
       "/revoke-access",

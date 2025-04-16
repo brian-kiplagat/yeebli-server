@@ -127,6 +127,7 @@ export class TeamController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
+
       //get the team where the user is host
       const team = await this.service.repo.getTeamByHostId(user.id);
       if (!team) {
@@ -233,7 +234,12 @@ export class TeamController {
       if (!user) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-
+      const { page, limit, search } = c.req.query();
+      const query = {
+        page: page ? Number.parseInt(page) : undefined,
+        limit: limit ? Number.parseInt(limit) : undefined,
+        search,
+      };
       // Get the team where user is host
       const teamMember = await this.service.repo.getTeamByHostId(user.id);
       if (!teamMember) {
@@ -241,7 +247,8 @@ export class TeamController {
       }
 
       const members = await this.service.repo.getTeamMembers(
-        teamMember.team_id
+        teamMember.team_id,
+        query
       );
       if (!members) {
         return serveBadRequest(c, "No members found in your team");
