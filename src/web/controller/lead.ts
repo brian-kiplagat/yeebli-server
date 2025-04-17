@@ -532,8 +532,11 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      if (!user.id || isNaN(user.id)) {
+      if (!user.id) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      if (!isNaN(user.id)) {
+        return serveBadRequest(c, ERRORS.INVALID_USER_ID);
       }
 
       const { page, limit, search } = c.req.query();

@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  INVALID_USER_ID: 'Ops, we could not find the user you are looking for. Confirm the user id and try again.',
   TEAM_NOT_FOUND: 'Ops, we could not find the team you are looking for. Confirm the team id and try again.',
   TEAM_MEMBER_NOT_FOUND: 'Ops, seem you are not a member of this team. Confirm that you have access to this team and try again.',
   MEMBERSHIP_NOT_ACTIVE: 'This lead has not paid for the membership',
