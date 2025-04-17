@@ -546,7 +546,9 @@ export class LeadController {
         search,
       };
 
-      const { leads, total } = await this.service.findByUserIdWithEvents(
+      return c.json({ test: "test" });
+
+      /*const { leads, total } = await this.service.findByUserIdWithEvents(
         user.id,
         query
       );
@@ -556,7 +558,7 @@ export class LeadController {
         total: total,
         page: Number(page) || 1,
         limit: Number(limit) || 50,
-      });
+      });*/
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
