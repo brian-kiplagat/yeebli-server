@@ -549,23 +549,24 @@ export class LeadController {
       );
       const uniqueLeadsMap = new Map<string, any>();
 
-      for (const lead of leads) {
+      for (const { lead, event, membership } of leads) {
         if (!lead.email) continue;
 
         if (!uniqueLeadsMap.has(lead.email)) {
           uniqueLeadsMap.set(lead.email, {
             ...lead,
+            membership,
             events: [],
           });
         }
 
-        if (lead.event) {
+        if (event) {
           const existingLead = uniqueLeadsMap.get(lead.email);
           if (
             existingLead &&
-            !existingLead.events.some((e: any) => e.id === lead.event?.id)
+            !existingLead.events.some((e: any) => e.id === event.id)
           ) {
-            existingLead.events.push(lead.event);
+            existingLead.events.push(event);
           }
         }
       }

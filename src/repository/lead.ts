@@ -1,6 +1,7 @@
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { db } from "../lib/database.ts";
 import { type Lead, type NewLead, leadSchema } from "../schema/schema.js";
+import { eventSchema, memberships } from "../schema/schema.js";
 
 export interface LeadQuery {
   page?: number;
@@ -114,16 +115,35 @@ export class LeadRepository {
         )
       : eq(leadSchema.userId, userId);
 
-    const leads = await db.query.leadSchema.findMany({
-      where: whereConditions,
-      limit: limit,
-      offset: offset,
-      with: {
-        event: true,
-        membership: true,
-      },
-      orderBy: desc(leadSchema.created_at),
-    });
+    const leads = await db
+      .select({
+        lead: leadSchema,
+        event: {
+          id: eventSchema.id,
+          name: eventSchema.event_name,
+          description: eventSchema.event_description,
+          type: eventSchema.event_type,
+          status: eventSchema.status,
+          start_date: eventSchema.dates,
+          live_video_url: eventSchema.live_video_url,
+          live_venue_address: eventSchema.live_venue_address,
+          created_at: eventSchema.created_at,
+          updated_at: eventSchema.updated_at,
+        },
+        membership: {
+          id: memberships.id,
+          name: memberships.name,
+          price: memberships.price,
+          payment_type: memberships.payment_type,
+        },
+      })
+      .from(leadSchema)
+      .leftJoin(eventSchema, eq(leadSchema.event_id, eventSchema.id))
+      .leftJoin(memberships, eq(leadSchema.membership_level, memberships.id))
+      .where(whereConditions)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(leadSchema.created_at));
 
     const total = await db
       .select({ count: leadSchema.id })
