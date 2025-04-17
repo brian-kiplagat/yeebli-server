@@ -62,8 +62,8 @@ export class LeadService {
     return this.repository.findByUserId(userId, query);
   }
 
-  public async findByUserIdWithEvents(userId: number) {
-    return this.repository.findByUserIdWithEvents(userId);
+  public async findByUserIdWithEvents(userId: number, query?: LeadQuery) {
+    return this.repository.findByUserIdWithEvents(userId, query);
   }
 
   public async update(id: number, lead: Partial<Lead>) {

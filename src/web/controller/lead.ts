@@ -536,7 +536,17 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leads = await this.service.findByUserIdWithEvents(user.id);
+      const { page, limit, search } = c.req.query();
+      const query = {
+        page: page ? Number.parseInt(page) : undefined,
+        limit: limit ? Number.parseInt(limit) : undefined,
+        search,
+      };
+
+      const { leads, total } = await this.service.findByUserIdWithEvents(
+        user.id,
+        query
+      );
       const uniqueLeadsMap = new Map<string, any>();
 
       for (const lead of leads) {
@@ -564,7 +574,9 @@ export class LeadController {
 
       return c.json({
         data: uniqueLeads,
-        total: uniqueLeads.length,
+        total: total,
+        page: Number(page) || 1,
+        limit: Number(limit) || 50,
       });
     } catch (error) {
       logger.error(error);

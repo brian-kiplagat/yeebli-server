@@ -99,15 +99,38 @@ export class LeadRepository {
     return { leads, total: total.length };
   }
 
-  public async findByUserIdWithEvents(userId: number) {
-    return db.query.leadSchema.findMany({
-      where: eq(leadSchema.userId, userId),
+  public async findByUserIdWithEvents(userId: number, query?: LeadQuery) {
+    const { page = 1, limit = 50, search } = query || {};
+    const offset = (page - 1) * limit;
+
+    const whereConditions = search
+      ? and(
+          eq(leadSchema.userId, userId),
+          or(
+            like(leadSchema.name, `%${search}%`),
+            like(leadSchema.email, `%${search}%`),
+            like(leadSchema.phone, `%${search}%`)
+          )
+        )
+      : eq(leadSchema.userId, userId);
+
+    const leads = await db.query.leadSchema.findMany({
+      where: whereConditions,
+      limit: limit,
+      offset: offset,
       with: {
         event: true,
         membership: true,
       },
       orderBy: desc(leadSchema.created_at),
     });
+
+    const total = await db
+      .select({ count: leadSchema.id })
+      .from(leadSchema)
+      .where(whereConditions);
+
+    return { leads, total: total.length };
   }
 
   public async update(id: number, lead: Partial<Lead>) {
