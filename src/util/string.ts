@@ -104,7 +104,7 @@ export const formatDateToLocale = (
     minute: "2-digit",
     hour12: true,
     timeZone: timezone,
-    timeZoneName: "short",
+    timeZoneName: "shortOffset",
   });
 };
 

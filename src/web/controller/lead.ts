@@ -485,7 +485,7 @@ export class LeadController {
           if (!isNaN(timestamp)) {
             eventDate = formatDateToLocale(
               new Date(timestamp * 1000),
-              "Etc/GMT"
+              "Europe/London"
             );
           }
         }
