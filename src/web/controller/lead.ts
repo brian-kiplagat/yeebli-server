@@ -490,7 +490,7 @@ export class LeadController {
           }
         }
       }
-      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}&membership_id=${event.membership?.id}`;
 
       const paid_event = event.membership ? true : false;
       const bodyText =
