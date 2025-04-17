@@ -80,8 +80,8 @@ export class LeadController {
       };
 
       if (user.role === "master" || user.role === "owner") {
-        const leads = await this.service.findAll(query);
-        return c.json(leads);
+        const data = await this.service.findAll(query);
+        return c.json({...data, leads: data.leads});
       }
 
       // Get hostId from context and if hostId exists (team access), get leads for that host
