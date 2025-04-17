@@ -525,7 +525,7 @@ export class LeadController {
     }
   };
 
-  public getUniqueLeadsWithEvents = async (c: Context) => {
+  public getUniqueLeads = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
@@ -546,9 +546,7 @@ export class LeadController {
         search,
       };
 
-      return c.json({ test: "test" });
-
-      /*const { leads, total } = await this.service.findByUserIdWithEvents(
+      const { leads, total } = await this.service.findByUserIdWithEvents(
         user.id,
         query
       );
@@ -558,7 +556,7 @@ export class LeadController {
         total: total,
         page: Number(page) || 1,
         limit: Number(limit) || 50,
-      });*/
+      });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
