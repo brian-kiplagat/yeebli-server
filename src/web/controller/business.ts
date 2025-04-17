@@ -51,7 +51,7 @@ export class BusinessController {
           return serveBadRequest(c, 'Business not found');
         }
 
-        await this.service.updateBusinessLogo(business.id, imageBase64, fileName);
+        await this.service.updateBusinessLogo(business.id, imageBase64, fileName.replace(/[^\w.-]/g, ""));
       }
       const business = await this.service.upsertBusiness(user.id, {
         ...body,

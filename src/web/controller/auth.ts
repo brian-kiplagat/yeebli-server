@@ -306,7 +306,7 @@ export class AuthController {
         // Create asset using AssetService
         const { asset: assetId } = await this.assetService.createAsset(
           user.id,
-          fileName,
+          fileName.replace(/[^\w.-]/g, ""),
           getContentType(imageBase64),
           'profile_picture',
           buffer.length,

@@ -8,6 +8,22 @@ export const assetQuerySchema = z.object({
   asset_type: z.enum(['image', 'video', 'audio', 'document']).optional(),
 });
 
-export const assetQueryValidator = zValidator('query', assetQuerySchema);
+const createAssetSchema = z.object({
+  fileName: z.string(),
+  contentType: z.string(),
+  assetType: z.enum(["image", "video", "audio", "document"]),
+  fileSize: z.number(),
+  duration: z.number(),
+});
 
+const renameAssetSchema = z.object({
+  fileName: z.string().refine((val) => /\.[a-zA-Z0-9]+$/.test(val), {
+    message: "File name must include an extension",
+  }),
+});
+
+
+export const assetQueryValidator = zValidator('query', assetQuerySchema);
+export type CreateAssetBody = z.infer<typeof createAssetSchema>;
+export type RenameAssetBody = z.infer<typeof renameAssetSchema>;
 export type AssetQuery = z.infer<typeof assetQuerySchema>;

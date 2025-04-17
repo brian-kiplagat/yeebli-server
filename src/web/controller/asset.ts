@@ -5,7 +5,7 @@ import type { AssetService } from "../../service/asset.js";
 import type { EventService } from "../../service/event.js";
 import type { LeadService } from "../../service/lead.js";
 import type { UserService } from "../../service/user.js";
-import type { AssetQuery } from "../validator/asset.js";
+import type { AssetQuery, CreateAssetBody, RenameAssetBody } from "../validator/asset.js";
 import {
   ERRORS,
   serveBadRequest,
@@ -13,20 +13,6 @@ import {
   serveNotFound,
 } from "./resp/error.js";
 import { serveData } from "./resp/resp.ts";
-
-const createAssetSchema = z.object({
-  fileName: z.string(),
-  contentType: z.string(),
-  assetType: z.enum(["image", "video", "audio", "document"]),
-  fileSize: z.number(),
-  duration: z.number(),
-});
-
-const renameAssetSchema = z.object({
-  fileName: z.string().refine((val) => /\.[a-zA-Z0-9]+$/.test(val), {
-    message: "File name must include an extension",
-  }),
-});
 
 export class AssetController {
   private service: AssetService;
@@ -59,13 +45,12 @@ export class AssetController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const body = await c.req.json();
-      const { fileName, contentType, assetType, fileSize, duration } =
-        createAssetSchema.parse(body);
+      const body: CreateAssetBody = await c.req.json();
+      const { fileName, contentType, assetType, fileSize, duration } = body;  
 
       const result = await this.service.createAsset(
         user.id,
-        fileName,
+        fileName.replace(/[^\w.-]/g, ""),
         contentType,
         assetType,
         fileSize,
@@ -104,7 +89,7 @@ export class AssetController {
         const assets = await this.service.getAssetsByUser(hostId, query);
         return c.json(assets);
       }
-      
+
       // Regular users only see their own resources
       const assets = await this.service.getAssetsByUser(user.id, query);
       return c.json(assets);
@@ -188,7 +173,8 @@ export class AssetController {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
-      const { fileName } = renameAssetSchema.parse(await c.req.json());
+      const body: RenameAssetBody = await c.req.json();
+      const { fileName } = body;
       const originalExt = asset.asset_name.split(".").pop()?.toLowerCase();
       const newExt = fileName.split(".").pop()?.toLowerCase();
 
