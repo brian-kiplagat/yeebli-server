@@ -88,10 +88,7 @@ export class LeadController {
       const hostId = c.get("hostId");
       if (hostId) {
         //const leads = await this.service.findByUserId(hostId, query);
-          const leads = await this.service.findByUserIdWithEvents(
-            user.id,
-            query
-          );
+        const leads = await this.service.findByUserIdWithEvents(user.id, query);
         return c.json(leads);
       }
 
@@ -116,21 +113,25 @@ export class LeadController {
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
-      //get the membership if there  and spread it into the lead
+
+      // Get all events booked by this lead
+      const bookedEvents = await this.bookingService.findByLeadId(lead.id);
+
+      // Get the membership if it exists
       if (lead.membership_level) {
         const membership = await this.membershipService.getMembership(
           lead.membership_level
         );
         return c.json({
           ...lead,
+          events: bookedEvents,
           membership: membership,
         });
       }
-      //get bookings by lead id
-      const bookings = await this.bookingService.findByLeadId(lead.id);
+
       return c.json({
         ...lead,
-        bookings: bookings,
+        events: bookedEvents,
       });
     } catch (error) {
       logger.error(error);
@@ -162,54 +163,57 @@ export class LeadController {
       });
       if (lead && body.event_id && body.event_date_id) {
         //also create a booking for this event
+        const event = await this.eventService.getEvent(body.event_id);
+        if (!event) {
+          return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+        }
         const booking = await this.bookingService.create({
           event_id: body.event_id,
           date_id: body.event_date_id,
           lead_id: lead[0].id,
           passcode: token,
+          host_id: event.host_id,
         });
-        const event = await this.eventService.getEvent(body.event_id);
 
-        if (event) {
-          let eventDate = null;
-          if (
-            event.event_type == "live_venue" ||
-            event.event_type == "live_video_call"
-          ) {
-            const date = await this.eventService.getEventDate(
-              Number(body.event_date_id)
-            );
-            if (date) {
-              // Convert the timestamp string to a number and then to a Date
-              const timestamp = parseInt(date.date, 10);
-              if (!isNaN(timestamp)) {
-                eventDate = formatDateToLocale(
-                  new Date(timestamp * 1000),
-                  "Europe/London"
-                );
-              }
+        let eventDate = null;
+        if (
+          event.event_type == "live_venue" ||
+          event.event_type == "live_video_call"
+        ) {
+          const date = await this.eventService.getEventDate(
+            Number(body.event_date_id)
+          );
+          if (date) {
+            // Convert the timestamp string to a number and then to a Date
+            const timestamp = parseInt(date.date, 10);
+            if (!isNaN(timestamp)) {
+              eventDate = formatDateToLocale(
+                new Date(timestamp * 1000),
+                "Europe/London"
+              );
             }
           }
-          const paid_event =
-            event.membership?.name.trim() != "Free" ? true : false;
-          //send confirmation email to the lead
-          const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}&membership_id=${event.membership?.id}`;
-
-          const bodyText =
-            event.event_type == "live_venue"
-              ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Check our website here: ${eventLink} for more information.`
-              : event.event_type == "live_video_call"
-                ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Check our website here: ${eventLink} for more information.`
-                : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Check our website here: ${eventLink} to join the event.`;
-
-          sendTransactionalEmail(body.email, body.name, 1, {
-            subject: `${event.event_name}`,
-            title: `${event.event_name} - You've been invited`,
-            subtitle: `You've been invited to join us`,
-            body: bodyText,
-          });
         }
+        const paid_event =
+          event.membership?.name.trim() != "Free" ? true : false;
+        //send confirmation email to the lead
+        const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}&membership_id=${event.membership?.id}`;
+
+        const bodyText =
+          event.event_type == "live_venue"
+            ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Check our website here: ${eventLink} for more information.`
+            : event.event_type == "live_video_call"
+              ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Check our website here: ${eventLink} for more information.`
+              : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} Check our website here: ${eventLink} to join the event.`;
+
+        sendTransactionalEmail(body.email, body.name, 1, {
+          subject: `${event.event_name}`,
+          title: `${event.event_name} - You've been invited`,
+          subtitle: `You've been invited to join us`,
+          body: bodyText,
+        });
       }
+
       return c.json(lead, 201);
     } catch (error) {
       logger.error(error);
@@ -474,6 +478,7 @@ export class LeadController {
           date_id: Number(validatedData.registered_date),
           lead_id: createdLead[0].id,
           passcode: token,
+          host_id: event.host_id,
         });
       }
       let eventDate = null;

@@ -21,4 +21,8 @@ export class BookingService {
   public async findByLeadId(leadId: number) {
     return this.repo.findByLeadId(leadId);
   }
+
+  public async findByUserIdandLeadId(userId: number, leadId: number) {
+    return this.repo.findByUserIdandLeadId(userId, leadId);
+  }
 }

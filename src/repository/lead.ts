@@ -226,4 +226,51 @@ export class LeadRepository {
   public async delete(id: number) {
     return db.delete(leadSchema).where(eq(leadSchema.id, id));
   }
+
+  async findLeadEventsByUserId(leadId: number, userId: number) {
+    const lead = await db
+      .select({
+        id: leadSchema.id,
+        name: leadSchema.name,
+        email: leadSchema.email,
+        phone: leadSchema.phone,
+        event_id: leadSchema.event_id,
+        registered_date: leadSchema.registered_date,
+        membership_active: leadSchema.membership_active,
+        form_identifier: leadSchema.form_identifier,
+        host_id: leadSchema.host_id,
+        token: leadSchema.token,
+        status_identifier: leadSchema.status_identifier,
+        lead_status: leadSchema.lead_status,
+        source_url: leadSchema.source_url,
+        membership_level: leadSchema.membership_level,
+        userId: leadSchema.userId,
+        created_at: leadSchema.created_at,
+        updated_at: leadSchema.updated_at,
+        events: {
+          id: eventSchema.id,
+          event_name: eventSchema.event_name,
+          event_description: eventSchema.event_description,
+          event_type: eventSchema.event_type,
+          asset_id: eventSchema.asset_id,
+          created_at: eventSchema.created_at,
+          updated_at: eventSchema.updated_at,
+          status: eventSchema.status,
+          live_video_url: eventSchema.live_video_url,
+          success_url: eventSchema.success_url,
+          instructions: eventSchema.instructions,
+          landing_page_url: eventSchema.landing_page_url,
+          live_venue_address: eventSchema.live_venue_address,
+          dates: eventSchema.dates,
+          membership_id: eventSchema.membership_id,
+          host_id: eventSchema.host_id,
+        },
+      })
+      .from(leadSchema)
+      .leftJoin(eventSchema, eq(leadSchema.event_id, eventSchema.id))
+      .where(and(eq(leadSchema.id, leadId), eq(eventSchema.host_id, userId)))
+      .limit(1);
+
+    return lead[0];
+  }
 }

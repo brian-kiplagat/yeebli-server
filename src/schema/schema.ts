@@ -214,6 +214,9 @@ export const bookings = mysqlTable("bookings", {
   lead_id: int("lead_id")
     .references(() => leadSchema.id)
     .notNull(),
+  host_id: int("host_id")
+    .references(() => userSchema.id)
+    .notNull(),
   passcode: varchar("passcode", { length: 255 }),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
