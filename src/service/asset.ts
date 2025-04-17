@@ -25,7 +25,7 @@ export class AssetService {
     buffer?: Buffer,
   ) {
     // Generate a unique key for the file with consistent folder structure
-    const key = `assets/${assetType}s/${Date.now()}-${fileName}`;
+    const key = `assets/${assetType}s/${Date.now()}-${fileName.replace(/[^\w.-]/g, '')}`;
 
     let url: string;
     let presignedUrl: string;
@@ -42,7 +42,7 @@ export class AssetService {
 
     // Create asset record in database
     const asset: NewAsset = {
-      asset_name: fileName,
+      asset_name: fileName.replace(/[^\w.-]/g, ''),
       asset_size: fileSize,
       asset_type: assetType,
       content_type: contentType,

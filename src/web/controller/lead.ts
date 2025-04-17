@@ -115,7 +115,10 @@ export class LeadController {
       }
 
       // Get all events booked by this lead
-      const bookedEvents = await this.bookingService.findByLeadId(lead.id);
+      const bookedEvents = await this.bookingService.findByUserIdandLeadId(
+        user.id,
+        lead.id
+      );
 
       // Get the membership if it exists
       if (lead.membership_level) {
