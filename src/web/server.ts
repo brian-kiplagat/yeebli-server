@@ -384,7 +384,7 @@ export class Server {
     lead.post("/", leadValidator, leadCtrl.createLead);
     lead.put("/:id", updateLeadValidator, leadCtrl.updateLead);
     lead.delete("/:id", leadCtrl.deleteLead);
-    lead.get("/unique", leadCtrl.getUniqueLeadsWithEvents);
+    lead.get("/unique-leads", leadCtrl.getUniqueLeadsWithEvents);
 
     api.route("/lead", lead);
   }
