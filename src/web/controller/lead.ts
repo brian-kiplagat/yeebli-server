@@ -87,11 +87,16 @@ export class LeadController {
       // Get hostId from context and if hostId exists (team access), get leads for that host
       const hostId = c.get("hostId");
       if (hostId) {
-        const leads = await this.service.findByUserId(hostId, query);
+        //const leads = await this.service.findByUserId(hostId, query);
+          const leads = await this.service.findByUserIdWithEvents(
+            user.id,
+            query
+          );
         return c.json(leads);
       }
 
-      const leads = await this.service.findByUserId(user.id, query);
+      //const leads = await this.service.findByUserId(user.id, query);
+      const leads = await this.service.findByUserIdWithEvents(user.id, query);
       return c.json(leads);
     } catch (error) {
       logger.error(error);
