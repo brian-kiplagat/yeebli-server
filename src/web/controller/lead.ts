@@ -550,34 +550,9 @@ export class LeadController {
         user.id,
         query
       );
-      const uniqueLeadsMap = new Map<string, any>();
-
-      for (const { lead, event, membership } of leads) {
-        if (!lead.email) continue;
-
-        if (!uniqueLeadsMap.has(lead.email)) {
-          uniqueLeadsMap.set(lead.email, {
-            ...lead,
-            membership,
-            events: [],
-          });
-        }
-
-        if (event) {
-          const existingLead = uniqueLeadsMap.get(lead.email);
-          if (
-            existingLead &&
-            !existingLead.events.some((e: any) => e.id === event.id)
-          ) {
-            existingLead.events.push(event);
-          }
-        }
-      }
-
-      const uniqueLeads = Array.from(uniqueLeadsMap.values());
 
       return c.json({
-        data: uniqueLeads,
+        data: leads,
         total: total,
         page: Number(page) || 1,
         limit: Number(limit) || 50,
