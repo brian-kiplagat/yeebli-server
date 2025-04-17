@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
-import { TeamService } from "../../service/team.js";
-import { ERRORS, serveBadRequest } from "../controller/resp/error.js";
+import { TeamService } from "../../service/team.ts";
+import { ERRORS, serveBadRequest } from "../controller/resp/error.ts";
 
 export const teamAccess = (teamService: TeamService) =>
   createMiddleware(async (c, next) => {

@@ -108,7 +108,7 @@ import {
   callbackValidator,
   updateCallbackValidator,
 } from "./validator/callback.ts";
-import { teamAccess } from "./middlelayer/team.ts";
+import { teamAccess } from "./middleware/team.ts";
 
 export class Server {
   private app: Hono;

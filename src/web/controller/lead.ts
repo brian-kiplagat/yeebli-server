@@ -535,7 +535,7 @@ export class LeadController {
       if (!user.id) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      if (!isNaN(user.id)) {
+      if (isNaN(user.id)) {
         return serveBadRequest(c, ERRORS.INVALID_USER_ID);
       }
 
