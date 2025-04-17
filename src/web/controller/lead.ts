@@ -535,9 +535,7 @@ export class LeadController {
       if (!user.id) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      if (isNaN(user.id)) {
-        return serveBadRequest(c, ERRORS.INVALID_USER_ID);
-      }
+      console.log({ user });
 
       const { page, limit, search } = c.req.query();
       const query = {
@@ -546,19 +544,16 @@ export class LeadController {
         search,
       };
 
-      const { leads, total } = await this.service.findByUserIdWithEvents(
-        user.id,
-        query
-      );
+      const leads = await this.service.findByUserIdWithEvents(user.id, query);
 
       return c.json({
         data: leads,
-        total: total,
+        total: leads.length,
         page: Number(page) || 1,
         limit: Number(limit) || 50,
       });
     } catch (error) {
-      logger.error(error);
+      //logger.error(error);
       return serveInternalServerError(c, error);
     }
   };
