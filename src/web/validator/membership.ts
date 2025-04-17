@@ -6,6 +6,7 @@ const membershipSchema = z.object({
   description: z.string(),
   price: z.number().min(0),
   payment_type: z.enum(['one_off', 'recurring']).default('one_off'),
+  price_point: z.enum(['one_off', 'course']).default('one_off'),
 });
 
 export const membershipValidator = zValidator('json', membershipSchema);

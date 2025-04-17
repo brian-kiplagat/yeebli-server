@@ -249,7 +249,7 @@ export class Server {
       stripeService,
       userService
     );
-    const bookingCtrl = new BookingController(bookingService);
+    const bookingCtrl = new BookingController(bookingService, userService);
 
     const businessController = new BusinessController(
       businessService,

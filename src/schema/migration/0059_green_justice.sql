@@ -1,0 +1,1 @@
+ALTER TABLE `memberships` ADD `price_point` enum('one_off','course') DEFAULT 'one_off';

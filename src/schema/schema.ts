@@ -230,6 +230,9 @@ export const memberships = mysqlTable("memberships", {
   payment_type: mysqlEnum("payment_type", ["one_off", "recurring"]).default(
     "one_off"
   ),
+  price_point: mysqlEnum("price_point", ["one_off", "course"]).default(
+    "one_off"
+  ),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   user_id: int("user_id")
@@ -346,7 +349,7 @@ export const callbackSchema = mysqlTable("callbacks", {
     .notNull(),
   host_id: int("host_id")
     .references(() => userSchema.id)
-    .notNull(), 
+    .notNull(),
   callback_type: mysqlEnum("callback_type", ["instant", "scheduled"]).notNull(),
   scheduled_time: timestamp("scheduled_time"),
   status: mysqlEnum("status", ["called", "uncalled"]).default("uncalled"),
