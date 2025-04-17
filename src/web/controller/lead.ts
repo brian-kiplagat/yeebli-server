@@ -532,17 +532,12 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      // Get all leads for the user
-      const { leads } = await this.service.findByUserId(user.id);
-
-      // Create a map to store unique leads by email
+      const leads = await this.service.findByUserIdWithEvents(user.id);
       const uniqueLeadsMap = new Map<string, any>();
 
-      // Process each lead
       for (const lead of leads) {
         if (!lead.email) continue;
 
-        // If we haven't seen this email before, add it to the map
         if (!uniqueLeadsMap.has(lead.email)) {
           uniqueLeadsMap.set(lead.email, {
             ...lead,
@@ -550,24 +545,21 @@ export class LeadController {
           });
         }
 
-        // If the lead has an event_id, get the event details
-        if (lead.event_id) {
-          const event = await this.eventService.getEvent(lead.event_id);
-          if (event) {
-            const existingLead = uniqueLeadsMap.get(lead.email);
-            // Only add the event if it's not already in the array
-            if (!existingLead.events.some((e: any) => e.id === event.id)) {
-              existingLead.events.push(event);
-            }
+        if (lead.event) {
+          const existingLead = uniqueLeadsMap.get(lead.email);
+          if (
+            existingLead &&
+            !existingLead.events.some((e: any) => e.id === lead.event?.id)
+          ) {
+            existingLead.events.push(lead.event);
           }
         }
       }
 
-      // Convert the map to an array
       const uniqueLeads = Array.from(uniqueLeadsMap.values());
 
       return c.json({
-        leads: uniqueLeads,
+        data: uniqueLeads,
         total: uniqueLeads.length,
       });
     } catch (error) {

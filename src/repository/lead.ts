@@ -1,6 +1,6 @@
-import { and, desc, eq, like, or } from 'drizzle-orm';
-import { db } from '../lib/database.ts';
-import { type Lead, type NewLead, leadSchema } from '../schema/schema.js';
+import { and, desc, eq, like, or } from "drizzle-orm";
+import { db } from "../lib/database.ts";
+import { type Lead, type NewLead, leadSchema } from "../schema/schema.js";
 
 export interface LeadQuery {
   page?: number;
@@ -42,7 +42,7 @@ export class LeadRepository {
       ? or(
           like(leadSchema.name, `%${search}%`),
           like(leadSchema.email, `%${search}%`),
-          like(leadSchema.phone, `%${search}%`),
+          like(leadSchema.phone, `%${search}%`)
         )
       : undefined;
 
@@ -57,7 +57,10 @@ export class LeadRepository {
       orderBy: desc(leadSchema.created_at),
     });
 
-    const total = await db.select({ count: leadSchema.id }).from(leadSchema).where(whereConditions);
+    const total = await db
+      .select({ count: leadSchema.id })
+      .from(leadSchema)
+      .where(whereConditions);
 
     return { leads, total: total.length };
   }
@@ -72,8 +75,8 @@ export class LeadRepository {
           or(
             like(leadSchema.name, `%${search}%`),
             like(leadSchema.email, `%${search}%`),
-            like(leadSchema.phone, `%${search}%`),
-          ),
+            like(leadSchema.phone, `%${search}%`)
+          )
         )
       : eq(leadSchema.userId, userId);
 
@@ -88,9 +91,23 @@ export class LeadRepository {
       orderBy: desc(leadSchema.created_at),
     });
 
-    const total = await db.select({ count: leadSchema.id }).from(leadSchema).where(whereConditions);
+    const total = await db
+      .select({ count: leadSchema.id })
+      .from(leadSchema)
+      .where(whereConditions);
 
     return { leads, total: total.length };
+  }
+
+  public async findByUserIdWithEvents(userId: number) {
+    return db.query.leadSchema.findMany({
+      where: eq(leadSchema.userId, userId),
+      with: {
+        event: true,
+        membership: true,
+      },
+      orderBy: desc(leadSchema.created_at),
+    });
   }
 
   public async update(id: number, lead: Partial<Lead>) {
