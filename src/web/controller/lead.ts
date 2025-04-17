@@ -532,6 +532,10 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
+      if (!user.id || isNaN(user.id)) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
       const leads = await this.service.findByUserIdWithEvents(user.id);
       const uniqueLeadsMap = new Map<string, any>();
 
