@@ -1,0 +1,1 @@
+ALTER TABLE `memberships` MODIFY COLUMN `price_point` enum('ticket','course') DEFAULT 'ticket';

@@ -414,6 +414,13 @@
       "when": 1744890588578,
       "tag": "0059_green_justice",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "5",
+      "when": 1744891148619,
+      "tag": "0060_burly_chimera",
+      "breakpoints": true
     }
   ]
 }
