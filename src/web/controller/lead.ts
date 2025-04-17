@@ -547,7 +547,7 @@ export class LeadController {
       const leads = await this.service.findByUserIdWithEvents(user.id, query);
 
       return c.json({
-        data: leads,
+        leads,
         total: leads.length,
         page: Number(page) || 1,
         limit: Number(limit) || 50,
