@@ -160,7 +160,6 @@ export class LeadRepository {
           landing_page_url: eventSchema.landing_page_url,
           live_venue_address: eventSchema.live_venue_address,
           dates: eventSchema.dates,
-          membership_id: eventSchema.membership_id,
           host_id: eventSchema.host_id,
         },
         membership: {
@@ -262,7 +261,6 @@ export class LeadRepository {
           landing_page_url: eventSchema.landing_page_url,
           live_venue_address: eventSchema.live_venue_address,
           dates: eventSchema.dates,
-          membership_id: eventSchema.membership_id,
           host_id: eventSchema.host_id,
         },
       })

@@ -197,10 +197,13 @@ export class LeadController {
             }
           }
         }
-        const paid_event =
-          event.membership?.name.trim() != "Free" ? true : false;
+        const paid_event = event.memberships.some(
+          (membership) => membership.membership?.name.trim() != "Free"
+        )
+          ? true
+          : false;
         //send confirmation email to the lead
-        const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}&membership_id=${event.membership?.id}`;
+        const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
         const bodyText =
           event.event_type == "live_venue"
@@ -244,9 +247,12 @@ export class LeadController {
 
       // If event has membership requirement and lead hasn't paid
       if (
-        event.membership &&
-        !lead.membership_active &&
-        event.membership.name.trim() != "Free"
+        event.memberships.some(
+          (membership) =>
+            membership.membership &&
+            !lead.membership_active &&
+            membership.membership.name.trim() != "Free"
+        )
       ) {
         const host = await this.userService.find(lead.host_id);
         if (!host) {
@@ -278,39 +284,7 @@ export class LeadController {
             contact.stripe_customer_id = stripeCustomer.id;
           }
 
-          const checkoutSession =
-            await this.stripeService.createLeadUpgradeCheckoutSession(
-              lead,
-              contact.stripe_customer_id,
-              {
-                mode: "payment",
-                success_url: successUrl,
-                cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
-                hostStripeAccountId: host.stripe_account_id,
-                price: event.membership.price,
-                eventName: event.event_name,
-                membershipName: event.membership.name,
-                membershipId: String(event.membership.id),
-                eventId: String(event.id),
-              }
-            );
-          await this.paymentService.createPayment({
-            contact_id: contact.id,
-            lead_id: lead.id,
-            event_id: Number(lead.event_id),
-            membership_id: event.membership.id,
-            checkout_session_id: checkoutSession.session.id,
-            stripe_customer_id: contact.stripe_customer_id,
-            amount: String(event.membership.price),
-            currency: "gbp",
-            status: "pending",
-            payment_type: "one_off",
-            metadata: {
-              eventName: event.event_name,
-              membershipName: event.membership.name,
-              sessionId: checkoutSession.session.id,
-            },
-          });
+          
 
           return c.json({
             isAllowed: false,
@@ -320,7 +294,7 @@ export class LeadController {
             phone: lead.phone,
             id: lead.id,
             setupPayments: true,
-            checkoutSession: checkoutSession,
+           
           });
         }
       }
@@ -362,7 +336,13 @@ export class LeadController {
       }
 
       // If event has membership requirement and lead hasn't paid
-      if (event.membership && !lead.membership_active) {
+      if (event.memberships.some(
+          (membership) =>
+            membership.membership &&
+            !lead.membership_active &&
+            membership.membership.name.trim() != "Free"
+        )
+      ) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_ACTIVE);
       }
 
@@ -503,9 +483,14 @@ export class LeadController {
           }
         }
       }
-      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}&membership_id=${event.membership?.id}`;
+      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
 
-      const paid_event = event.membership ? true : false;
+      const paid_event = event.memberships.some(
+        (membership) => membership.membership?.name.trim() != "Free"
+      )
+        ? true
+        : false;
+
       const bodyText =
         event.event_type == "live_venue"
           ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ""} If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`

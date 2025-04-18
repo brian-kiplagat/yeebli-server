@@ -97,16 +97,23 @@ export class EventController {
       if (!body.dates || body.dates.length < 1) {
         return serveBadRequest(c, ERRORS.EVENT_DATE_REQUIRED);
       }
-      const eventId = await this.service.createEvent({
-        ...body,
-        host_id: user.id,
-      });
+      const membership_ids = body.memberships;
+      if (membership_ids.length < 1) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
+      }
+      const eventId = await this.service.createEvent(
+        {
+          ...body,
+          host_id: user.id,
+        },
+        membership_ids
+      );
 
       return c.json(
         {
           message: "Event created successfully",
-          link: `${env.FRONTEND_URL}/events/event?code=${eventId[0].id}`,
-          eventId: eventId[0].id,
+          link: `${env.FRONTEND_URL}/events/event?code=${eventId}`,
+          eventId: eventId,
         },
         201
       );
@@ -129,6 +136,7 @@ export class EventController {
       if (!event) {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
+
       //only and master role or admin or the owner of the event can update the event
       if (
         user.role !== "master" &&
@@ -139,7 +147,8 @@ export class EventController {
       }
 
       const body: UpdateEventBody = await c.req.json();
-      await this.service.updateEvent(eventId, body);
+      const { memberships, ...rest } = body;
+      await this.service.updateEvent(eventId, { ...rest, memberships });
 
       return c.json({ message: "Event updated successfully" });
     } catch (error) {
@@ -185,7 +194,7 @@ export class EventController {
         subject: "Event Cancelled",
         title: "Event Cancelled",
         subtitle: `The event "${event.event_name}" has been cancelled.`,
-        body: `We're sorry to inform you that the event "${event.event_name}" has been cancelled by the host. If you’d like a refund, please contact the host directly at ${host.email} or ${host.phone} and provide your booking details.`,
+        body: `We're sorry to inform you that the event "${event.event_name}" has been cancelled by the host. If you'd like a refund, please contact the host directly at ${host.email} or ${host.phone} and provide your booking details.`,
       });
       return c.json({ message: "Event cancelled successfully" });
     } catch (error) {

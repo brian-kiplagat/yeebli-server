@@ -152,7 +152,9 @@ export class MembershipController {
       }
       //if membership si lnked to any event, do not delete
       const events = await this.service.getEventsByMembership(planId);
-      const hasActiveEvents = events.some((event) => event.status === "active");
+      const hasActiveEvents = events.some(
+        (event) => event.events.status === "active"
+      );
       if (hasActiveEvents) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_LINKED_TO_EVENT);
       }

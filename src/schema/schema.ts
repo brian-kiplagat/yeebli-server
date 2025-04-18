@@ -184,9 +184,6 @@ export const eventSchema = mysqlTable("events", {
   landing_page_url: text("landing_page_url"),
   live_venue_address: text("live_venue_address"),
   dates: json("dates"),
-  membership_id: int("membership_id")
-    .references(() => memberships.id)
-    .notNull(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   host_id: int("host_id")
     .references(() => userSchema.id)
@@ -230,9 +227,7 @@ export const memberships = mysqlTable("memberships", {
   payment_type: mysqlEnum("payment_type", ["one_off", "recurring"]).default(
     "one_off"
   ),
-  price_point: mysqlEnum("price_point", ["ticket", "course"]).default(
-    "ticket"
-  ),
+  price_point: mysqlEnum("price_point", ["ticket", "course"]).default("ticket"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
   user_id: int("user_id")
@@ -358,6 +353,18 @@ export const callbackSchema = mysqlTable("callbacks", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
+export const eventMembershipSchema = mysqlTable("event_memberships", {
+  id: serial("id").primaryKey(),
+  event_id: int("event_id")
+    .references(() => eventSchema.id)
+    .notNull(),
+  membership_id: int("membership_id")
+    .references(() => membershipSchema.id)
+    .notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
 export type Lead = typeof leadSchema.$inferSelect & {
   event?: Event | null;
   membership?: Membership | null;
@@ -368,7 +375,11 @@ export type NewMembership = typeof memberships.$inferInsert;
 export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type NewLead = typeof leadSchema.$inferInsert;
-export type Event = typeof eventSchema.$inferSelect;
+export type Event = typeof eventSchema.$inferSelect & {
+  memberships?: (typeof eventMembershipSchema.$inferSelect & {
+    membership: Membership;
+  })[];
+};
 export type NewEvent = typeof eventSchema.$inferInsert;
 export type EventDate = typeof eventDates.$inferSelect;
 export type NewEventDate = typeof eventDates.$inferInsert;
@@ -495,3 +506,25 @@ export const callbackRelations = relations(callbackSchema, ({ one }) => ({
     references: [userSchema.id],
   }),
 }));
+
+export const eventRelations = relations(eventSchema, ({ many }) => ({
+  memberships: many(eventMembershipSchema),
+}));
+
+export const membershipRelations = relations(membershipSchema, ({ many }) => ({
+  events: many(eventMembershipSchema),
+}));
+
+export const eventMembershipRelations = relations(
+  eventMembershipSchema,
+  ({ one }) => ({
+    event: one(eventSchema, {
+      fields: [eventMembershipSchema.event_id],
+      references: [eventSchema.id],
+    }),
+    membership: one(membershipSchema, {
+      fields: [eventMembershipSchema.membership_id],
+      references: [membershipSchema.id],
+    }),
+  })
+);

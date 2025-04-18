@@ -21,16 +21,24 @@ type EventWithAsset = Event & {
     created_at: Date | null;
     updated_at: Date | null;
   }>;
-  membership?: {
+  memberships: Array<{
     id: number;
-    name: string;
     created_at: Date | null;
     updated_at: Date | null;
-    user_id: number;
-    description: string | null;
-    price: number;
-    payment_type: "one_off" | "recurring" | null;
-  } | null;
+    event_id: number;
+    membership_id: number;
+    membership: {
+      id: number;
+      name: string;
+      created_at: Date | null;
+      updated_at: Date | null;
+      user_id: number;
+      description: string | null;
+      price: number;
+      payment_type: "one_off" | "recurring" | null;
+      price_point: "ticket" | "course" | null;
+    } | null;
+  }>;
 };
 
 type EventWithRelations = {
@@ -75,24 +83,24 @@ export class EventService {
     this.leadService = leadService;
   }
 
-  public async createEvent(event: NewEvent) {
+  public async createEvent(event: NewEvent, membership_ids: number[]) {
     try {
       // Create the event
-      const newEvent = await this.repository.create(event);
+      const newEventId = await this.repository.create(event, membership_ids);
 
       // Create all event dates in parallel
       if (event.dates && Array.isArray(event.dates)) {
         await Promise.all(
           event.dates.map((date) =>
             this.repository.createEventDate({
-              event_id: newEvent[0].id,
+              event_id: newEventId,
               date: date,
             })
           )
         );
       }
 
-      return newEvent;
+      return newEventId;
     } catch (error) {
       logger.error("Failed to create event:", error);
       throw error;
@@ -103,7 +111,7 @@ export class EventService {
     const result = await this.repository.find(id);
     if (!result) return undefined;
 
-    const { event, asset, host, dates, membership } = result;
+    const { event, asset, host, dates, memberships } = result;
 
     // Get lead count for this event
     const leads = await this.leadService.findByEventId(event.id);
@@ -124,7 +132,7 @@ export class EventService {
         host,
         leadCount,
         dates,
-        membership,
+        memberships,
       };
     }
 
@@ -134,7 +142,7 @@ export class EventService {
       host,
       leadCount,
       dates,
-      membership,
+      memberships,
     };
   }
 
@@ -151,8 +159,16 @@ export class EventService {
     return await this.repository.findByUserId(userId, query);
   }
 
-  public async updateEvent(id: number, event: Partial<Event>): Promise<void> {
-    await this.repository.update(id, event);
+  public async updateEvent(
+    id: number,
+    event: Omit<Partial<Event>, "memberships"> & { memberships?: number[] }
+  ): Promise<void> {
+    const { memberships, ...rest } = event;
+    if (memberships) {
+      await this.repository.deleteEventMemberships(id);
+      await this.repository.addMemberships(id, memberships);
+    }
+    await this.repository.update(id, rest);
   }
 
   public async cancelEvent(

@@ -1,6 +1,10 @@
 import { and, desc, eq, like, asc } from "drizzle-orm";
 import { db } from "../lib/database.ts";
-import { memberships, eventSchema } from "../schema/schema.ts";
+import {
+  memberships,
+  eventSchema,
+  eventMembershipSchema,
+} from "../schema/schema.ts";
 import type { Membership, NewMembership } from "../schema/schema.ts";
 
 export type MembershipQuery = {
@@ -86,6 +90,10 @@ export class MembershipRepository {
     return await db
       .select()
       .from(eventSchema)
-      .where(eq(eventSchema.membership_id, membershipId));
+      .innerJoin(
+        eventMembershipSchema,
+        eq(eventSchema.id, eventMembershipSchema.event_id)
+      )
+      .where(eq(eventMembershipSchema.membership_id, membershipId));
   }
 }

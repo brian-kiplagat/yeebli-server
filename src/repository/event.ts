@@ -8,6 +8,7 @@ import {
   eventSchema,
   memberships,
   userSchema,
+  eventMembershipSchema,
 } from "../schema/schema.js";
 import type { Event, NewEvent, NewEventDate } from "../schema/schema.js";
 
@@ -18,8 +19,15 @@ export interface EventQuery {
 }
 
 export class EventRepository {
-  public async create(event: NewEvent) {
-    return db.insert(eventSchema).values(event).$returningId();
+  public async create(event: NewEvent, membership_ids: number[]) {
+    const [eventId] = await db.insert(eventSchema).values(event).$returningId();
+    await db.insert(eventMembershipSchema).values(
+      membership_ids.map((id) => ({
+        event_id: eventId.id,
+        membership_id: id,
+      }))
+    );
+    return eventId.id;
   }
 
   public async createEventDate(eventDate: NewEventDate) {
@@ -35,7 +43,6 @@ export class EventRepository {
       .select({
         event: eventSchema,
         asset: assetsSchema,
-        membership: memberships,
         host: {
           name: userSchema.name,
           email: userSchema.email,
@@ -45,21 +52,37 @@ export class EventRepository {
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
-      .leftJoin(bookings, eq(eventSchema.id, bookings.event_id))
-      .leftJoin(eventDates, eq(eventSchema.id, eventDates.event_id))
-      .leftJoin(memberships, eq(eventSchema.membership_id, memberships.id))
       .where(eq(eventSchema.id, id))
       .limit(1);
-    //Then, get all dates for these events in a single query
+
+    // Get all memberships for this event
+    const eventMemberships = await db
+      .select({
+        id: eventMembershipSchema.id,
+        created_at: eventMembershipSchema.created_at,
+        updated_at: eventMembershipSchema.updated_at,
+        event_id: eventMembershipSchema.event_id,
+        membership_id: eventMembershipSchema.membership_id,
+        membership: memberships,
+      })
+      .from(eventMembershipSchema)
+      .innerJoin(
+        memberships,
+        eq(eventMembershipSchema.membership_id, memberships.id)
+      )
+      .where(eq(eventMembershipSchema.event_id, id));
+
+    // Get all dates for this event
     const dates = await db
       .select()
       .from(eventDates)
       .where(eq(eventDates.event_id, id));
 
-    // Get membership information for lead levels
-    const event = result[0].event;
-
-    return { ...result[0], dates: dates };
+    return {
+      ...result[0],
+      memberships: eventMemberships,
+      dates,
+    };
   }
 
   public async findAll(query?: EventQuery) {
@@ -91,7 +114,14 @@ export class EventRepository {
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
-      .leftJoin(memberships, eq(eventSchema.membership_id, memberships.id))
+      .leftJoin(
+        eventMembershipSchema,
+        eq(eventSchema.id, eventMembershipSchema.event_id)
+      )
+      .leftJoin(
+        memberships,
+        eq(eventMembershipSchema.membership_id, memberships.id)
+      )
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
@@ -148,7 +178,14 @@ export class EventRepository {
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
-      .leftJoin(memberships, eq(eventSchema.membership_id, memberships.id))
+      .leftJoin(
+        eventMembershipSchema,
+        eq(eventSchema.id, eventMembershipSchema.event_id)
+      )
+      .leftJoin(
+        memberships,
+        eq(eventMembershipSchema.membership_id, memberships.id)
+      )
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
@@ -220,5 +257,20 @@ export class EventRepository {
 
   public async deleteEventDate(dateId: number) {
     return db.delete(eventDates).where(eq(eventDates.id, dateId));
+  }
+
+  public async deleteEventMemberships(eventId: number) {
+    return db
+      .delete(eventMembershipSchema)
+      .where(eq(eventMembershipSchema.event_id, eventId));
+  }
+
+  public async addMemberships(eventId: number, membershipIds: number[]) {
+    return db.insert(eventMembershipSchema).values(
+      membershipIds.map((id) => ({
+        event_id: eventId,
+        membership_id: id,
+      }))
+    );
   }
 }
