@@ -453,8 +453,6 @@ export class LeadController {
       if (!user.id) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      console.log({ user });
-
       const { page, limit, search } = c.req.query();
       const query = {
         page: page ? Number.parseInt(page) : undefined,

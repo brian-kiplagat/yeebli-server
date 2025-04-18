@@ -220,6 +220,21 @@ export class EventRepository {
     return db.select().from(bookings).where(eq(bookings.event_id, eventId));
   }
 
+  public async findMembershipsByEventId(eventId: number) {
+    return db
+      .select({
+        id: eventMembershipSchema.id,
+        created_at: eventMembershipSchema.created_at,
+        updated_at: eventMembershipSchema.updated_at,
+        event_id: eventMembershipSchema.event_id,
+        membership_id: eventMembershipSchema.membership_id,
+        membership: memberships,
+      })
+      .from(eventMembershipSchema)
+      .innerJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
+      .where(eq(eventMembershipSchema.event_id, eventId));
+  }
+
   public async deleteEventMemberships(eventId: number) {
     return db.delete(eventMembershipSchema).where(eq(eventMembershipSchema.event_id, eventId));
   }

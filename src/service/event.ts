@@ -72,7 +72,7 @@ export class EventService {
 
       return newEventId;
     } catch (error) {
-      logger.error('Failed to create event:', error);
+      logger.error(error);
       throw error;
     }
   }
@@ -172,6 +172,15 @@ export class EventService {
 
   public async findByAssetId(assetId: number) {
     return this.repository.findByAssetId(assetId);
+  }
+
+  public async getMembershipsByEventId(eventId: number) {
+    try {
+      return await this.repository.findMembershipsByEventId(eventId);
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
   }
 
   public async informAttendees(

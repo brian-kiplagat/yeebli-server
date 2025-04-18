@@ -302,6 +302,7 @@ export class Server {
 
     // Unauthenticated routes
     event.get('/:id', eventCtrl.getEvent);
+    event.get('/:id/memberships', eventCtrl.getEventMemberships);
 
     // Apply auth middleware for authenticated routes
     event.use(authCheck);

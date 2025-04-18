@@ -75,7 +75,6 @@ export class SubscriptionService {
 
       return session;
     } catch (error) {
-      console.log(error);
       logger.error('Error creating subscription checkout session:', error);
       throw error;
     }

@@ -211,4 +211,21 @@ export class EventController {
       return serveInternalServerError(c, error);
     }
   };
+
+  public getEventMemberships = async (c: Context) => {
+    try {
+      const eventId = Number(c.req.param('id'));
+      const event = await this.service.getEvent(eventId);
+
+      if (!event) {
+        return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
+      }
+
+      const memberships = await this.service.getMembershipsByEventId(eventId);
+      return c.json(memberships);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
 }
