@@ -183,6 +183,15 @@ export class EventService {
     }
   }
 
+  public async getEventDate(dateId: number) {
+    try {
+      return await this.repository.findEventDate(dateId);
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
+  }
+
   public async informAttendees(
     event: Event,
     data: {

@@ -7,6 +7,7 @@ import {
   bookings,
   eventMembershipSchema,
   eventSchema,
+  membershipDates,
   memberships,
   userSchema,
 } from '../schema/schema.js';
@@ -218,6 +219,15 @@ export class EventRepository {
 
   public async findBookingsByEventId(eventId: number) {
     return db.select().from(bookings).where(eq(bookings.event_id, eventId));
+  }
+
+  public async findEventDate(dateId: number) {
+    const result = await db
+      .select()
+      .from(membershipDates)
+      .where(eq(membershipDates.id, dateId))
+      .limit(1);
+    return result[0];
   }
 
   public async findMembershipsByEventId(eventId: number) {

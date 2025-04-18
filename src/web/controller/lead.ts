@@ -13,6 +13,7 @@ import type { StripeService } from '../../service/stripe.ts';
 import type { TurnstileService } from '../../service/turnstile.ts';
 import type { UserService } from '../../service/user.ts';
 import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
+import { formatDateToLocale } from '../../util/string.ts';
 import {
   type EventLinkBody,
   externalFormSchema,
@@ -174,7 +175,13 @@ export class LeadController {
           : false;
         //send confirmation email to the lead
         const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
-        const eventDate = 'XXXX';
+        //get the date_id
+        const dates = await this.eventService.getEventDate(body.date_id);
+        if (!dates) {
+          return serveBadRequest(c, ERRORS.INVALID_DATE);
+        }
+        const eventDate = formatDateToLocale(dates.date, 'Europe/London');
+        //const eventDate = formatDateToLocale  ;
         const bodyText =
           event.event_type === 'live_venue'
             ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
@@ -362,53 +369,55 @@ export class LeadController {
   public handleExternalForm = async (c: Context) => {
     try {
       const formData = await c.req.parseBody();
-      const validatedData = externalFormSchema.parse(formData);
+      const body = externalFormSchema.parse(formData);
 
       // Verify Turnstile token
       const ip = c.req.header('CF-Connecting-IP');
-      const isValid = await this.turnstileService.verify(
-        validatedData['cf-turnstile-response'],
-        ip,
-      );
+      const isValid = await this.turnstileService.verify(body['cf-turnstile-response'], ip);
 
       if (!isValid) {
         return serveBadRequest(c, 'Invalid Turnstile token');
       }
 
       const token = Math.floor(100000 + Math.random() * 900000).toString();
-      const event = await this.eventService.getEvent(validatedData.event_id);
+      const event = await this.eventService.getEvent(body.event_id);
       if (!event) {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
 
       const lead: NewLead = {
-        name: validatedData.lead_form_name,
-        email: validatedData.lead_form_email,
-        phone: validatedData.lead_form_phone,
-        event_id: validatedData.event_id,
-        host_id: validatedData.host_id,
+        name: body.lead_form_name,
+        email: body.lead_form_email,
+        phone: body.lead_form_phone,
+        event_id: body.event_id,
+        host_id: body.host_id,
         membership_level: null,
         membership_active: false,
         form_identifier: 'external_form',
         status_identifier: 'Form',
-        userId: validatedData.host_id,
+        userId: body.host_id,
         token: token,
         source_url: c.req.header('Referer') || 'direct',
       };
-
+      //get the date_id
+      const dates = await this.eventService.getEventDate(body.date_id);
+      if (!dates) {
+        return serveBadRequest(c, ERRORS.INVALID_DATE);
+      }
       const createdLead = await this.service.create(lead);
       //also create a booking for this event
-      if (validatedData.date_id && validatedData.event_id) {
+      if (body.date_id && body.event_id) {
         await this.bookingService.create({
-          event_id: validatedData.event_id,
-          date_id: validatedData.date_id,
+          event_id: body.event_id,
+          date_id: body.date_id,
           lead_id: createdLead[0].id,
           passcode: token,
           host_id: event.host_id,
         });
       }
-      const eventDate = 'XXXX';
-      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
+
+      const eventDate = formatDateToLocale(dates.date, 'Europe/London');
+      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.lead_form_email}`;
 
       const paid_event = event.memberships.some(
         (membership) => membership.membership?.name.trim() !== 'Free',
@@ -423,7 +432,7 @@ export class LeadController {
             ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} If you need more information, you can check our website here: ${eventLink}.`
             : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
 
-      sendTransactionalEmail(validatedData.lead_form_email, validatedData.lead_form_name, 1, {
+      sendTransactionalEmail(body.lead_form_email, body.lead_form_name, 1, {
         subject: 'Welcome to the event',
         title: 'Welcome to the event',
         subtitle: `You have been registered for the event`,
