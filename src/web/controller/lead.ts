@@ -141,8 +141,8 @@ export class LeadController {
       const body: LeadBody = await c.req.json();
 
       if (body.event_id) {
-        if (!body.event_date_id) {
-          return serveBadRequest(c, ERRORS.EVENT_DATE_ID_REQUIRED);
+        if (!body.date_id) {
+          return serveBadRequest(c, ERRORS.DATE_ID_REQUIRED);
         }
       }
       //token is a random 6 digit number
@@ -153,7 +153,7 @@ export class LeadController {
         token,
         membership_level: null,
       });
-      if (lead && body.event_id && body.event_date_id) {
+      if (lead && body.event_id && body.date_id) {
         //also create a booking for this event
         const event = await this.eventService.getEvent(body.event_id);
         if (!event) {
@@ -161,7 +161,7 @@ export class LeadController {
         }
         await this.bookingService.create({
           event_id: body.event_id,
-          date_id: body.event_date_id,
+          date_id: body.date_id,
           lead_id: lead[0].id,
           passcode: token,
           host_id: event.host_id,
@@ -386,7 +386,6 @@ export class LeadController {
         email: validatedData.lead_form_email,
         phone: validatedData.lead_form_phone,
         event_id: validatedData.event_id,
-        registered_date: validatedData.registered_date,
         host_id: validatedData.host_id,
         membership_level: null,
         membership_active: false,
@@ -399,10 +398,10 @@ export class LeadController {
 
       const createdLead = await this.service.create(lead);
       //also create a booking for this event
-      if (validatedData.registered_date && validatedData.event_id) {
+      if (validatedData.date_id && validatedData.event_id) {
         await this.bookingService.create({
           event_id: validatedData.event_id,
-          date_id: Number(validatedData.registered_date),
+          date_id: validatedData.date_id,
           lead_id: createdLead[0].id,
           passcode: token,
           host_id: event.host_id,

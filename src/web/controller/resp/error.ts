@@ -35,6 +35,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  DATE_ID_REQUIRED: 'Date is required',
   MEMBERSHIP_ALREADY_PURCHASED: 'You have already purchased this membership',
   MEMBERSHIP_REQUIRED: 'Membership is required. Please add at least one membership to the event',
   INVALID_USER_ID:
