@@ -104,7 +104,6 @@ export class EventRepository {
       .select({
         event: eventSchema,
         asset: assetsSchema,
-        membership: memberships,
         host: {
           name: userSchema.name,
           email: userSchema.email,
@@ -114,30 +113,38 @@ export class EventRepository {
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
-      .leftJoin(
-        eventMembershipSchema,
-        eq(eventSchema.id, eventMembershipSchema.event_id)
-      )
-      .leftJoin(
-        memberships,
-        eq(eventMembershipSchema.membership_id, memberships.id)
-      )
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(eventSchema.created_at));
 
-    // Then get all dates for these events
+    // Get memberships for these events
     const eventIds = events.map((e) => e.event.id);
+    const eventMemberships = await db
+      .select({
+        event_id: eventMembershipSchema.event_id,
+        membership: memberships,
+      })
+      .from(eventMembershipSchema)
+      .innerJoin(
+        memberships,
+        eq(eventMembershipSchema.membership_id, memberships.id)
+      )
+      .where(inArray(eventMembershipSchema.event_id, eventIds));
+
+    // Then get all dates for these events
     const dates = await db
       .select()
       .from(eventDates)
       .where(inArray(eventDates.event_id, eventIds));
 
-    // Map dates to events
-    const eventsWithDates = events.map((event) => ({
+    // Map dates and memberships to events
+    const eventsWithRelations = events.map((event) => ({
       ...event,
       dates: dates.filter((d) => d.event_id === event.event.id),
+      memberships: eventMemberships
+        .filter((em) => em.event_id === event.event.id)
+        .map((em) => em.membership),
     }));
 
     const total = await db
@@ -145,7 +152,7 @@ export class EventRepository {
       .from(eventSchema)
       .where(whereConditions);
 
-    return { events: eventsWithDates, total: total.length };
+    return { events: eventsWithRelations, total: total.length };
   }
 
   public async findByUserId(userId: number, query?: EventQuery) {
@@ -168,7 +175,6 @@ export class EventRepository {
       .select({
         event: eventSchema,
         asset: assetsSchema,
-        membership: memberships,
         host: {
           name: userSchema.name,
           email: userSchema.email,
@@ -178,30 +184,38 @@ export class EventRepository {
       .from(eventSchema)
       .leftJoin(assetsSchema, eq(eventSchema.asset_id, assetsSchema.id))
       .leftJoin(userSchema, eq(eventSchema.host_id, userSchema.id))
-      .leftJoin(
-        eventMembershipSchema,
-        eq(eventSchema.id, eventMembershipSchema.event_id)
-      )
-      .leftJoin(
-        memberships,
-        eq(eventMembershipSchema.membership_id, memberships.id)
-      )
       .where(whereConditions)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(eventSchema.created_at));
 
-    // Then get all dates for these events
+    // Get memberships for these events
     const eventIds = events.map((e) => e.event.id);
+    const eventMemberships = await db
+      .select({
+        event_id: eventMembershipSchema.event_id,
+        membership: memberships,
+      })
+      .from(eventMembershipSchema)
+      .innerJoin(
+        memberships,
+        eq(eventMembershipSchema.membership_id, memberships.id)
+      )
+      .where(inArray(eventMembershipSchema.event_id, eventIds));
+
+    // Then get all dates for these events
     const dates = await db
       .select()
       .from(eventDates)
       .where(inArray(eventDates.event_id, eventIds));
 
-    // Map dates to events
-    const eventsWithDates = events.map((event) => ({
+    // Map dates and memberships to events
+    const eventsWithRelations = events.map((event) => ({
       ...event,
       dates: dates.filter((d) => d.event_id === event.event.id),
+      memberships: eventMemberships
+        .filter((em) => em.event_id === event.event.id)
+        .map((em) => em.membership),
     }));
 
     const total = await db
@@ -209,7 +223,7 @@ export class EventRepository {
       .from(eventSchema)
       .where(whereConditions);
 
-    return { events: eventsWithDates, total: total.length };
+    return { events: eventsWithRelations, total: total.length };
   }
 
   public async update(id: number, event: Partial<Event>) {
