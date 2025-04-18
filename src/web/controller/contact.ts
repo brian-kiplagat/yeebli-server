@@ -213,7 +213,7 @@ export class ContactController {
       const body: UpdateContactDetailsBody = await c.req.json();
       const updatedContact = await this.contactService.updateContactDetails(contact.id, body);
 
-      return serveData(c, 'Contact details updated successfully');
+      return serveData(c, updatedContact);
     } catch (error: any) {
       logger.error(error);
       return serveInternalServerError(c, error);

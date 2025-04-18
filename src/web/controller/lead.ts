@@ -1,5 +1,5 @@
 import type { Context } from 'hono';
-import { v4 as uuidv4 } from 'uuid';
+
 
 import env from '../../lib/env.ts';
 import { logger } from '../../lib/logger.ts';
@@ -14,12 +14,11 @@ import type { StripeService } from '../../service/stripe.ts';
 import type { TurnstileService } from '../../service/turnstile.ts';
 import type { UserService } from '../../service/user.ts';
 import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
-import { formatDate, formatDateToLocale } from '../../util/string.ts';
+import { formatDateToLocale } from '../../util/string.ts';
 import {
   type EventLinkBody,
   externalFormSchema,
   type LeadBody,
-  type LeadUpgradeBody,
   PurchaseMembershipBody,
 } from '../validator/lead.ts';
 import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
@@ -171,7 +170,7 @@ export class LeadController {
         });
 
         let eventDate = null;
-        if (event.event_type == 'live_venue' || event.event_type == 'live_video_call') {
+        if (event.event_type === 'live_venue' || event.event_type === 'live_video_call') {
           const date = await this.eventService.getEventDate(Number(body.event_date_id));
           if (date) {
             // Convert the timestamp string to a number and then to a Date
@@ -190,9 +189,9 @@ export class LeadController {
         const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
         const bodyText =
-          event.event_type == 'live_venue'
+          event.event_type === 'live_venue'
             ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
-            : event.event_type == 'live_video_call'
+            : event.event_type === 'live_video_call'
               ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
               : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} to join the event.`;
 
@@ -241,11 +240,11 @@ export class LeadController {
         }
         let successUrl = '';
         const currentTimestamp = Math.floor(Date.now() / 1000);
-        if (event.event_type == 'live_venue') {
+        if (event.event_type === 'live_venue') {
           successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-        } else if (event.event_type == 'live_video_call') {
+        } else if (event.event_type === 'live_video_call') {
           successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-        } else if (event.event_type == 'prerecorded') {
+        } else if (event.event_type === 'prerecorded') {
           successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
         }
         const contact = await this.contactService.findByEmail(lead.email || '');
@@ -431,7 +430,7 @@ export class LeadController {
         });
       }
       let eventDate = null;
-      if (event.event_type == 'live_venue' || event.event_type == 'live_video_call') {
+      if (event.event_type === 'live_venue' || event.event_type === 'live_video_call') {
         const date = await this.eventService.getEventDate(Number(validatedData.registered_date));
         if (date) {
           // Convert the timestamp string to a number and then to a Date
@@ -450,9 +449,9 @@ export class LeadController {
         : false;
 
       const bodyText =
-        event.event_type == 'live_venue'
+        event.event_type === 'live_venue'
           ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
-          : event.event_type == 'live_video_call'
+          : event.event_type === 'live_video_call'
             ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} If you need more information, you can check our website here: ${eventLink}.`
             : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
 
@@ -557,11 +556,11 @@ export class LeadController {
       }
       let successUrl = '';
       const currentTimestamp = Math.floor(Date.now() / 1000);
-      if (event.event_type == 'live_venue') {
+      if (event.event_type === 'live_venue') {
         successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-      } else if (event.event_type == 'live_video_call') {
+      } else if (event.event_type === 'live_video_call') {
         successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-      } else if (event.event_type == 'prerecorded') {
+      } else if (event.event_type === 'prerecorded') {
         successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
       }
 

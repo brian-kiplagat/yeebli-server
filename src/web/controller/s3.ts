@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { logger } from '../../lib/logger.js';
 import type { S3Service } from '../../service/s3.js';
-import { ERRORS, serveInternalServerError } from './resp/error.js';
+import { serveInternalServerError } from './resp/error.js';
 
 const generateUrlSchema = z.object({
   fileName: z.string(),
