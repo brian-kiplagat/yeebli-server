@@ -1,6 +1,5 @@
 import type { Context } from 'hono';
 
-
 import env from '../../lib/env.ts';
 import { logger } from '../../lib/logger.ts';
 import type { NewLead } from '../../schema/schema.js';

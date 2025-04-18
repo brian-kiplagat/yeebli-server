@@ -1,16 +1,12 @@
-import type { Context } from "hono";
+import type { Context } from 'hono';
 
-import { logger } from "../../lib/logger.js";
-import type { StripeService } from "../../service/stripe.js";
-import type { SubscriptionService } from "../../service/subscription.js";
-import type { UserService } from "../../service/user.js";
-import { type SubscriptionRequestBody } from "../validator/subscription.js";
-import {
-  ERRORS,
-  serveBadRequest,
-  serveInternalServerError,
-} from "./resp/error.js";
-import { serveData } from "./resp/resp.js";
+import { logger } from '../../lib/logger.js';
+import type { StripeService } from '../../service/stripe.js';
+import type { SubscriptionService } from '../../service/subscription.js';
+import type { UserService } from '../../service/user.js';
+import { type SubscriptionRequestBody } from '../validator/subscription.js';
+import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
+import { serveData } from './resp/resp.js';
 
 export class SubscriptionController {
   private subscriptionService: SubscriptionService;
@@ -20,7 +16,7 @@ export class SubscriptionController {
   constructor(
     subscriptionService: SubscriptionService,
     stripeService: StripeService,
-    userService: UserService
+    userService: UserService,
   ) {
     this.subscriptionService = subscriptionService;
     this.stripeService = stripeService;
@@ -28,7 +24,7 @@ export class SubscriptionController {
   }
 
   private async getUser(c: Context) {
-    const { email } = c.get("jwtPayload");
+    const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -46,12 +42,12 @@ export class SubscriptionController {
         body.priceId,
         body.productId,
         body.successUrl,
-        body.cancelUrl
+        body.cancelUrl,
       );
 
       return serveData(c, { url: session.url });
     } catch (error) {
-      logger.error("Error creating subscription:", error);
+      logger.error('Error creating subscription:', error);
       return serveInternalServerError(c, error);
     }
   };
@@ -70,9 +66,9 @@ export class SubscriptionController {
         user.id,
         user.email,
         user.name,
-        user.subscription_id
+        user.subscription_id,
       );
-      return serveData(c, { message: "Subscription cancelled successfully" });
+      return serveData(c, { message: 'Subscription cancelled successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -86,12 +82,10 @@ export class SubscriptionController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const subscriptions = await this.subscriptionService.getSubscriptions(
-        user.id
-      );
+      const subscriptions = await this.subscriptionService.getSubscriptions(user.id);
       return serveData(c, { subscriptions });
     } catch (error) {
-      logger.error("Error getting subscriptions:", error);
+      logger.error('Error getting subscriptions:', error);
       return serveInternalServerError(c, error);
     }
   };
