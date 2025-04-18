@@ -13,7 +13,6 @@ import type { StripeService } from '../../service/stripe.ts';
 import type { TurnstileService } from '../../service/turnstile.ts';
 import type { UserService } from '../../service/user.ts';
 import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
-import { formatDateToLocale } from '../../util/string.ts';
 import {
   type EventLinkBody,
   externalFormSchema,
@@ -168,17 +167,6 @@ export class LeadController {
           host_id: event.host_id,
         });
 
-        let eventDate = null;
-        if (event.event_type === 'live_venue' || event.event_type === 'live_video_call') {
-          const date = await this.eventService.getEventDate(Number(body.event_date_id));
-          if (date) {
-            // Convert the timestamp string to a number and then to a Date
-            const timestamp = parseInt(date.date, 10);
-            if (!isNaN(timestamp)) {
-              eventDate = formatDateToLocale(new Date(timestamp * 1000), 'Europe/London');
-            }
-          }
-        }
         const paid_event = event.memberships.some(
           (membership) => membership.membership?.name.trim() !== 'Free',
         )
@@ -186,7 +174,7 @@ export class LeadController {
           : false;
         //send confirmation email to the lead
         const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
-
+        const eventDate = 'XXXX';
         const bodyText =
           event.event_type === 'live_venue'
             ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
@@ -420,17 +408,7 @@ export class LeadController {
           host_id: event.host_id,
         });
       }
-      let eventDate = null;
-      if (event.event_type === 'live_venue' || event.event_type === 'live_video_call') {
-        const date = await this.eventService.getEventDate(Number(validatedData.registered_date));
-        if (date) {
-          // Convert the timestamp string to a number and then to a Date
-          const timestamp = parseInt(date.date, 10);
-          if (!isNaN(timestamp)) {
-            eventDate = formatDateToLocale(new Date(timestamp * 1000), 'Europe/London');
-          }
-        }
-      }
+      const eventDate = 'XXXX';
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
 
       const paid_event = event.memberships.some(

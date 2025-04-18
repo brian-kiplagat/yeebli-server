@@ -188,6 +188,9 @@ export const membershipDates = mysqlTable('membership_dates', {
   date: varchar('date', { length: 50 }).notNull(), // Format: MM/DD/YYYY
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+  user_id: int('user_id')
+    .references(() => userSchema.id)
+    .notNull(),
 });
 
 export const bookings = mysqlTable('bookings', {

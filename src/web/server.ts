@@ -59,12 +59,7 @@ import { adminCreateUserValidator } from './validator/admin.ts';
 import { assetQueryValidator } from './validator/asset.ts';
 import { businessQueryValidator, businessValidator } from './validator/business.js';
 import { callbackValidator, updateCallbackValidator } from './validator/callback.ts';
-import {
-  cancelEventValidator,
-  eventValidator,
-  updateEventValidator,
-  upsertEventDateValidator,
-} from './validator/event.ts';
+import { cancelEventValidator, eventValidator, updateEventValidator } from './validator/event.ts';
 import { eventQueryValidator } from './validator/event.ts';
 import {
   eventLinkValidator,
@@ -307,7 +302,6 @@ export class Server {
 
     // Unauthenticated routes
     event.get('/:id', eventCtrl.getEvent);
-    event.get('/:id/dates', eventCtrl.getEventDates);
 
     // Apply auth middleware for authenticated routes
     event.use(authCheck);
@@ -315,8 +309,6 @@ export class Server {
 
     // Authenticated routes
     event.get('/', eventQueryValidator, eventCtrl.getEvents);
-    event.delete('/:id/dates/:dateId', eventCtrl.deleteEventDate);
-    event.put('/:id/dates/:dateId', upsertEventDateValidator, eventCtrl.upsertEventDate);
     event.post('/', eventValidator, eventCtrl.createEvent);
     event.put('/:id', updateEventValidator, eventCtrl.updateEvent);
     event.delete('/:id', eventCtrl.deleteEvent);
@@ -433,6 +425,7 @@ export class Server {
 
     // Unauthenticated routes
     membership.get('/:id', membershipCtrl.getMembership);
+    membership.get('/:id/dates-for-plan', membershipCtrl.getEventDates);
 
     // Apply auth middleware for authenticated routes
     membership.use(authCheck);
@@ -443,6 +436,7 @@ export class Server {
     membership.post('/', membershipValidator, membershipCtrl.createMembership);
     membership.put('/:id', membershipValidator, membershipCtrl.updateMembership);
     membership.delete('/:id', membershipCtrl.deleteMembership);
+    membership.delete('/:id/dates/:dateId', membershipCtrl.deleteMembershipDate);
 
     api.route('/membership', membership);
   }

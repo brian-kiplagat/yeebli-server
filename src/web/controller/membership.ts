@@ -161,4 +161,26 @@ export class MembershipController {
       return serveInternalServerError(c, error);
     }
   };
+
+  public getEventDates = async (c: Context) => {
+    try {
+      const membershipId = Number(c.req.param('id'));
+      const dates = await this.service.getMembershipDates(membershipId);
+      return c.json(dates);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public deleteMembershipDate = async (c: Context) => {
+    try {
+      const dateId = Number(c.req.param('dateId'));
+      await this.service.deleteMembershipDate(dateId);
+      return c.json({ message: 'Date deleted successfully' });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
 }

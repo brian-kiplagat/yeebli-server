@@ -18,9 +18,13 @@ const membershipQuerySchema = z.object({
   search: z.string().optional(),
 });
 
+const upsertEventDateSchema = z.object({
+  timestamp: z.string(),
+});
+export const upsertEventDateValidator = zValidator('json', upsertEventDateSchema);
 export const membershipQueryValidator = zValidator('query', membershipQuerySchema);
 
 export type MembershipQuery = z.infer<typeof membershipQuerySchema>;
-
+export type UpsertEventDateBody = z.infer<typeof upsertEventDateSchema>;
 export type CreateMembershipBody = z.infer<typeof membershipSchema>;
 export type UpdateMembershipBody = Partial<CreateMembershipBody>;

@@ -32,7 +32,7 @@ export class AssetService {
     let presignedUrl: string;
     if (buffer) {
       // If buffer is provided, upload the file
-      url = await this.s3Service.uploadFile(key, buffer, contentType, assetType);
+      url = await this.s3Service.uploadFile(key, buffer, contentType);
       presignedUrl = url;
     } else {
       // Otherwise, just generate a presigned URL for client upload

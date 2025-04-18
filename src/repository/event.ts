@@ -29,10 +29,6 @@ export class EventRepository {
     return eventId.id;
   }
 
-  public async updateEventDate(dateId: number, data: { date: string }) {
-    return db.update(eventDates).set(data).where(eq(eventDates.id, dateId));
-  }
-
   public async find(id: number) {
     const result = await db
       .select({
@@ -64,13 +60,9 @@ export class EventRepository {
       .innerJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
       .where(eq(eventMembershipSchema.event_id, id));
 
-    // Get all dates for this event
-    const dates = await db.select().from(eventDates).where(eq(eventDates.event_id, id));
-
     return {
       ...result[0],
       memberships: eventMemberships,
-      dates,
     };
   }
 
@@ -118,13 +110,10 @@ export class EventRepository {
       .innerJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
       .where(inArray(eventMembershipSchema.event_id, eventIds));
 
-    // Then get all dates for these events
-    const dates = await db.select().from(eventDates).where(inArray(eventDates.event_id, eventIds));
-
     // Map dates and memberships to events
     const eventsWithRelations = events.map((event) => ({
       ...event,
-      dates: dates.filter((d) => d.event_id === event.event.id),
+
       memberships: eventMemberships
         .filter((em) => em.event_id === event.event.id)
         .map((em) => em.membership),
@@ -183,13 +172,10 @@ export class EventRepository {
       .innerJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
       .where(inArray(eventMembershipSchema.event_id, eventIds));
 
-    // Then get all dates for these events
-    const dates = await db.select().from(eventDates).where(inArray(eventDates.event_id, eventIds));
-
     // Map dates and memberships to events
     const eventsWithRelations = events.map((event) => ({
       ...event,
-      dates: dates.filter((d) => d.event_id === event.event.id),
+
       memberships: eventMemberships
         .filter((em) => em.event_id === event.event.id)
         .map((em) => em.membership),
@@ -212,7 +198,7 @@ export class EventRepository {
   }
 
   public async delete(id: number) {
-    await db.delete(eventDates).where(eq(eventDates.event_id, id));
+    await db.delete(eventMembershipSchema).where(eq(eventMembershipSchema.event_id, id));
     await db.delete(bookings).where(eq(bookings.event_id, id));
     return db.delete(eventSchema).where(eq(eventSchema.id, id));
   }
@@ -226,21 +212,12 @@ export class EventRepository {
     return result[0];
   }
 
-  public async findEventDate(dateId: number) {
-    const result = await db.select().from(eventDates).where(eq(eventDates.id, dateId)).limit(1);
-    return result[0];
-  }
-
   public async findBookingsByDateId(dateId: number) {
     return db.select().from(bookings).where(eq(bookings.date_id, dateId));
   }
 
   public async findBookingsByEventId(eventId: number) {
     return db.select().from(bookings).where(eq(bookings.event_id, eventId));
-  }
-
-  public async deleteEventDate(dateId: number) {
-    return db.delete(eventDates).where(eq(eventDates.id, dateId));
   }
 
   public async deleteEventMemberships(eventId: number) {

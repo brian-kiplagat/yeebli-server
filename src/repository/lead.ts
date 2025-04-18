@@ -148,7 +148,6 @@ export class LeadRepository {
           instructions: eventSchema.instructions,
           landing_page_url: eventSchema.landing_page_url,
           live_venue_address: eventSchema.live_venue_address,
-          dates: eventSchema.dates,
           host_id: eventSchema.host_id,
         },
         membership: {
@@ -246,7 +245,6 @@ export class LeadRepository {
           instructions: eventSchema.instructions,
           landing_page_url: eventSchema.landing_page_url,
           live_venue_address: eventSchema.live_venue_address,
-          dates: eventSchema.dates,
           host_id: eventSchema.host_id,
         },
       })

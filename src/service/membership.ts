@@ -25,6 +25,7 @@ export class MembershipService {
             this.repository.createMembershipDate({
               membership_id: id,
               date: date,
+              user_id: plan.user_id,
             }),
           ),
         );
@@ -71,6 +72,24 @@ export class MembershipService {
       return await this.repository.getEventsByMembership(membershipId);
     } catch (error) {
       logger.error('Failed to get events by membership:', error);
+      throw error;
+    }
+  }
+
+  public async getMembershipDates(membershipId: number) {
+    try {
+      return await this.repository.getMembershipDates(membershipId);
+    } catch (error) {
+      logger.error('Failed to get membership dates:', error);
+      throw error;
+    }
+  }
+
+  public async deleteMembershipDate(dateId: number) {
+    try {
+      await this.repository.deleteMembershipDate(dateId);
+    } catch (error) {
+      logger.error('Failed to delete membership date:', error);
       throw error;
     }
   }

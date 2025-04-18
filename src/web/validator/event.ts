@@ -34,14 +34,8 @@ export const eventQuerySchema = z.object({
   search: z.string().optional(),
 });
 
-const upsertEventDateSchema = z.object({
-  timestamp: z.string(),
-});
-
-export const upsertEventDateValidator = zValidator('json', upsertEventDateSchema);
-
 export const eventQueryValidator = zValidator('query', eventQuerySchema);
-export type UpsertEventDateBody = z.infer<typeof upsertEventDateSchema>;
+
 export type EventQuery = z.infer<typeof eventQuerySchema>;
 export type UpdateEventBody = z.infer<typeof updateEventSchema>;
 export type CancelEventBody = z.infer<typeof cancelEventSchema>;

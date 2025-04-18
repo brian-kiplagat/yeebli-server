@@ -95,4 +95,15 @@ export class MembershipRepository {
   public async createMembershipDate(membershipDate: NewMembershipDate) {
     return db.insert(membershipDates).values(membershipDate).$returningId();
   }
+
+  public async getMembershipDates(membershipId: number) {
+    return await db
+      .select()
+      .from(membershipDates)
+      .where(eq(membershipDates.membership_id, membershipId));
+  }
+
+  public async deleteMembershipDate(dateId: number) {
+    return await db.delete(membershipDates).where(eq(membershipDates.id, dateId));
+  }
 }

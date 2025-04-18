@@ -8,7 +8,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:drop": "drizzle-kit drop",
     "build": "tsc",
-    "check:ts": "tsc --noEmit"
+    "check": "tsc --noEmit"
   },
   "type": "module",
   "dependencies": {

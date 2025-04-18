@@ -2,7 +2,6 @@ import { logger } from '../lib/logger.js';
 import type { EventQuery, EventRepository } from '../repository/event.ts';
 import type { Asset, Booking, Event, NewEvent } from '../schema/schema.js';
 import { sendTransactionalEmail } from '../task/sendWelcomeEmail.js';
-import { formatDate } from '../util/string.ts';
 import type { LeadService } from './lead.ts';
 import type { S3Service } from './s3.js';
 
@@ -14,13 +13,7 @@ type EventWithAsset = Event & {
     profile_image: string | null;
   } | null;
   leadCount?: number;
-  dates: Array<{
-    id: number;
-    event_id: number;
-    date: string;
-    created_at: Date | null;
-    updated_at: Date | null;
-  }>;
+
   memberships: Array<{
     id: number;
     created_at: Date | null;
@@ -59,13 +52,6 @@ type EventWithRelations = {
     price: number;
     payment_type: 'one_off' | 'recurring' | null;
   } | null;
-  dates: Array<{
-    id: number;
-    event_id: number;
-    date: string;
-    created_at: Date | null;
-    updated_at: Date | null;
-  }>;
 };
 
 export class EventService {
@@ -95,7 +81,7 @@ export class EventService {
     const result = await this.repository.find(id);
     if (!result) return undefined;
 
-    const { event, asset, host, dates, memberships } = result;
+    const { event, asset, host, memberships } = result;
 
     // Get lead count for this event
     const leads = await this.leadService.findByEventId(event.id);
@@ -115,7 +101,6 @@ export class EventService {
         },
         host,
         leadCount,
-        dates,
         memberships,
       };
     }
@@ -125,7 +110,6 @@ export class EventService {
       asset: null,
       host,
       leadCount,
-      dates,
       memberships,
     };
   }
@@ -188,58 +172,6 @@ export class EventService {
 
   public async findByAssetId(assetId: number) {
     return this.repository.findByAssetId(assetId);
-  }
-
-  public async deleteEventDate(dateId: number): Promise<void> {
-    // Get the event date details
-    const date = await this.repository.findEventDate(dateId);
-    if (!date) {
-      throw new Error('Event date not found');
-    }
-
-    // Get the event details
-    const event = await this.repository.find(date.event_id);
-    if (!event) {
-      throw new Error('Event not found');
-    }
-
-    // Get all bookings for this date
-    const bookings = await this.repository.findBookingsByDateId(dateId);
-
-    // Send emails to all booked users
-    await Promise.all(
-      bookings.map(async (booking: Booking) => {
-        const lead = await this.leadService.find(booking.lead_id);
-        if (lead?.email && lead?.name) {
-          await sendTransactionalEmail(
-            lead.email,
-            lead.name,
-            1, // Use appropriate template ID
-            {
-              subject: 'Event Cancelled',
-              title: 'Event Cancelled',
-              subtitle: `The event "${event.event.event_name}" has been cancelled.`,
-              body: `We regret to inform you that the event "${event.event.event_name}" scheduled for ${formatDate(date.date, 'YYYY DD MMM HH:mm')} has been cancelled by the host. We shall let you know if the event is rescheduled.`,
-            },
-          );
-        }
-      }),
-    );
-
-    // Delete the event date
-    await this.repository.deleteEventDate(dateId);
-  }
-
-  public async getEventDate(dateId: number) {
-    return this.repository.findEventDate(dateId);
-  }
-
-  public async updateEventDate(dateId: number, data: { date: string }) {
-    return this.repository.updateEventDate(dateId, data);
-  }
-
-  public async createEventDate(data: { event_id: number; date: string }) {
-    return this.repository.createEventDate(data);
   }
 
   public async informAttendees(
