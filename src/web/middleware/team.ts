@@ -1,13 +1,14 @@
-import { createMiddleware } from "hono/factory";
-import { TeamService } from "../../service/team.ts";
-import { ERRORS, serveBadRequest } from "../controller/resp/error.ts";
+import { createMiddleware } from 'hono/factory';
+
+import { TeamService } from '../../service/team.ts';
+import { ERRORS, serveBadRequest } from '../controller/resp/error.ts';
 
 export const teamAccess = (teamService: TeamService) =>
   createMiddleware(async (c, next) => {
-    const teamId = c.req.query("teamId");
+    const teamId = c.req.query('teamId');
 
     if (teamId) {
-      const email = c.get("jwtPayload").email;
+      const { email } = c.get('jwtPayload');
 
       // Get team with its members
       const { members } = await teamService.getTeamMembers(Number(teamId));
@@ -18,22 +19,20 @@ export const teamAccess = (teamService: TeamService) =>
 
       // Convert members object to array and find host
       const membersArray = Object.values(members);
-      const hostMember = membersArray.find((member) => member.role === "host");
+      const hostMember = membersArray.find((member) => member.role === 'host');
 
       if (!hostMember) {
         return serveBadRequest(c, ERRORS.TEAM_NOT_FOUND);
       }
 
       // Check if user is a member
-      const isMember = membersArray.some(
-        (member) => member?.user?.email === email
-      );
+      const isMember = membersArray.some((member) => member?.user?.email === email);
       if (!isMember) {
         return serveBadRequest(c, ERRORS.TEAM_MEMBER_NOT_FOUND);
       }
 
       // Set the host ID in the context for downstream use
-      c.set("hostId", hostMember.user_id);
+      c.set('hostId', hostMember.user_id);
     }
 
     await next();

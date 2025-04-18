@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import { StatusCodes, getReasonPhrase } from 'http-status-codes';
+import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 
 const serveNotFound = (c: Context, message: string) => {
   return c.json({ error: message }, <ContentfulStatusCode>StatusCodes.NOT_FOUND);
@@ -16,7 +16,10 @@ const serveUnprocessableEntity = (c: Context, message: string) => {
 };
 
 const serveUnauthorized = (c: Context) => {
-  return c.json({ error: getReasonPhrase(StatusCodes.UNAUTHORIZED) }, <ContentfulStatusCode>StatusCodes.UNAUTHORIZED);
+  return c.json(
+    { error: getReasonPhrase(StatusCodes.UNAUTHORIZED) },
+    <ContentfulStatusCode>StatusCodes.UNAUTHORIZED,
+  );
 };
 
 const serveInternalServerError = (c: Context, error: any) => {
@@ -34,20 +37,27 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 const ERRORS = {
   MEMBERSHIP_ALREADY_PURCHASED: 'You have already purchased this membership',
   MEMBERSHIP_REQUIRED: 'Membership is required. Please add at least one membership to the event',
-  INVALID_USER_ID: 'Ops, we could not find the user you are looking for. Confirm the user id and try again.',
-  TEAM_NOT_FOUND: 'Ops, we could not find the team you are looking for. Confirm the team id and try again.',
-  TEAM_MEMBER_NOT_FOUND: 'Ops, seem you are not a member of this team. Confirm that you have access to this team and try again.',
+  INVALID_USER_ID:
+    'Ops, we could not find the user you are looking for. Confirm the user id and try again.',
+  TEAM_NOT_FOUND:
+    'Ops, we could not find the team you are looking for. Confirm the team id and try again.',
+  TEAM_MEMBER_NOT_FOUND:
+    'Ops, seem you are not a member of this team. Confirm that you have access to this team and try again.',
   MEMBERSHIP_NOT_ACTIVE: 'This lead has not paid for the membership',
   EVENT_ALREADY_CANCELLED: 'This event has already been cancelled',
   SCHEDULED_TIME_REQUIRED: 'Scheduled time is required for scheduled callbacks',
   CALLBACK_ALREADY_EXISTS: 'You have already scheduled a callback of this type for this event',
-  SUBSCRIPTION_NOT_FOUND: "Subscription not found. Nothing left to cancel.",
+  SUBSCRIPTION_NOT_FOUND: 'Subscription not found. Nothing left to cancel.',
   PRODUCT_ID_NOT_FOUND: 'Product not found. Please check the product id',
   CALLBACK_NOT_FOUND: 'Callback not found',
-  MEMBERSHIP_LINKED_TO_EVENT: 'This membership is linked to an event. Deleting this will cause issues with existing contacts registered for the event. Please cancel the event first then try again.',
-  CONTACT_NOT_FOUND: 'Ops, we cant find a contact with this email, please check if you have the correct details',
-  STRIPE_ACCOUNT_ID_NOT_FOUND: 'The host has not configured payments, as a result you cannot initiate a payment.',
-  LEAD_WITH_TOKEN_NOT_FOUND: 'Ops, we cant find a lead with this token, please check if you have the correct details',
+  MEMBERSHIP_LINKED_TO_EVENT:
+    'This membership is linked to an event. Deleting this will cause issues with existing contacts registered for the event. Please cancel the event first then try again.',
+  CONTACT_NOT_FOUND:
+    'Ops, we cant find a contact with this email, please check if you have the correct details',
+  STRIPE_ACCOUNT_ID_NOT_FOUND:
+    'The host has not configured payments, as a result you cannot initiate a payment.',
+  LEAD_WITH_TOKEN_NOT_FOUND:
+    'Ops, we cant find a lead with this token, please check if you have the correct details',
   EVENT_DATE_ID_REQUIRED: 'If you invite a lead to an event, please also provide an event date.',
   BUSINESS_NOT_FOUND: 'Business not found, please check the business id',
   MEMBERSHIP_NOT_FOUND: 'Membership not found, please check the membership id',
@@ -66,14 +76,16 @@ const ERRORS = {
   EVENT_NOT_FOUND: 'Ops, this event does not exist, please check',
   ASSET_NOT_FOUND: 'Ops, we could not find the associated asset for this event',
   NOT_ALLOWED: 'Ops, you are not allowed to do this action.',
-  EVENT_HAS_LEADS_CONNECTED: 'This event has active leads connected. Please cancel the event first then try again.',
+  EVENT_HAS_LEADS_CONNECTED:
+    'This event has active leads connected. Please cancel the event first then try again.',
   INVALID_STATE: 'Invalid state parameter. The state parameter does not match the expected value.',
   EVENT_DATE_REQUIRED: 'Event date is required',
   STRIPE_CUSTOMER_ID_NOT_FOUND: 'Stripe customer ID not found',
   STRIPE_PAYMENT_METHOD_NOT_FOUND: 'Stripe payment method not found',
   AUTH_INVALID_PASSWORD: 'Ops, your old password is invalid, please check and try again',
   STRIPE_PAYMENT_METHOD_NOT_ACTIVE: 'Stripe payment method is not active',
-  ASSET_LINKED_TO_EVENT: 'This asset has active leads tied to an event. Please cancel the event first then try again.',
+  ASSET_LINKED_TO_EVENT:
+    'This asset has active leads tied to an event. Please cancel the event first then try again.',
   INVALID_DATE: 'Invalid date provided',
 } as const;
 

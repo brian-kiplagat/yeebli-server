@@ -1,7 +1,8 @@
-import { eq, and } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+
 import { db } from '../lib/database.js';
-import { bookings } from '../schema/schema.js';
 import type { NewBooking } from '../schema/schema.js';
+import { bookings } from '../schema/schema.js';
 
 export class BookingRepository {
   public async create(booking: NewBooking) {
@@ -23,6 +24,9 @@ export class BookingRepository {
   }
 
   public async findByUserIdandLeadId(userId: number, leadId: number) {
-    return db.select().from(bookings).where(and(eq(bookings.host_id, userId), eq(bookings.lead_id, leadId)));
+    return db
+      .select()
+      .from(bookings)
+      .where(and(eq(bookings.host_id, userId), eq(bookings.lead_id, leadId)));
   }
 }

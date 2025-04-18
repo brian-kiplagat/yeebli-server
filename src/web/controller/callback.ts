@@ -1,36 +1,25 @@
-import { Context } from "hono";
-import type { CallbackService } from "../../service/callback.ts";
-import {
-  type CallbackBody,
-  type UpdateCallbackBody,
-} from "../validator/callback.ts";
-import {
-  ERRORS,
-  serveBadRequest,
-  serveInternalServerError,
-  serveNotFound,
-} from "./resp/error.ts";
-import { logger } from "../../lib/logger.ts";
-import { UserService } from "../../service/user.ts";
-import { EventService } from "../../service/event.ts";
+import { Context } from 'hono';
+
+import { logger } from '../../lib/logger.ts';
+import type { CallbackService } from '../../service/callback.ts';
+import { EventService } from '../../service/event.ts';
+import { UserService } from '../../service/user.ts';
+import { type CallbackBody, type UpdateCallbackBody } from '../validator/callback.ts';
+import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.ts';
 
 export class CallbackController {
   private service: CallbackService;
   private userService: UserService;
   private eventService: EventService;
 
-  constructor(
-    service: CallbackService,
-    userService: UserService,
-    eventService: EventService
-  ) {
+  constructor(service: CallbackService, userService: UserService, eventService: EventService) {
     this.service = service;
     this.userService = userService;
     this.eventService = eventService;
   }
 
   private getUser = async (c: Context) => {
-    const email = c.get("jwtPayload").email;
+    const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   };
@@ -39,17 +28,16 @@ export class CallbackController {
     try {
       const body: CallbackBody = await c.req.json();
       // Validate scheduled time for scheduled callbacks
-      if (body.callback_type === "scheduled" && !body.scheduled_time) {
+      if (body.callback_type === 'scheduled' && !body.scheduled_time) {
         return serveBadRequest(c, ERRORS.SCHEDULED_TIME_REQUIRED);
       }
 
       //a lead can only create one callback per event and callback type
-      const existingCallback =
-        await this.service.getCallbackByLeadIdAndEventIdAndCallbackType(
-          body.lead_id,
-          body.event_id,
-          body.callback_type
-        );
+      const existingCallback = await this.service.getCallbackByLeadIdAndEventIdAndCallbackType(
+        body.lead_id,
+        body.event_id,
+        body.callback_type,
+      );
       if (existingCallback) {
         return serveBadRequest(c, ERRORS.CALLBACK_ALREADY_EXISTS);
       }
@@ -63,17 +51,15 @@ export class CallbackController {
       const callbackId = await this.service.createCallback({
         ...body,
         host_id: event.host_id,
-        scheduled_time: body.scheduled_time
-          ? new Date(body.scheduled_time)
-          : null,
+        scheduled_time: body.scheduled_time ? new Date(body.scheduled_time) : null,
       });
 
       return c.json(
         {
-          message: "Callback created successfully",
+          message: 'Callback created successfully',
           callbackId: callbackId,
         },
-        201
+        201,
       );
     } catch (error) {
       logger.error(error);
@@ -88,7 +74,7 @@ export class CallbackController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const id = parseInt(c.req.param("id"));
+      const id = parseInt(c.req.param('id'));
       const callback = await this.service.getCallback(id);
 
       if (!callback) {
@@ -109,7 +95,7 @@ export class CallbackController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const leadId = parseInt(c.req.param("leadId"));
+      const leadId = parseInt(c.req.param('leadId'));
       const callbacks = await this.service.getCallbacksByLeadId(leadId);
       return c.json(callbacks);
     } catch (error) {
@@ -155,20 +141,18 @@ export class CallbackController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const id = parseInt(c.req.param("id"));
+      const id = parseInt(c.req.param('id'));
       const body: UpdateCallbackBody = await c.req.json();
       // Validate scheduled time for scheduled callbacks
-      if (body.callback_type === "scheduled" && !body.scheduled_time) {
+      if (body.callback_type === 'scheduled' && !body.scheduled_time) {
         return serveBadRequest(c, ERRORS.SCHEDULED_TIME_REQUIRED);
       }
       await this.service.updateCallback(id, {
         ...body,
-        scheduled_time: body.scheduled_time
-          ? new Date(body.scheduled_time)
-          : null,
+        scheduled_time: body.scheduled_time ? new Date(body.scheduled_time) : null,
       });
 
-      return c.json({ message: "Callback updated successfully" });
+      return c.json({ message: 'Callback updated successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -182,10 +166,10 @@ export class CallbackController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const id = parseInt(c.req.param("id"));
+      const id = parseInt(c.req.param('id'));
       await this.service.deleteCallback(id);
 
-      return c.json({ message: "Callback deleted successfully" });
+      return c.json({ message: 'Callback deleted successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -199,10 +183,10 @@ export class CallbackController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const id = parseInt(c.req.param("id"));
+      const id = parseInt(c.req.param('id'));
       await this.service.markCallbackAsCalled(id);
 
-      return c.json({ message: "Callback marked as called" });
+      return c.json({ message: 'Callback marked as called' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

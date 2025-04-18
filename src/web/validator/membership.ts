@@ -1,15 +1,15 @@
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 
 const membershipSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   price: z.number().min(0),
-  payment_type: z.enum(["one_off", "recurring"]).default("one_off"),
-  price_point: z.enum(["ticket", "course"]).default("ticket"),
+  payment_type: z.enum(['one_off', 'recurring']).default('one_off'),
+  price_point: z.enum(['ticket', 'course']).default('ticket'),
 });
 
-export const membershipValidator = zValidator("json", membershipSchema);
+export const membershipValidator = zValidator('json', membershipSchema);
 
 const membershipQuerySchema = z.object({
   page: z.coerce.number().optional().default(1),
@@ -17,10 +17,7 @@ const membershipQuerySchema = z.object({
   search: z.string().optional(),
 });
 
-export const membershipQueryValidator = zValidator(
-  "query",
-  membershipQuerySchema
-);
+export const membershipQueryValidator = zValidator('query', membershipQuerySchema);
 
 export type MembershipQuery = z.infer<typeof membershipQuerySchema>;
 

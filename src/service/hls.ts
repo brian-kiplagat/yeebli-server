@@ -1,12 +1,13 @@
+import { Queue } from 'bullmq';
 import { exec } from 'child_process';
 import { promises as fs } from 'fs';
 import { createReadStream } from 'fs';
+import { mkdir, rm, writeFile } from 'fs/promises';
 import path from 'path';
 import { join } from 'path';
 import { promisify } from 'util';
-import { Queue } from 'bullmq';
-import { mkdir, rm, writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
+
 import env from '../lib/env.js';
 import { logger } from '../lib/logger.js';
 import { connection } from '../lib/queue.js';
@@ -30,7 +31,10 @@ export class HLSService {
 
     try {
       // Create directories in parallel
-      await Promise.all([mkdir(tempDir, { recursive: true }), mkdir(outputDir, { recursive: true })]);
+      await Promise.all([
+        mkdir(tempDir, { recursive: true }),
+        mkdir(outputDir, { recursive: true }),
+      ]);
 
       // Save uploaded file
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -70,7 +74,10 @@ export class HLSService {
 
       // Generate filter_complex dynamically
       const videoFilters = allowList
-        .map((res, index) => `[v${index}]scale=w=${resolutions[res].width}:h=${resolutions[res].height}[v${index}out]`)
+        .map(
+          (res, index) =>
+            `[v${index}]scale=w=${resolutions[res].width}:h=${resolutions[res].height}[v${index}out]`,
+        )
         .join('; ');
 
       // Generate -map and encoding settings dynamically
@@ -82,7 +89,9 @@ export class HLSService {
         )
         .join(' ');
 
-      const audioMaps = allowList.map((_, index) => `-map a:0? -c:a aac -b:a:${index} 128k -ac 2`).join(' ');
+      const audioMaps = allowList
+        .map((_, index) => `-map a:0? -c:a aac -b:a:${index} 128k -ac 2`)
+        .join(' ');
 
       const streamMap = allowList.map((_, index) => `v:${index},a:${index}`).join(' ');
 
@@ -112,7 +121,12 @@ export class HLSService {
 
       // Upload master playlist
       const masterContent = await fs.readFile(join(outputDir, 'master.m3u8'), 'utf8');
-      await this.s3Service.uploadFile(`${s3BasePath}/master.m3u8`, masterContent, 'application/x-mpegURL', 'video');
+      await this.s3Service.uploadFile(
+        `${s3BasePath}/master.m3u8`,
+        masterContent,
+        'application/x-mpegURL',
+        'video',
+      );
 
       // Upload variant playlists and segments
       const uploadPromises: Promise<any>[] = [];
@@ -132,7 +146,9 @@ export class HLSService {
             uploadPromises.push(this.s3Service.uploadFile(s3Key, content, contentType, 'video'));
           } else {
             // For video segments, use streaming upload
-            uploadPromises.push(this.s3Service.uploadFile(s3Key, createReadStream(filePath), contentType, 'video'));
+            uploadPromises.push(
+              this.s3Service.uploadFile(s3Key, createReadStream(filePath), contentType, 'video'),
+            );
           }
         }
       }

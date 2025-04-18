@@ -1,5 +1,6 @@
 import { validator } from 'hono/validator';
 import { z } from 'zod';
+
 import { validateSchema } from './validator.js';
 
 const subscriptionSchema = z.object({

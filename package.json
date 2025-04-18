@@ -2,7 +2,6 @@
   "scripts": {
     "dev": "tsx watch src/index.ts | pino-pretty",
     "start": "tsx src/index.ts",
-    "check": "biome check --write",
     "lint": "eslint ./src && prettier --check ./src",
     "lint:fix": "eslint ./src --fix && prettier --write ./src",
     "db:generate": "drizzle-kit generate",
@@ -39,7 +38,6 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
     "@eslint/js": "^9.19.0",
     "@types/node": "^22.10.10",
     "drizzle-kit": "^0.30.2",

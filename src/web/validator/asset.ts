@@ -11,17 +11,16 @@ export const assetQuerySchema = z.object({
 const createAssetSchema = z.object({
   fileName: z.string(),
   contentType: z.string(),
-  assetType: z.enum(["image", "video", "audio", "document"]),
+  assetType: z.enum(['image', 'video', 'audio', 'document']),
   fileSize: z.number(),
   duration: z.number(),
 });
 
 const renameAssetSchema = z.object({
   fileName: z.string().refine((val) => /\.[a-zA-Z0-9]+$/.test(val), {
-    message: "File name must include an extension",
+    message: 'File name must include an extension',
   }),
 });
-
 
 export const assetQueryValidator = zValidator('query', assetQuerySchema);
 export type CreateAssetBody = z.infer<typeof createAssetSchema>;

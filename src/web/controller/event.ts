@@ -1,37 +1,25 @@
-import type { Context } from "hono";
-import env from "../../lib/env.js";
-import { logger } from "../../lib/logger.js";
-import type { EventService } from "../../service/event.js";
-import type { LeadService } from "../../service/lead.js";
-import type { UserService } from "../../service/user.js";
-import type {
-  CreateEventBody,
-  UpdateEventBody,
-  UpsertEventDateBody,
-} from "../validator/event.ts";
-import {
-  ERRORS,
-  serveBadRequest,
-  serveInternalServerError,
-  serveNotFound,
-} from "./resp/error.js";
+import type { Context } from 'hono';
+
+import env from '../../lib/env.js';
+import { logger } from '../../lib/logger.js';
+import type { EventService } from '../../service/event.js';
+import type { LeadService } from '../../service/lead.js';
+import type { UserService } from '../../service/user.js';
+import type { CreateEventBody, UpdateEventBody, UpsertEventDateBody } from '../validator/event.ts';
+import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
 export class EventController {
   private service: EventService;
   private userService: UserService;
   private leadService: LeadService;
 
-  constructor(
-    service: EventService,
-    userService: UserService,
-    leadService: LeadService
-  ) {
+  constructor(service: EventService, userService: UserService, leadService: LeadService) {
     this.service = service;
     this.userService = userService;
     this.leadService = leadService;
   }
 
   private async getUser(c: Context) {
-    const email = c.get("jwtPayload").email;
+    const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -50,12 +38,12 @@ export class EventController {
         search,
       };
 
-      if (user.role === "master" || user.role === "owner") {
+      if (user.role === 'master' || user.role === 'owner') {
         const events = await this.service.getAllEvents(query);
         return c.json(events);
       }
       // Get hostId from context and if hostId exists (team access), get resources for that host
-      const hostId = c.get("hostId");
+      const hostId = c.get('hostId');
       if (hostId) {
         const events = await this.service.getEventsByUser(hostId, query);
         return c.json(events);
@@ -70,7 +58,7 @@ export class EventController {
 
   public getEvent = async (c: Context) => {
     try {
-      const eventId = Number(c.req.param("id"));
+      const eventId = Number(c.req.param('id'));
       const event = await this.service.getEvent(eventId);
 
       if (!event) {
@@ -106,16 +94,16 @@ export class EventController {
           ...body,
           host_id: user.id,
         },
-        membership_ids
+        membership_ids,
       );
 
       return c.json(
         {
-          message: "Event created successfully",
+          message: 'Event created successfully',
           link: `${env.FRONTEND_URL}/events/event?code=${eventId}`,
           eventId: eventId,
         },
-        201
+        201,
       );
     } catch (error) {
       logger.error(error);
@@ -130,7 +118,7 @@ export class EventController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const eventId = Number(c.req.param("id"));
+      const eventId = Number(c.req.param('id'));
       const event = await this.service.getEvent(eventId);
 
       if (!event) {
@@ -138,11 +126,7 @@ export class EventController {
       }
 
       //only and master role or admin or the owner of the event can update the event
-      if (
-        user.role !== "master" &&
-        user.role !== "owner" &&
-        event.host_id !== user.id
-      ) {
+      if (user.role !== 'master' && user.role !== 'owner' && event.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -150,7 +134,7 @@ export class EventController {
       const { memberships, ...rest } = body;
       await this.service.updateEvent(eventId, { ...rest, memberships });
 
-      return c.json({ message: "Event updated successfully" });
+      return c.json({ message: 'Event updated successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -171,15 +155,11 @@ export class EventController {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
       //only and master role or admin or the owner of the event can update the event
-      if (
-        user.role !== "master" &&
-        user.role !== "owner" &&
-        event.host_id !== user.id
-      ) {
+      if (user.role !== 'master' && user.role !== 'owner' && event.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
-      if (event.status === "cancelled") {
+      if (event.status === 'cancelled') {
         return serveBadRequest(c, ERRORS.EVENT_ALREADY_CANCELLED);
       }
 
@@ -191,12 +171,12 @@ export class EventController {
       await this.service.cancelEvent(eventId, body.status);
       //inform all attendees that the event has been cancelled
       await this.service.informAttendees(event, {
-        subject: "Event Cancelled",
-        title: "Event Cancelled",
+        subject: 'Event Cancelled',
+        title: 'Event Cancelled',
         subtitle: `The event "${event.event_name}" has been cancelled.`,
         body: `We're sorry to inform you that the event "${event.event_name}" has been cancelled by the host. If you'd like a refund, please contact the host directly at ${host.email} or ${host.phone} and provide your booking details.`,
       });
-      return c.json({ message: "Event cancelled successfully" });
+      return c.json({ message: 'Event cancelled successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -210,7 +190,7 @@ export class EventController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const eventId = Number(c.req.param("id"));
+      const eventId = Number(c.req.param('id'));
       const event = await this.service.getEvent(eventId);
 
       if (!event) {
@@ -222,11 +202,7 @@ export class EventController {
         return serveBadRequest(c, ERRORS.EVENT_DATE_NOT_FOUND);
       }
       //only and master role or admin or the owner of the lead
-      if (
-        user.role !== "master" &&
-        user.role !== "owner" &&
-        event.host_id !== user.id
-      ) {
+      if (user.role !== 'master' && user.role !== 'owner' && event.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
       const leads = await this.leadService.findByEventId(eventId);
@@ -235,7 +211,7 @@ export class EventController {
       }
 
       await this.service.deleteEvent(eventId);
-      return c.json({ message: "Event deleted successfully" });
+      return c.json({ message: 'Event deleted successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -244,7 +220,7 @@ export class EventController {
 
   public getEventDates = async (c: Context) => {
     try {
-      const eventId = Number(c.req.param("id"));
+      const eventId = Number(c.req.param('id'));
       const event = await this.service.getEvent(eventId);
 
       if (!event) {
@@ -265,8 +241,8 @@ export class EventController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const eventId = Number(c.req.param("id"));
-      const dateId = Number(c.req.param("dateId"));
+      const eventId = Number(c.req.param('id'));
+      const dateId = Number(c.req.param('dateId'));
 
       // Get the event details
       const event = await this.service.getEvent(eventId);
@@ -284,16 +260,12 @@ export class EventController {
         return serveBadRequest(c, ERRORS.CANNOT_DELETE_LAST_DATE);
       }
 
-      if (
-        user.role !== "master" &&
-        user.role !== "owner" &&
-        event.host_id !== user.id
-      ) {
+      if (user.role !== 'master' && user.role !== 'owner' && event.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
       await this.service.deleteEventDate(dateId);
-      return c.json({ message: "Event date deleted successfully" });
+      return c.json({ message: 'Event date deleted successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
@@ -307,8 +279,8 @@ export class EventController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const eventId = Number(c.req.param("id"));
-      const dateId = Number(c.req.param("dateId"));
+      const eventId = Number(c.req.param('id'));
+      const dateId = Number(c.req.param('dateId'));
       const body: UpsertEventDateBody = await c.req.json();
       const { timestamp } = body;
 
@@ -322,11 +294,7 @@ export class EventController {
         return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
       }
 
-      if (
-        user.role !== "master" &&
-        user.role !== "owner" &&
-        event.host_id !== user.id
-      ) {
+      if (user.role !== 'master' && user.role !== 'owner' && event.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -337,14 +305,13 @@ export class EventController {
           return serveNotFound(c, ERRORS.EVENT_DATE_NOT_FOUND);
         }
         await this.service.updateEventDate(dateId, { date: timestamp });
-        return c.json({ message: "Event date updated successfully" });
-      } else {
-        await this.service.createEventDate({
-          event_id: eventId,
-          date: timestamp,
-        });
-        return c.json({ message: "Event date created successfully" });
+        return c.json({ message: 'Event date updated successfully' });
       }
+      await this.service.createEventDate({
+        event_id: eventId,
+        date: timestamp,
+      });
+      return c.json({ message: 'Event date created successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

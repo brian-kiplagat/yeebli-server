@@ -1,7 +1,11 @@
-import type { Context } from "hono";
-import { logger } from "../../lib/logger.js";
-import type { ContactService } from "../../service/contact.js";
-import type { StripeService } from "../../service/stripe.js";
+import type { Context } from 'hono';
+
+import { verify } from '../../lib/encryption.ts';
+import { encode, type JWTPayload } from '../../lib/jwt.js';
+import { logger } from '../../lib/logger.js';
+import type { ContactService } from '../../service/contact.js';
+import { PaymentService } from '../../service/payment.ts';
+import type { StripeService } from '../../service/stripe.js';
 import type {
   EmailVerificationBody,
   InAppResetPasswordBody,
@@ -10,18 +14,15 @@ import type {
   RequestResetPasswordBody,
   ResetPasswordBody,
   UpdateContactDetailsBody,
-} from "../validator/contact.ts";
+} from '../validator/contact.ts';
 import {
   ERRORS,
   serveBadRequest,
   serveInternalServerError,
   serveUnauthorized,
-} from "./resp/error.js";
-import { serveData } from "./resp/resp.js";
-import { serializeContact } from "./serializer/contact.js";
-import { verify } from "../../lib/encryption.ts";
-import { type JWTPayload, encode } from "../../lib/jwt.js";
-import { PaymentService } from "../../service/payment.ts";
+} from './resp/error.js';
+import { serveData } from './resp/resp.js';
+import { serializeContact } from './serializer/contact.js';
 export class ContactController {
   private contactService: ContactService;
   private stripeService: StripeService;
@@ -29,7 +30,7 @@ export class ContactController {
   constructor(
     contactService: ContactService,
     stripeService: StripeService,
-    paymentService: PaymentService
+    paymentService: PaymentService,
   ) {
     this.contactService = contactService;
     this.stripeService = stripeService;
@@ -37,7 +38,7 @@ export class ContactController {
   }
 
   private getContact = async (c: Context) => {
-    const email = c.get("jwtPayload").email;
+    const { email } = c.get('jwtPayload');
     const contact = await this.contactService.findByEmail(email);
     return contact;
   };
@@ -50,10 +51,10 @@ export class ContactController {
         return c.json(
           {
             success: false,
-            message: "Invalid email, please try again",
-            code: "AUTH_INVALID_CREDENTIALS",
+            message: 'Invalid email, please try again',
+            code: 'AUTH_INVALID_CREDENTIALS',
           },
-          401
+          401,
         );
       }
       const isVerified = verify(body.password, user.password);
@@ -61,10 +62,10 @@ export class ContactController {
         return c.json(
           {
             success: false,
-            message: "Invalid password, please try again",
-            code: "AUTH_INVALID_CREDENTIALS",
+            message: 'Invalid password, please try again',
+            code: 'AUTH_INVALID_CREDENTIALS',
           },
-          401
+          401,
         );
       }
 
@@ -73,10 +74,7 @@ export class ContactController {
       return serveData(c, { token, contact: serializedContact });
     } catch (error: any) {
       logger.error(error);
-      if (
-        error.message === "Invalid credentials" ||
-        error.message === "Email not verified"
-      ) {
+      if (error.message === 'Invalid credentials' || error.message === 'Email not verified') {
         return serveUnauthorized(c);
       }
       return serveInternalServerError(c, error);
@@ -90,7 +88,7 @@ export class ContactController {
       return serveData(c, result);
     } catch (error: any) {
       logger.error(error);
-      if (error.message === "Email not found") {
+      if (error.message === 'Email not found') {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
       return serveInternalServerError(c, error);
@@ -100,17 +98,14 @@ export class ContactController {
   public verifyRegistrationToken = async (c: Context) => {
     try {
       const body: RegisterTokenBody = await c.req.json();
-      const result = await this.contactService.verifyRegistrationToken(
-        body.id,
-        body.token
-      );
+      const result = await this.contactService.verifyRegistrationToken(body.id, body.token);
       return serveData(c, result);
     } catch (error: any) {
       logger.error(error);
-      if (error.message === "Contact not found") {
+      if (error.message === 'Contact not found') {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      if (error.message === "Invalid token") {
+      if (error.message === 'Invalid token') {
         return serveBadRequest(c, ERRORS.INVALID_TOKEN);
       }
       return serveInternalServerError(c, error);
@@ -124,7 +119,7 @@ export class ContactController {
       return serveData(c, result);
     } catch (error: any) {
       logger.error(error);
-      if (error.message === "Email not found") {
+      if (error.message === 'Email not found') {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
       return serveInternalServerError(c, error);
@@ -134,18 +129,14 @@ export class ContactController {
   public resetPassword = async (c: Context) => {
     try {
       const body: ResetPasswordBody = await c.req.json();
-      const result = await this.contactService.resetPassword(
-        body.email,
-        body.token,
-        body.password
-      );
+      const result = await this.contactService.resetPassword(body.email, body.token, body.password);
       return serveData(c, result);
     } catch (error: any) {
       logger.error(error);
-      if (error.message === "Email not found") {
+      if (error.message === 'Email not found') {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      if (error.message === "Invalid token") {
+      if (error.message === 'Invalid token') {
         return serveBadRequest(c, ERRORS.INVALID_TOKEN);
       }
       return serveInternalServerError(c, error);
@@ -163,12 +154,12 @@ export class ContactController {
       const result = await this.contactService.resetPasswordInApp(
         contact.id,
         body.oldPassword,
-        body.newPassword
+        body.newPassword,
       );
       return serveData(c, result);
     } catch (error: any) {
       logger.error(error);
-      if (error.message === "Invalid current password") {
+      if (error.message === 'Invalid current password') {
         return serveBadRequest(c, ERRORS.AUTH_INVALID_PASSWORD);
       }
       return serveInternalServerError(c, error);
@@ -203,7 +194,7 @@ export class ContactController {
       }
 
       const paymentMethods = await this.stripeService.getCustomerPaymentMethods(
-        contact.stripe_customer_id
+        contact.stripe_customer_id,
       );
       return serveData(c, paymentMethods);
     } catch (error: any) {
@@ -220,12 +211,9 @@ export class ContactController {
       }
 
       const body: UpdateContactDetailsBody = await c.req.json();
-      const updatedContact = await this.contactService.updateContactDetails(
-        contact.id,
-        body
-      );
+      const updatedContact = await this.contactService.updateContactDetails(contact.id, body);
 
-      return serveData(c, "Contact details updated successfully");
+      return serveData(c, 'Contact details updated successfully');
     } catch (error: any) {
       logger.error(error);
       return serveInternalServerError(c, error);

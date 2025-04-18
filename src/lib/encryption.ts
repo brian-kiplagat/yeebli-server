@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+
 import env from './env.js';
 
 const encrypt = (text: string): string => {

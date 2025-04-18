@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+
 import { logger } from '../../lib/logger.js';
 import type { BusinessService } from '../../service/business.js';
 import type { UserService } from '../../service/user.js';
@@ -15,7 +16,7 @@ export class BusinessController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get('jwtPayload').email;
+    const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
@@ -51,7 +52,11 @@ export class BusinessController {
           return serveBadRequest(c, 'Business not found');
         }
 
-        await this.service.updateBusinessLogo(business.id, imageBase64, fileName.replace(/[^\w.-]/g, ""));
+        await this.service.updateBusinessLogo(
+          business.id,
+          imageBase64,
+          fileName.replace(/[^\w.-]/g, ''),
+        );
       }
       const business = await this.service.upsertBusiness(user.id, {
         ...body,

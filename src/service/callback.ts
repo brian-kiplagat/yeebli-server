@@ -1,6 +1,6 @@
-import { logger } from "../lib/logger.ts";
-import type { CallbackRepository } from "../repository/callback.ts";
-import type { Callback, NewCallback } from "../schema/schema.ts";
+import { logger } from '../lib/logger.ts';
+import type { CallbackRepository } from '../repository/callback.ts';
+import type { Callback, NewCallback } from '../schema/schema.ts';
 
 export class CallbackService {
   private repository: CallbackRepository;
@@ -19,9 +19,17 @@ export class CallbackService {
     }
   }
 
-  public async getCallbackByLeadIdAndEventIdAndCallbackType(leadId: number, eventId: number, callbackType: "instant" | "scheduled"): Promise<Callback | undefined> {
+  public async getCallbackByLeadIdAndEventIdAndCallbackType(
+    leadId: number,
+    eventId: number,
+    callbackType: 'instant' | 'scheduled',
+  ): Promise<Callback | undefined> {
     try {
-      return await this.repository.findCallbackByLeadIdAndEventIdAndCallbackType(leadId, eventId, callbackType);
+      return await this.repository.findCallbackByLeadIdAndEventIdAndCallbackType(
+        leadId,
+        eventId,
+        callbackType,
+      );
     } catch (error) {
       logger.error(error);
       throw error;
@@ -63,13 +71,8 @@ export class CallbackService {
     }
   }
 
-  public async updateCallback(
-    id: number,
-    data: Partial<Callback>
-  ): Promise<void> {
+  public async updateCallback(id: number, data: Partial<Callback>): Promise<void> {
     try {
-      
-
       await this.repository.updateCallback(id, data);
     } catch (error) {
       logger.error(error);

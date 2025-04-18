@@ -88,5 +88,5 @@ export const updateLeadValidator = zValidator('json', updateLeadSchema);
 export const externalFormValidator = zValidator('form', externalFormSchema);
 export const leadUpgradeValidator = zValidator('json', leadUpgradeSchema);
 export const purchaseMembershipValidator = zValidator('json', purchaseMembershipSchema);
-export type { LeadBody, ExternalFormBody, EventLinkBody, LeadUpgradeBody, PurchaseMembershipBody };
+export type { EventLinkBody, ExternalFormBody, LeadBody, LeadUpgradeBody, PurchaseMembershipBody };
 export { externalFormSchema };

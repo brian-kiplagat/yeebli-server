@@ -1,16 +1,17 @@
-import { and, desc, eq, inArray, like, or } from "drizzle-orm";
-import { number } from "zod";
-import { db } from "../lib/database.js";
+import { and, desc, eq, inArray, like, or } from 'drizzle-orm';
+import { number } from 'zod';
+
+import { db } from '../lib/database.js';
+import type { Event, NewEvent, NewEventDate } from '../schema/schema.js';
 import {
   assetsSchema,
   bookings,
   eventDates,
+  eventMembershipSchema,
   eventSchema,
   memberships,
   userSchema,
-  eventMembershipSchema,
-} from "../schema/schema.js";
-import type { Event, NewEvent, NewEventDate } from "../schema/schema.js";
+} from '../schema/schema.js';
 
 export interface EventQuery {
   page?: number;
@@ -25,7 +26,7 @@ export class EventRepository {
       membership_ids.map((id) => ({
         event_id: eventId.id,
         membership_id: id,
-      }))
+      })),
     );
     return eventId.id;
   }
@@ -66,17 +67,11 @@ export class EventRepository {
         membership: memberships,
       })
       .from(eventMembershipSchema)
-      .innerJoin(
-        memberships,
-        eq(eventMembershipSchema.membership_id, memberships.id)
-      )
+      .innerJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
       .where(eq(eventMembershipSchema.event_id, id));
 
     // Get all dates for this event
-    const dates = await db
-      .select()
-      .from(eventDates)
-      .where(eq(eventDates.event_id, id));
+    const dates = await db.select().from(eventDates).where(eq(eventDates.event_id, id));
 
     return {
       ...result[0],
@@ -91,13 +86,13 @@ export class EventRepository {
 
     const whereConditions = search
       ? and(
-          eq(eventSchema.status, "active"),
+          eq(eventSchema.status, 'active'),
           or(
             like(eventSchema.event_name, `%${search}%`),
-            like(eventSchema.event_description, `%${search}%`)
-          )
+            like(eventSchema.event_description, `%${search}%`),
+          ),
         )
-      : eq(eventSchema.status, "active");
+      : eq(eventSchema.status, 'active');
 
     // First get the events with their basic info
     const events = await db
@@ -126,17 +121,11 @@ export class EventRepository {
         membership: memberships,
       })
       .from(eventMembershipSchema)
-      .innerJoin(
-        memberships,
-        eq(eventMembershipSchema.membership_id, memberships.id)
-      )
+      .innerJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
       .where(inArray(eventMembershipSchema.event_id, eventIds));
 
     // Then get all dates for these events
-    const dates = await db
-      .select()
-      .from(eventDates)
-      .where(inArray(eventDates.event_id, eventIds));
+    const dates = await db.select().from(eventDates).where(inArray(eventDates.event_id, eventIds));
 
     // Map dates and memberships to events
     const eventsWithRelations = events.map((event) => ({
@@ -162,13 +151,13 @@ export class EventRepository {
     const whereConditions = search
       ? and(
           eq(eventSchema.host_id, userId),
-          eq(eventSchema.status, "active"),
+          eq(eventSchema.status, 'active'),
           or(
             like(eventSchema.event_name, `%${search}%`),
-            like(eventSchema.event_description, `%${search}%`)
-          )
+            like(eventSchema.event_description, `%${search}%`),
+          ),
         )
-      : and(eq(eventSchema.host_id, userId), eq(eventSchema.status, "active"));
+      : and(eq(eventSchema.host_id, userId), eq(eventSchema.status, 'active'));
 
     // First get the events with their basic info
     const events = await db
@@ -197,17 +186,11 @@ export class EventRepository {
         membership: memberships,
       })
       .from(eventMembershipSchema)
-      .innerJoin(
-        memberships,
-        eq(eventMembershipSchema.membership_id, memberships.id)
-      )
+      .innerJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
       .where(inArray(eventMembershipSchema.event_id, eventIds));
 
     // Then get all dates for these events
-    const dates = await db
-      .select()
-      .from(eventDates)
-      .where(inArray(eventDates.event_id, eventIds));
+    const dates = await db.select().from(eventDates).where(inArray(eventDates.event_id, eventIds));
 
     // Map dates and memberships to events
     const eventsWithRelations = events.map((event) => ({
@@ -230,10 +213,7 @@ export class EventRepository {
     return db.update(eventSchema).set(event).where(eq(eventSchema.id, id));
   }
 
-  public async cancel(
-    id: number,
-    status: "cancelled" | "active" | "suspended"
-  ) {
+  public async cancel(id: number, status: 'cancelled' | 'active' | 'suspended') {
     return db.update(eventSchema).set({ status }).where(eq(eventSchema.id, id));
   }
 
@@ -253,11 +233,7 @@ export class EventRepository {
   }
 
   public async findEventDate(dateId: number) {
-    const result = await db
-      .select()
-      .from(eventDates)
-      .where(eq(eventDates.id, dateId))
-      .limit(1);
+    const result = await db.select().from(eventDates).where(eq(eventDates.id, dateId)).limit(1);
     return result[0];
   }
 
@@ -274,9 +250,7 @@ export class EventRepository {
   }
 
   public async deleteEventMemberships(eventId: number) {
-    return db
-      .delete(eventMembershipSchema)
-      .where(eq(eventMembershipSchema.event_id, eventId));
+    return db.delete(eventMembershipSchema).where(eq(eventMembershipSchema.event_id, eventId));
   }
 
   public async addMemberships(eventId: number, membershipIds: number[]) {
@@ -284,7 +258,7 @@ export class EventRepository {
       membershipIds.map((id) => ({
         event_id: eventId,
         membership_id: id,
-      }))
+      })),
     );
   }
 }

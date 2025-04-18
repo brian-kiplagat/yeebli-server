@@ -1,4 +1,3 @@
-import type { Readable } from 'stream';
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
@@ -7,6 +6,8 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import type { Readable } from 'stream';
+
 import env from '../lib/env.js';
 
 export class S3Service {
@@ -73,7 +74,12 @@ export class S3Service {
     await this.client.send(command);
   }
 
-  async uploadFile(key: string, content: string | Buffer | Readable, contentType: string, assetType: string) {
+  async uploadFile(
+    key: string,
+    content: string | Buffer | Readable,
+    contentType: string,
+    assetType: string,
+  ) {
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,

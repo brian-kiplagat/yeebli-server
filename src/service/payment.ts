@@ -1,6 +1,6 @@
-import type { PaymentRepository } from "../repository/payment.js";
-import type { Payment, NewPayment } from "../schema/schema.js";
-import { logger } from "../lib/logger.js";
+import { logger } from '../lib/logger.js';
+import type { PaymentRepository } from '../repository/payment.js';
+import type { NewPayment, Payment } from '../schema/schema.js';
 
 export class PaymentService {
   private paymentRepo: PaymentRepository;
@@ -12,7 +12,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.createPayment(payment);
     } catch (error) {
-      logger.error("Error creating payment:", error);
+      logger.error('Error creating payment:', error);
       throw error;
     }
   }
@@ -21,7 +21,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.updatePayment(id, payment);
     } catch (error) {
-      logger.error("Error updating payment:", error);
+      logger.error('Error updating payment:', error);
       throw error;
     }
   }
@@ -30,7 +30,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.updatePaymentBySessionId(sessionId, payment);
     } catch (error) {
-      logger.error("Error updating payment:", error);
+      logger.error('Error updating payment:', error);
       throw error;
     }
   }
@@ -39,7 +39,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.findPaymentsByContactId(contactId);
     } catch (error) {
-      logger.error("Error finding payments by contact ID:", error);
+      logger.error('Error finding payments by contact ID:', error);
       throw error;
     }
   }

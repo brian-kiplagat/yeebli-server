@@ -1,21 +1,18 @@
-import type { Context } from "hono";
-import { encode } from "../../lib/jwt.js";
-import { logger } from "../../lib/logger.js";
-import type { UserRepository } from "../../repository/user.js";
-import type { GoogleService } from "../../service/google.js";
-import type { S3Service } from "../../service/s3.ts";
-import { ERRORS, serveBadRequest, serveNotFound } from "./resp/error.ts";
-import { serializeUser } from "./serializer/user.js";
+import type { Context } from 'hono';
+
+import { encode } from '../../lib/jwt.js';
+import { logger } from '../../lib/logger.js';
+import type { UserRepository } from '../../repository/user.js';
+import type { GoogleService } from '../../service/google.js';
+import type { S3Service } from '../../service/s3.ts';
+import { ERRORS, serveBadRequest, serveNotFound } from './resp/error.ts';
+import { serializeUser } from './serializer/user.js';
 export class GoogleController {
   private googleService: GoogleService;
   private s3Service: S3Service;
   private userRepository: UserRepository;
 
-  constructor(
-    googleService: GoogleService,
-    s3Service: S3Service,
-    userRepository: UserRepository
-  ) {
+  constructor(googleService: GoogleService, s3Service: S3Service, userRepository: UserRepository) {
     this.googleService = googleService;
     this.s3Service = s3Service;
     this.userRepository = userRepository;
@@ -29,14 +26,14 @@ export class GoogleController {
         authUrl,
       });
     } catch (error) {
-      logger.error("Failed to initiate Google auth:", error);
+      logger.error('Failed to initiate Google auth:', error);
       return serveBadRequest(c, ERRORS.AUTH_FAILED);
     }
   };
 
   public handleCallback = async (c: Context) => {
     try {
-      const code = c.req.query("code");
+      const code = c.req.query('code');
 
       if (!code) {
         return serveBadRequest(c, ERRORS.NO_AUTHORIZATION_CODE);
@@ -59,7 +56,7 @@ export class GoogleController {
         user: serializedUser,
       });
     } catch (error) {
-      logger.error("Google callback failed:", error);
+      logger.error('Google callback failed:', error);
       return serveBadRequest(c, ERRORS.AUTH_FAILED);
     }
   };

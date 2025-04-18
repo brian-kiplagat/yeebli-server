@@ -1,75 +1,74 @@
-import { serveStatic } from "@hono/node-server/serve-static";
-import { swaggerUI } from "@hono/swagger-ui";
-import type { Worker } from "bullmq";
-import { Hono } from "hono";
-import { jwt } from "hono/jwt";
-import env from "../lib/env.js";
-import { logger } from "../lib/logger.js";
-import { connection } from "../lib/queue.js";
-import { AdminRepository } from "../repository/admin.js";
-import { AssetRepository } from "../repository/asset.js";
-import { BookingRepository } from "../repository/booking.ts";
-import { EventRepository } from "../repository/event.ts";
-import { LeadRepository } from "../repository/lead.js";
+import { serveStatic } from '@hono/node-server/serve-static';
+import { swaggerUI } from '@hono/swagger-ui';
+import type { Worker } from 'bullmq';
+import { Hono } from 'hono';
+import { jwt } from 'hono/jwt';
 
-import { SubscriptionRepository } from "../repository/subscription.js";
-import { UserRepository } from "../repository/user.js";
-import { AdminService } from "../service/admin.js";
-import { AssetService } from "../service/asset.js";
-import { BookingService } from "../service/booking.ts";
-import { EventService } from "../service/event.ts";
-import { GoogleService } from "../service/google.js";
-import { HLSService } from "../service/hls.js";
-import { LeadService } from "../service/lead.js";
-
-import { S3Service } from "../service/s3.js";
-import { StripeService } from "../service/stripe.js";
-import { SubscriptionService } from "../service/subscription.js";
-import { TurnstileService } from "../service/turnstile.js";
-import { UserService } from "../service/user.js";
-import { Tasker } from "../task/tasker.js";
-import { AdminController } from "./controller/admin.js";
-import { AssetController } from "./controller/asset.js";
-import { AuthController } from "./controller/auth.js";
-import { BookingController } from "./controller/booking.ts";
-import { EventController } from "./controller/event.ts";
-import { GoogleController } from "./controller/google.js";
-import { HLSController } from "./controller/hls.js";
-import { LeadController } from "./controller/lead.ts";
-
-import { BusinessRepository } from "../repository/business.js";
-import { ContactRepository } from "../repository/contact.ts";
-import { MembershipRepository } from "../repository/membership.ts";
-import { TeamRepository } from "../repository/team.js";
-import { BusinessService } from "../service/business.js";
-import { ContactService } from "../service/contact.ts";
-import { MembershipService } from "../service/membership.ts";
-import { TeamService } from "../service/team.js";
-import { BusinessController } from "./controller/business.js";
-import { MembershipController } from "./controller/membership.ts";
-import {
-  ERRORS,
-  serveInternalServerError,
-  serveNotFound,
-} from "./controller/resp/error.js";
-import { S3Controller } from "./controller/s3.js";
-import { StripeController } from "./controller/stripe.js";
-import { SubscriptionController } from "./controller/subscription.js";
-import { TeamController } from "./controller/team.js";
-import { adminCreateUserValidator } from "./validator/admin.ts";
-import { assetQueryValidator } from "./validator/asset.ts";
-import {
-  businessQueryValidator,
-  businessValidator,
-} from "./validator/business.js";
+import env from '../lib/env.js';
+import { logger } from '../lib/logger.js';
+import { connection } from '../lib/queue.js';
+import { AdminRepository } from '../repository/admin.js';
+import { AssetRepository } from '../repository/asset.js';
+import { BookingRepository } from '../repository/booking.ts';
+import { BusinessRepository } from '../repository/business.js';
+import { CallbackRepository } from '../repository/callback.ts';
+import { ContactRepository } from '../repository/contact.ts';
+import { EventRepository } from '../repository/event.ts';
+import { LeadRepository } from '../repository/lead.js';
+import { MembershipRepository } from '../repository/membership.ts';
+import { PaymentRepository } from '../repository/payment.ts';
+import { SubscriptionRepository } from '../repository/subscription.js';
+import { TeamRepository } from '../repository/team.js';
+import { UserRepository } from '../repository/user.js';
+import { AdminService } from '../service/admin.js';
+import { AssetService } from '../service/asset.js';
+import { BookingService } from '../service/booking.ts';
+import { BusinessService } from '../service/business.js';
+import { CallbackService } from '../service/callback.ts';
+import { ContactService } from '../service/contact.ts';
+import { EventService } from '../service/event.ts';
+import { GoogleService } from '../service/google.js';
+import { HLSService } from '../service/hls.js';
+import { LeadService } from '../service/lead.js';
+import { MembershipService } from '../service/membership.ts';
+import { PaymentService } from '../service/payment.ts';
+import { S3Service } from '../service/s3.js';
+import { StripeService } from '../service/stripe.js';
+import { SubscriptionService } from '../service/subscription.js';
+import { TeamService } from '../service/team.js';
+import { TurnstileService } from '../service/turnstile.js';
+import { UserService } from '../service/user.js';
+import { Tasker } from '../task/tasker.js';
+import { AdminController } from './controller/admin.js';
+import { AssetController } from './controller/asset.js';
+import { AuthController } from './controller/auth.js';
+import { BookingController } from './controller/booking.ts';
+import { BusinessController } from './controller/business.js';
+import { CallbackController } from './controller/callback.ts';
+import { ContactController } from './controller/contact.ts';
+import { EventController } from './controller/event.ts';
+import { GoogleController } from './controller/google.js';
+import { HLSController } from './controller/hls.js';
+import { LeadController } from './controller/lead.ts';
+import { MembershipController } from './controller/membership.ts';
+import { ERRORS, serveInternalServerError, serveNotFound } from './controller/resp/error.js';
+import { S3Controller } from './controller/s3.js';
+import { StripeController } from './controller/stripe.js';
+import { SubscriptionController } from './controller/subscription.js';
+import { TeamController } from './controller/team.js';
+import { teamAccess } from './middleware/team.ts';
+import { adminCreateUserValidator } from './validator/admin.ts';
+import { assetQueryValidator } from './validator/asset.ts';
+import { businessQueryValidator, businessValidator } from './validator/business.js';
+import { callbackValidator, updateCallbackValidator } from './validator/callback.ts';
 import {
   cancelEventValidator,
   eventValidator,
   updateEventValidator,
   upsertEventDateValidator,
-} from "./validator/event.ts";
-import { eventQueryValidator } from "./validator/event.ts";
-import { hlsUploadValidator } from "./validator/hls.ts";
+} from './validator/event.ts';
+import { eventQueryValidator } from './validator/event.ts';
+import { hlsUploadValidator } from './validator/hls.ts';
 import {
   eventLinkValidator,
   externalFormValidator,
@@ -77,18 +76,15 @@ import {
   leadValidator,
   purchaseMembershipValidator,
   updateLeadValidator,
-} from "./validator/lead.ts";
-import {
-  membershipQueryValidator,
-  membershipValidator,
-} from "./validator/membership.ts";
-import { subscriptionRequestValidator } from "./validator/subscription.ts";
+} from './validator/lead.ts';
+import { membershipQueryValidator, membershipValidator } from './validator/membership.ts';
+import { subscriptionRequestValidator } from './validator/subscription.ts';
 import {
   createTeamValidator,
   inviteMemberValidator,
   revokeAccessValidator,
   teamQueryValidator,
-} from "./validator/team.ts";
+} from './validator/team.ts';
 import {
   emailVerificationValidator,
   inAppResetPasswordValidator,
@@ -98,18 +94,7 @@ import {
   requestResetPasswordValidator,
   resetPasswordValidator,
   updateUserDetailsValidator,
-} from "./validator/user.js";
-import { ContactController } from "./controller/contact.ts";
-import { PaymentService } from "../service/payment.ts";
-import { PaymentRepository } from "../repository/payment.ts";
-import { CallbackController } from "./controller/callback.ts";
-import { CallbackService } from "../service/callback.ts";
-import { CallbackRepository } from "../repository/callback.ts";
-import {
-  callbackValidator,
-  updateCallbackValidator,
-} from "./validator/callback.ts";
-import { teamAccess } from "./middleware/team.ts";
+} from './validator/user.js';
 
 export class Server {
   private app: Hono;
@@ -122,15 +107,15 @@ export class Server {
 
   public configure() {
     // Index path
-    this.app.get("/", (c) => {
-      return c.text("Ok");
+    this.app.get('/', (c) => {
+      return c.text('Ok');
     });
 
     // Static files
-    this.app.use("/static/*", serveStatic({ root: "./" }));
+    this.app.use('/static/*', serveStatic({ root: './' }));
 
     // API Doc
-    this.app.get("/doc", swaggerUI({ url: "/static/openapi.yaml" }));
+    this.app.get('/doc', swaggerUI({ url: '/static/openapi.yaml' }));
 
     // Universal catchall
     this.app.notFound((c) => {
@@ -142,7 +127,7 @@ export class Server {
       return serveInternalServerError(c, err);
     });
 
-    const api = this.app.basePath("/v1");
+    const api = this.app.basePath('/v1');
 
     // Setup repos
     const userRepo = new UserRepository();
@@ -161,11 +146,7 @@ export class Server {
     const s3Service = new S3Service();
     const turnstileService = new TurnstileService();
     const stripeService = new StripeService();
-    const leadService = new LeadService(
-      leadRepo,
-      contactService,
-      stripeService
-    );
+    const leadService = new LeadService(leadRepo, contactService, stripeService);
     const eventService = new EventService(eventRepo, s3Service, leadService);
     const adminService = new AdminService(adminRepo);
     const bookingRepo = new BookingRepository();
@@ -175,24 +156,15 @@ export class Server {
     const assetService = new AssetService(assetRepo, s3Service);
     const hlsService = new HLSService(s3Service, assetService);
 
-    const userService = new UserService(
-      userRepo,
-      stripeService,
-      membershipService
-    );
+    const userService = new UserService(userRepo, stripeService, membershipService);
     const subscriptionService = new SubscriptionService(
       subscriptionRepo,
       stripeService,
-      userService
+      userService,
     );
     const teamService = new TeamService(teamRepo, userService);
     const paymentService = new PaymentService(paymentRepo);
-    const businessService = new BusinessService(
-      businessRepo,
-      s3Service,
-      assetService,
-      teamService
-    );
+    const businessService = new BusinessService(businessRepo, s3Service, assetService, teamService);
     const callbackService = new CallbackService(callbackRepo);
 
     // Setup workers
@@ -204,7 +176,7 @@ export class Server {
       businessService,
       s3Service,
       assetService,
-      userRepo
+      userRepo,
     );
     const leadController = new LeadController(
       leadService,
@@ -215,26 +187,22 @@ export class Server {
       stripeService,
       bookingService,
       contactService,
-      paymentService
+      paymentService,
     );
-    const eventController = new EventController(
-      eventService,
-      userService,
-      leadService
-    );
+    const eventController = new EventController(eventService, userService, leadService);
     const adminController = new AdminController(
       adminService,
       userService,
       eventService,
       leadService,
-      assetService
+      assetService,
     );
     const s3Controller = new S3Controller(s3Service);
     const assetController = new AssetController(
       assetService,
       userService,
       eventService,
-      leadService
+      leadService,
     );
     const hlsController = new HLSController(hlsService, userService);
     const stripeController = new StripeController(
@@ -243,47 +211,29 @@ export class Server {
       subscriptionRepo,
       leadService,
       paymentService,
-      eventService
+      eventService,
     );
     const subscriptionController = new SubscriptionController(
       subscriptionService,
       stripeService,
-      userService
+      userService,
     );
     const bookingCtrl = new BookingController(bookingService, userService);
 
-    const businessController = new BusinessController(
-      businessService,
-      userService
-    );
-    const membershipController = new MembershipController(
-      membershipService,
-      userService
-    );
+    const businessController = new BusinessController(businessService, userService);
+    const membershipController = new MembershipController(membershipService, userService);
 
     // Add team service and controller
 
     const teamController = new TeamController(teamService, userService);
-    const contactController = new ContactController(
-      contactService,
-      stripeService,
-      paymentService
-    );
+    const contactController = new ContactController(contactService, stripeService, paymentService);
 
     // Add Google service and controller
     const googleService = new GoogleService(userService, stripeService);
-    const googleController = new GoogleController(
-      googleService,
-      s3Service,
-      userRepo
-    );
+    const googleController = new GoogleController(googleService, s3Service, userRepo);
 
     // Setup controllers
-    const callbackController = new CallbackController(
-      callbackService,
-      userService,
-      eventService
-    );
+    const callbackController = new CallbackController(callbackService, userService, eventService);
 
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
@@ -303,163 +253,109 @@ export class Server {
     this.registerCallbackRoutes(api, callbackController);
   }
 
-  private registerUserRoutes(
-    api: Hono,
-    authCtrl: AuthController,
-    googleCtrl: GoogleController
-  ) {
+  private registerUserRoutes(api: Hono, authCtrl: AuthController, googleCtrl: GoogleController) {
     const user = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    user.get("/me", authCheck, authCtrl.me);
-    user.post("/login", loginValidator, authCtrl.login);
-    user.post("/register", registrationValidator, authCtrl.register);
-    user.post("/send-token", emailVerificationValidator, authCtrl.sendToken);
+    user.get('/me', authCheck, authCtrl.me);
+    user.post('/login', loginValidator, authCtrl.login);
+    user.post('/register', registrationValidator, authCtrl.register);
+    user.post('/send-token', emailVerificationValidator, authCtrl.sendToken);
+    user.post('/verify-registration', registerTokenValidator, authCtrl.verifyRegistrationToken);
     user.post(
-      "/verify-registration",
-      registerTokenValidator,
-      authCtrl.verifyRegistrationToken
-    );
-    user.post(
-      "/request-reset-password",
+      '/request-reset-password',
       requestResetPasswordValidator,
-      authCtrl.requestResetPassword
+      authCtrl.requestResetPassword,
     );
+    user.post('/reset-password', resetPasswordValidator, authCtrl.resetPassword);
     user.post(
-      "/reset-password",
-      resetPasswordValidator,
-      authCtrl.resetPassword
-    );
-    user.post(
-      "/reset-password-in-app",
+      '/reset-password-in-app',
       authCheck,
       inAppResetPasswordValidator,
-      authCtrl.resetPasswordInApp
+      authCtrl.resetPasswordInApp,
     );
-    user.put(
-      "/details",
-      authCheck,
-      updateUserDetailsValidator,
-      authCtrl.updateUserDetails
-    );
+    user.put('/details', authCheck, updateUserDetailsValidator, authCtrl.updateUserDetails);
 
     // Add Google auth routes
-    user.get("/auth/google", googleCtrl.initiateAuth);
-    user.get("/auth/google/callback", googleCtrl.handleCallback);
+    user.get('/auth/google', googleCtrl.initiateAuth);
+    user.get('/auth/google/callback', googleCtrl.handleCallback);
 
-    api.route("/user", user);
+    api.route('/user', user);
   }
 
-  private registerLeadRoutes(
-    api: Hono,
-    leadCtrl: LeadController,
-    teamService: TeamService
-  ) {
+  private registerLeadRoutes(api: Hono, leadCtrl: LeadController, teamService: TeamService) {
     const lead = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     // Unauthenticated routes
-    lead.post(
-      "/lead-validate-event",
-      eventLinkValidator,
-      leadCtrl.validateEventLink
-    );
-    lead.post(
-      "/validate-ticket-payment",
-      eventLinkValidator,
-      leadCtrl.validateTicketPayment
-    );
-    lead.post(
-      "/external-form",
-      externalFormValidator,
-      leadCtrl.handleExternalForm
-    );
-    lead.post(
-      "/purchase-membership",
-      purchaseMembershipValidator,
-      leadCtrl.purchaseMembership
-    );
+    lead.post('/lead-validate-event', eventLinkValidator, leadCtrl.validateEventLink);
+    lead.post('/validate-ticket-payment', eventLinkValidator, leadCtrl.validateTicketPayment);
+    lead.post('/external-form', externalFormValidator, leadCtrl.handleExternalForm);
+    lead.post('/purchase-membership', purchaseMembershipValidator, leadCtrl.purchaseMembership);
 
     // Apply auth middleware for authenticated routes
     lead.use(authCheck);
     lead.use(teamAccess(teamService));
 
     // Authenticated routes
-    lead.get("/", leadCtrl.getLeads);
-    lead.get("/:id", leadCtrl.getLead);
-    lead.post("/", leadValidator, leadCtrl.createLead);
-    lead.put("/:id", updateLeadValidator, leadCtrl.updateLead);
-    lead.delete("/:id", leadCtrl.deleteLead);
-    lead.post("/unique-leads", leadCtrl.getUniqueLeads);
+    lead.get('/', leadCtrl.getLeads);
+    lead.get('/:id', leadCtrl.getLead);
+    lead.post('/', leadValidator, leadCtrl.createLead);
+    lead.put('/:id', updateLeadValidator, leadCtrl.updateLead);
+    lead.delete('/:id', leadCtrl.deleteLead);
+    lead.post('/unique-leads', leadCtrl.getUniqueLeads);
 
-    api.route("/lead", lead);
+    api.route('/lead', lead);
   }
 
-  private registerEventRoutes(
-    api: Hono,
-    eventCtrl: EventController,
-    teamService: TeamService
-  ) {
+  private registerEventRoutes(api: Hono, eventCtrl: EventController, teamService: TeamService) {
     const event = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     // Unauthenticated routes
-    event.get("/:id", eventCtrl.getEvent);
-    event.get("/:id/dates", eventCtrl.getEventDates);
+    event.get('/:id', eventCtrl.getEvent);
+    event.get('/:id/dates', eventCtrl.getEventDates);
 
     // Apply auth middleware for authenticated routes
     event.use(authCheck);
     event.use(teamAccess(teamService));
 
     // Authenticated routes
-    event.get("/", eventQueryValidator, eventCtrl.getEvents);
-    event.delete("/:id/dates/:dateId", eventCtrl.deleteEventDate);
-    event.put(
-      "/:id/dates/:dateId",
-      upsertEventDateValidator,
-      eventCtrl.upsertEventDate
-    );
-    event.post("/", eventValidator, eventCtrl.createEvent);
-    event.put("/:id", updateEventValidator, eventCtrl.updateEvent);
-    event.delete("/:id", eventCtrl.deleteEvent);
-    event.post("/cancel", cancelEventValidator, eventCtrl.cancelEvent);
+    event.get('/', eventQueryValidator, eventCtrl.getEvents);
+    event.delete('/:id/dates/:dateId', eventCtrl.deleteEventDate);
+    event.put('/:id/dates/:dateId', upsertEventDateValidator, eventCtrl.upsertEventDate);
+    event.post('/', eventValidator, eventCtrl.createEvent);
+    event.put('/:id', updateEventValidator, eventCtrl.updateEvent);
+    event.delete('/:id', eventCtrl.deleteEvent);
+    event.post('/cancel', cancelEventValidator, eventCtrl.cancelEvent);
 
-    api.route("/event", event);
+    api.route('/event', event);
   }
 
   private registerAdminRoutes(api: Hono, adminCtrl: AdminController) {
     const admin = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    admin.get("/user/:id", authCheck, adminCtrl.getParticularUser);
-    admin.put("/user/:id", authCheck, adminCtrl.updateParticularUser);
-    admin.get("/users", authCheck, adminCtrl.getUsers);
-    admin.post(
-      "/user",
-      authCheck,
-      adminCreateUserValidator,
-      adminCtrl.createUser
-    );
-    admin.get("/leads", authCheck, adminCtrl.getLeads);
-    admin.get("/events", authCheck, adminCtrl.getEvents);
-    admin.delete("/user/:id", authCheck, adminCtrl.deleteUser);
+    admin.get('/user/:id', authCheck, adminCtrl.getParticularUser);
+    admin.put('/user/:id', authCheck, adminCtrl.updateParticularUser);
+    admin.get('/users', authCheck, adminCtrl.getUsers);
+    admin.post('/user', authCheck, adminCreateUserValidator, adminCtrl.createUser);
+    admin.get('/leads', authCheck, adminCtrl.getLeads);
+    admin.get('/events', authCheck, adminCtrl.getEvents);
+    admin.delete('/user/:id', authCheck, adminCtrl.deleteUser);
 
-    api.route("/admin", admin);
+    api.route('/admin', admin);
   }
 
   private registerS3Routes(api: Hono, s3Ctrl: S3Controller) {
     const s3 = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    s3.post("/presigned-url", authCheck, s3Ctrl.generatePresignedUrl);
-    api.route("/s3", s3);
+    s3.post('/presigned-url', authCheck, s3Ctrl.generatePresignedUrl);
+    api.route('/s3', s3);
   }
 
-  private registerAssetRoutes(
-    api: Hono,
-    assetCtrl: AssetController,
-    teamService: TeamService
-  ) {
+  private registerAssetRoutes(api: Hono, assetCtrl: AssetController, teamService: TeamService) {
     const asset = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
@@ -470,22 +366,22 @@ export class Server {
     asset.use(teamAccess(teamService));
 
     // Authenticated routes
-    asset.get("/:id", assetCtrl.getAsset);
-    asset.get("/", assetQueryValidator, assetCtrl.getAssets);
-    asset.post("/", assetCtrl.createAsset);
-    asset.put("/:id/rename", assetCtrl.renameAsset);
-    asset.delete("/:id", assetCtrl.deleteAsset);
+    asset.get('/:id', assetCtrl.getAsset);
+    asset.get('/', assetQueryValidator, assetCtrl.getAssets);
+    asset.post('/', assetCtrl.createAsset);
+    asset.put('/:id/rename', assetCtrl.renameAsset);
+    asset.delete('/:id', assetCtrl.deleteAsset);
 
-    api.route("/asset", asset);
+    api.route('/asset', asset);
   }
 
   private registerHLSRoutes(api: Hono, hlsCtrl: HLSController) {
     const hls = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    hls.post("/upload", authCheck, hlsUploadValidator, hlsCtrl.upload);
+    hls.post('/upload', authCheck, hlsUploadValidator, hlsCtrl.upload);
 
-    api.route("/hls", hls);
+    api.route('/hls', hls);
   }
 
   private registerStripeRoutes(api: Hono, stripeCtrl: StripeController) {
@@ -493,47 +389,40 @@ export class Server {
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     // OAuth routes
-    stripe.get("/connect/oauth", authCheck, stripeCtrl.initiateOAuth);
-    stripe.get(
-      "/connect/oauth/callback",
-      authCheck,
-      stripeCtrl.handleOAuthCallback
-    );
-    stripe.get("/product/:id/:priceId", authCheck, stripeCtrl.getProduct);
-    stripe.get("/list/payment/methods", authCheck, stripeCtrl.getCardDetails);
+    stripe.get('/connect/oauth', authCheck, stripeCtrl.initiateOAuth);
+    stripe.get('/connect/oauth/callback', authCheck, stripeCtrl.handleOAuthCallback);
+    stripe.get('/product/:id/:priceId', authCheck, stripeCtrl.getProduct);
+    stripe.get('/list/payment/methods', authCheck, stripeCtrl.getCardDetails);
 
     // Webhook
-    stripe.post("/webhook", stripeCtrl.handleWebhook);
+    stripe.post('/webhook', stripeCtrl.handleWebhook);
 
-    api.route("/stripe", stripe);
+    api.route('/stripe', stripe);
   }
 
-  private registerSubscriptionRoutes(
-    api: Hono,
-    subscriptionCtrl: SubscriptionController
-  ) {
+  private registerSubscriptionRoutes(api: Hono, subscriptionCtrl: SubscriptionController) {
     const subscription = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    subscription.get("/", authCheck, subscriptionCtrl.getSubscriptions);
+    subscription.get('/', authCheck, subscriptionCtrl.getSubscriptions);
     subscription.post(
-      "/subscribe",
+      '/subscribe',
       authCheck,
       subscriptionRequestValidator,
-      subscriptionCtrl.subscribe
+      subscriptionCtrl.subscribe,
     );
-    subscription.delete("/", authCheck, subscriptionCtrl.cancelSubscription);
+    subscription.delete('/', authCheck, subscriptionCtrl.cancelSubscription);
 
-    api.route("/subscription", subscription);
+    api.route('/subscription', subscription);
   }
 
   private registerBookingRoutes(api: Hono, bookingCtrl: BookingController) {
     const booking = new Hono();
 
-    booking.post("/", bookingCtrl.createBooking);
-    booking.get("/lead/:lead_id", bookingCtrl.getBookingsByLead);
+    booking.post('/', bookingCtrl.createBooking);
+    booking.get('/lead/:lead_id', bookingCtrl.getBookingsByLead);
 
-    api.route("/booking", booking);
+    api.route('/booking', booking);
   }
 
   private registerBusinessRoutes(api: Hono, businessCtrl: BusinessController) {
@@ -541,115 +430,72 @@ export class Server {
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     // Regular user endpoints
-    business.get("/my", authCheck, businessCtrl.getMyBusiness);
-    business.post(
-      "/my",
-      authCheck,
-      businessValidator,
-      businessCtrl.upsertBusiness
-    );
+    business.get('/my', authCheck, businessCtrl.getMyBusiness);
+    business.post('/my', authCheck, businessValidator, businessCtrl.upsertBusiness);
 
     // Admin only endpoint
-    business.get(
-      "/",
-      authCheck,
-      businessQueryValidator,
-      businessCtrl.getAllBusinesses
-    );
+    business.get('/', authCheck, businessQueryValidator, businessCtrl.getAllBusinesses);
 
-    api.route("/business", business);
+    api.route('/business', business);
   }
 
   private registerMembershipRoutes(
     api: Hono,
     membershipCtrl: MembershipController,
-    teamService: TeamService
+    teamService: TeamService,
   ) {
     const membership = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     // Unauthenticated routes
-    membership.get("/:id", membershipCtrl.getMembership);
+    membership.get('/:id', membershipCtrl.getMembership);
 
     // Apply auth middleware for authenticated routes
     membership.use(authCheck);
     membership.use(teamAccess(teamService));
 
     // Authenticated routes
-    membership.get(
-      "/",
-      membershipQueryValidator,
-      membershipCtrl.getMemberships
-    );
-    membership.post("/", membershipValidator, membershipCtrl.createMembership);
-    membership.put(
-      "/:id",
-      membershipValidator,
-      membershipCtrl.updateMembership
-    );
-    membership.delete("/:id", membershipCtrl.deleteMembership);
+    membership.get('/', membershipQueryValidator, membershipCtrl.getMemberships);
+    membership.post('/', membershipValidator, membershipCtrl.createMembership);
+    membership.put('/:id', membershipValidator, membershipCtrl.updateMembership);
+    membership.delete('/:id', membershipCtrl.deleteMembership);
 
-    api.route("/membership", membership);
+    api.route('/membership', membership);
   }
 
   private registerContactRoutes(api: Hono, contactCtrl: ContactController) {
     const contact = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    contact.post("/login", contactCtrl.login);
-    contact.get("/me", authCheck, contactCtrl.me);
-    contact.get("/payment-methods", authCheck, contactCtrl.paymentMethods);
-    contact.post("/send-token", contactCtrl.sendToken);
-    contact.post("/verify-registration", contactCtrl.verifyRegistrationToken);
-    contact.post("/request-reset-password", contactCtrl.requestResetPassword);
-    contact.post("/reset-password", contactCtrl.resetPassword);
-    contact.post("/reset-password-in-app", contactCtrl.resetPasswordInApp);
-    contact.put("/details", authCheck, contactCtrl.updateContactDetails);
+    contact.post('/login', contactCtrl.login);
+    contact.get('/me', authCheck, contactCtrl.me);
+    contact.get('/payment-methods', authCheck, contactCtrl.paymentMethods);
+    contact.post('/send-token', contactCtrl.sendToken);
+    contact.post('/verify-registration', contactCtrl.verifyRegistrationToken);
+    contact.post('/request-reset-password', contactCtrl.requestResetPassword);
+    contact.post('/reset-password', contactCtrl.resetPassword);
+    contact.post('/reset-password-in-app', contactCtrl.resetPasswordInApp);
+    contact.put('/details', authCheck, contactCtrl.updateContactDetails);
 
-    api.route("/contact", contact);
+    api.route('/contact', contact);
   }
 
   private registerTeamRoutes(api: Hono, teamCtrl: TeamController) {
     const team = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    team.post("/create", authCheck, createTeamValidator, teamCtrl.createTeam);
-    team.post(
-      "/invite",
-      authCheck,
-      inviteMemberValidator,
-      teamCtrl.inviteMember
-    );
-    team.get(
-      "/invitations",
-      authCheck,
-      teamQueryValidator,
-      teamCtrl.getTeamInvitations
-    );
-    team.get(
-      "/my-invitations",
-      authCheck,
-      teamQueryValidator,
-      teamCtrl.getMyInvitations
-    );
-    team.delete("/invitations/:id", authCheck, teamCtrl.deleteInvitation);
-    team.post("/invitations/:id/accept", teamCtrl.acceptInvitation);
-    team.post("/invitations/:id/reject", teamCtrl.rejectInvitation);
-    team.get(
-      "/my-team/members",
-      teamQueryValidator,
-      authCheck,
-      teamCtrl.getMyTeamMembers
-    );
-    team.get("/my-teams", authCheck, teamCtrl.getMyTeams);
-    team.post(
-      "/revoke-access",
-      authCheck,
-      revokeAccessValidator,
-      teamCtrl.revokeAccess
-    );
+    team.post('/create', authCheck, createTeamValidator, teamCtrl.createTeam);
+    team.post('/invite', authCheck, inviteMemberValidator, teamCtrl.inviteMember);
+    team.get('/invitations', authCheck, teamQueryValidator, teamCtrl.getTeamInvitations);
+    team.get('/my-invitations', authCheck, teamQueryValidator, teamCtrl.getMyInvitations);
+    team.delete('/invitations/:id', authCheck, teamCtrl.deleteInvitation);
+    team.post('/invitations/:id/accept', teamCtrl.acceptInvitation);
+    team.post('/invitations/:id/reject', teamCtrl.rejectInvitation);
+    team.get('/my-team/members', teamQueryValidator, authCheck, teamCtrl.getMyTeamMembers);
+    team.get('/my-teams', authCheck, teamCtrl.getMyTeams);
+    team.post('/revoke-access', authCheck, revokeAccessValidator, teamCtrl.revokeAccess);
 
-    api.route("/team", team);
+    api.route('/team', team);
   }
 
   private registerCallbackRoutes(api: Hono, callbackCtrl: CallbackController) {
@@ -657,42 +503,37 @@ export class Server {
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     // Create a new callback
-    callback.post("/", callbackValidator, callbackCtrl.createCallback);
+    callback.post('/', callbackValidator, callbackCtrl.createCallback);
 
     // Get a specific callback
-    callback.get("/:id", authCheck, callbackCtrl.getCallback);
+    callback.get('/:id', authCheck, callbackCtrl.getCallback);
 
     // Get callbacks by lead ID
-    callback.get("/lead/:leadId", authCheck, callbackCtrl.getCallbacksByLeadId);
+    callback.get('/lead/:leadId', authCheck, callbackCtrl.getCallbacksByLeadId);
 
     // Get all uncalled callbacks
-    callback.get("/uncalled", authCheck, callbackCtrl.getUncalledCallbacks);
+    callback.get('/uncalled', authCheck, callbackCtrl.getUncalledCallbacks);
 
     // Get all scheduled callbacks
-    callback.get("/scheduled", authCheck, callbackCtrl.getScheduledCallbacks);
+    callback.get('/scheduled', authCheck, callbackCtrl.getScheduledCallbacks);
 
     // Update a callback
-    callback.put(
-      "/:id",
-      authCheck,
-      updateCallbackValidator,
-      callbackCtrl.updateCallback
-    );
+    callback.put('/:id', authCheck, updateCallbackValidator, callbackCtrl.updateCallback);
 
     // Delete a callback
-    callback.delete("/:id", authCheck, callbackCtrl.deleteCallback);
+    callback.delete('/:id', authCheck, callbackCtrl.deleteCallback);
 
     // Mark a callback as called
-    callback.post("/:id/called", authCheck, callbackCtrl.markCallbackAsCalled);
+    callback.post('/:id/called', authCheck, callbackCtrl.markCallbackAsCalled);
 
-    api.route("/callback", callback);
+    api.route('/callback', callback);
   }
 
   private registerWorker(userService: UserService) {
     const tasker = new Tasker(userService);
     const worker = tasker.setup();
     if (worker.isRunning()) {
-      logger.info("Worker is running");
+      logger.info('Worker is running');
     }
     this.worker = worker;
   }

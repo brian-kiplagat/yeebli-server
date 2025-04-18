@@ -1,12 +1,7 @@
-import { and, desc, eq, like, or } from "drizzle-orm";
-import { db } from "../lib/database.ts";
-import {
-  type Lead,
-  type NewLead,
-  leadSchema,
-  eventSchema,
-  memberships,
-} from "../schema/schema.js";
+import { and, desc, eq, like, or } from 'drizzle-orm';
+
+import { db } from '../lib/database.ts';
+import { eventSchema, type Lead, leadSchema, memberships, type NewLead } from '../schema/schema.js';
 
 export interface LeadQuery {
   page?: number;
@@ -14,8 +9,8 @@ export interface LeadQuery {
   search?: string;
 }
 
-interface LeadWithEvents extends Omit<Lead, "membership"> {
-  events: Lead["event"][];
+interface LeadWithEvents extends Omit<Lead, 'membership'> {
+  events: Lead['event'][];
   membership: {
     id: number;
     name: string;
@@ -24,7 +19,7 @@ interface LeadWithEvents extends Omit<Lead, "membership"> {
     user_id: number;
     description: string | null;
     price: number;
-    payment_type: "one_off" | "recurring" | null;
+    payment_type: 'one_off' | 'recurring' | null;
   } | null;
 }
 
@@ -62,7 +57,7 @@ export class LeadRepository {
       ? or(
           like(leadSchema.name, `%${search}%`),
           like(leadSchema.email, `%${search}%`),
-          like(leadSchema.phone, `%${search}%`)
+          like(leadSchema.phone, `%${search}%`),
         )
       : undefined;
 
@@ -77,10 +72,7 @@ export class LeadRepository {
       orderBy: desc(leadSchema.created_at),
     });
 
-    const total = await db
-      .select({ count: leadSchema.id })
-      .from(leadSchema)
-      .where(whereConditions);
+    const total = await db.select({ count: leadSchema.id }).from(leadSchema).where(whereConditions);
 
     return { leads, total: total.length };
   }
@@ -95,8 +87,8 @@ export class LeadRepository {
           or(
             like(leadSchema.name, `%${search}%`),
             like(leadSchema.email, `%${search}%`),
-            like(leadSchema.phone, `%${search}%`)
-          )
+            like(leadSchema.phone, `%${search}%`),
+          ),
         )
       : eq(leadSchema.userId, userId);
 
@@ -111,19 +103,16 @@ export class LeadRepository {
       orderBy: desc(leadSchema.created_at),
     });
 
-    const total = await db
-      .select({ count: leadSchema.id })
-      .from(leadSchema)
-      .where(whereConditions);
+    const total = await db.select({ count: leadSchema.id }).from(leadSchema).where(whereConditions);
 
     return { leads, total: total.length };
   }
 
   public async findByUserIdWithEvents(
     userId: number,
-    query: LeadQuery = {}
+    query: LeadQuery = {},
   ): Promise<LeadWithEvents[]> {
-    const { page = 1, limit = 10, search = "" } = query;
+    const { page = 1, limit = 10, search = '' } = query;
     const offset = (page - 1) * limit;
 
     const leads = await db
@@ -182,9 +171,9 @@ export class LeadRepository {
           or(
             like(leadSchema.name, `%${search}%`),
             like(leadSchema.email, `%${search}%`),
-            like(leadSchema.phone, `%${search}%`)
-          )
-        )
+            like(leadSchema.phone, `%${search}%`),
+          ),
+        ),
       )
       .orderBy(desc(leadSchema.created_at))
       .limit(limit)
@@ -204,10 +193,7 @@ export class LeadRepository {
         } else {
           // Add additional events to existing lead if they're not already included
           const existingLead = uniqueLeads.get(lead.email);
-          if (
-            lead.events?.id &&
-            !existingLead.events.some((e: any) => e.id === lead.events?.id)
-          ) {
+          if (lead.events?.id && !existingLead.events.some((e: any) => e.id === lead.events?.id)) {
             existingLead.events.push(lead.events);
           }
         }

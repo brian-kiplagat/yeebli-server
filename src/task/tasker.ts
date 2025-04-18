@@ -1,6 +1,7 @@
 import { type Job, Worker } from 'bullmq';
+
 import { logger } from '../lib/logger.js';
-import { QUEUE, connection } from '../lib/queue.js';
+import { connection, QUEUE } from '../lib/queue.js';
 import type { UserService } from '../service/user.js';
 import { sendTransactionalEmail } from './sendWelcomeEmail.js';
 

@@ -1,4 +1,5 @@
 import { and, desc, eq, like } from 'drizzle-orm';
+
 import { db } from '../lib/database.js';
 import { businessSchema } from '../schema/schema.js';
 import type { BusinessQuery } from '../web/validator/business.ts';
@@ -15,7 +16,11 @@ export class BusinessRepository {
   }
 
   async findByUserId(userId: number) {
-    const result = await db.select().from(businessSchema).where(eq(businessSchema.user_id, userId)).limit(1);
+    const result = await db
+      .select()
+      .from(businessSchema)
+      .where(eq(businessSchema.user_id, userId))
+      .limit(1);
     return result[0];
   }
 

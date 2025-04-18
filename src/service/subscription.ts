@@ -1,9 +1,9 @@
-import { logger } from "../lib/logger.ts";
-import type { SubscriptionRepository } from "../repository/subscription.ts";
-import type { User } from "../schema/schema.ts";
-import { sendTransactionalEmail } from "../task/sendWelcomeEmail.ts";
-import type { StripeService } from "./stripe.ts";
-import type { UserService } from "./user.ts";
+import { logger } from '../lib/logger.ts';
+import type { SubscriptionRepository } from '../repository/subscription.ts';
+import type { User } from '../schema/schema.ts';
+import { sendTransactionalEmail } from '../task/sendWelcomeEmail.ts';
+import type { StripeService } from './stripe.ts';
+import type { UserService } from './user.ts';
 
 export class SubscriptionService {
   private subscriptionRepo: SubscriptionRepository;
@@ -13,7 +13,7 @@ export class SubscriptionService {
   constructor(
     subscriptionRepo: SubscriptionRepository,
     stripeService: StripeService,
-    userService: UserService
+    userService: UserService,
   ) {
     this.subscriptionRepo = subscriptionRepo;
     this.stripeService = stripeService;
@@ -25,11 +25,11 @@ export class SubscriptionService {
     priceId: string,
     productId: string,
     successUrl: string,
-    cancelUrl: string
+    cancelUrl: string,
   ) {
     try {
       if (!user.stripe_customer_id) {
-        throw new Error("User has no Stripe customer ID");
+        throw new Error('User has no Stripe customer ID');
       }
 
       const session = await this.stripeService.createCheckoutSession({
@@ -40,12 +40,12 @@ export class SubscriptionService {
             quantity: 1,
           },
         ],
-        mode: "subscription",
+        mode: 'subscription',
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
           userId: String(user.id),
-          type: "subscription",
+          type: 'subscription',
         },
         subscription_data: {
           trial_period_days: 14,
@@ -59,24 +59,24 @@ export class SubscriptionService {
       // Store the checkout session in our database
       await this.subscriptionRepo.createSubscription({
         user_id: user.id,
-        object: "checkout.session",
+        object: 'checkout.session',
         amount_subtotal: session.amount_subtotal || 0,
         amount_total: session.amount_total || 0,
         session_id: session.id,
-        cancel_url: session.cancel_url || "",
-        success_url: session.success_url || "",
+        cancel_url: session.cancel_url || '',
+        success_url: session.success_url || '',
         created: Number(session.created),
-        currency: session.currency || "",
-        mode: session.mode || "",
-        payment_status: session.payment_status || "",
-        status: session.status || "",
+        currency: session.currency || '',
+        mode: session.mode || '',
+        payment_status: session.payment_status || '',
+        status: session.status || '',
         subscription_id: session.subscription?.toString() || null,
       });
 
       return session;
     } catch (error) {
       console.log(error);
-      logger.error("Error creating subscription checkout session:", error);
+      logger.error('Error creating subscription checkout session:', error);
       throw error;
     }
   }
@@ -85,25 +85,25 @@ export class SubscriptionService {
     userId: number,
     email: string,
     name: string,
-    subscriptionId: string
+    subscriptionId: string,
   ) {
     try {
       const [subscription, user] = await Promise.all([
         this.stripeService.cancelSubscription(subscriptionId),
         this.userService.update(userId, {
-          subscription_status: "canceled",
+          subscription_status: 'canceled',
           subscription_id: null,
         }),
       ]);
       await sendTransactionalEmail(email, name, 1, {
-        subject: "You have cancelled your subscription",
-        title: "We Are Sorry to See You Go",
-        subtitle: "Your subscription has been cancelled",
+        subject: 'You have cancelled your subscription',
+        title: 'We Are Sorry to See You Go',
+        subtitle: 'Your subscription has been cancelled',
         body: `We're truly sorry to see you leave. Your subscription has been successfully cancelled, and your premium access has now ended. If you have any feedback about your experience or if there's anything we could have done better, we'd love to hear from you. If you ever change your mind, you can easily regain full access to all premium features by subscribing again at any time. Our support team is always here to help—feel free to reach out whenever you need. Thank you for being with us.`,
       });
       return subscription;
     } catch (error) {
-      logger.error("Error canceling subscription:", error);
+      logger.error('Error canceling subscription:', error);
       throw error;
     }
   }
@@ -112,7 +112,7 @@ export class SubscriptionService {
     try {
       return await this.subscriptionRepo.findSubscriptionsByUserId(userId);
     } catch (error) {
-      logger.error("Error getting subscriptions:", error);
+      logger.error('Error getting subscriptions:', error);
       throw error;
     }
   }

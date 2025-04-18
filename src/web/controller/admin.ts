@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+
 import { logger } from '../../lib/logger.js';
 import type { AdminService } from '../../service/admin.js';
 import type { AssetService } from '../../service/asset.js';
@@ -38,7 +39,7 @@ export class AdminController {
   }
 
   private async getUser(c: Context) {
-    const email = c.get('jwtPayload').email;
+    const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }

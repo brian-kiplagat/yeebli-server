@@ -1,5 +1,6 @@
 import { validator } from 'hono/validator';
 import { z } from 'zod';
+
 import { validateSchema } from './validator.js';
 
 // For webhook events from Stripe
@@ -30,4 +31,4 @@ const stripeUrlValidator = validator('json', (value, c) => {
 type StripeWebhookBody = z.infer<typeof stripeWebhookSchema>;
 type StripeUrlBody = z.infer<typeof stripeUrlSchema>;
 
-export { type StripeWebhookBody, type StripeUrlBody, stripeWebhookValidator, stripeUrlValidator };
+export { type StripeUrlBody, stripeUrlValidator, type StripeWebhookBody, stripeWebhookValidator };

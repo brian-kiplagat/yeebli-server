@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, like, or } from 'drizzle-orm';
+
 import { db } from '../lib/database.js';
 import { eventSchema, leadSchema, userSchema } from '../schema/schema.js';
 import type { AdminEventQuery, AdminLeadQuery, AdminUserQuery } from '../web/validator/admin.js';
@@ -11,7 +12,9 @@ export class AdminRepository {
     const whereClause = [];
     if (role) whereClause.push(eq(userSchema.role, role));
     if (search) {
-      whereClause.push(or(like(userSchema.name, `%${search}%`), like(userSchema.email, `%${search}%`)));
+      whereClause.push(
+        or(like(userSchema.name, `%${search}%`), like(userSchema.email, `%${search}%`)),
+      );
     }
 
     const users = await db
@@ -70,7 +73,10 @@ export class AdminRepository {
     const whereClause = [];
     if (search) {
       whereClause.push(
-        or(like(eventSchema.event_name, `%${search}%`), like(eventSchema.event_description, `%${search}%`)),
+        or(
+          like(eventSchema.event_name, `%${search}%`),
+          like(eventSchema.event_description, `%${search}%`),
+        ),
       );
     }
 

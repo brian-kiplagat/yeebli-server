@@ -11,7 +11,11 @@ export class UserService {
   private stripeService: StripeService;
   private membershipService: MembershipService;
 
-  constructor(userRepository: UserRepository, stripeService: StripeService, membershipService: MembershipService) {
+  constructor(
+    userRepository: UserRepository,
+    stripeService: StripeService,
+    membershipService: MembershipService,
+  ) {
     this.repo = userRepository;
     this.stripeService = stripeService;
     this.membershipService = membershipService;

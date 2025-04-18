@@ -1,7 +1,8 @@
 import { and, desc, eq, like, or } from 'drizzle-orm';
+
 import { db } from '../lib/database.js';
-import { assetsSchema } from '../schema/schema.js';
 import type { Asset, NewAsset } from '../schema/schema.js';
+import { assetsSchema } from '../schema/schema.js';
 import type { AssetQuery } from '../web/validator/asset.js';
 
 export interface AssetSearchQuery {
@@ -20,7 +21,10 @@ export class AssetRepository {
     return result[0];
   }
 
-  async findByUserId(userId: number, query?: AssetQuery): Promise<{ assets: Asset[]; total: number }> {
+  async findByUserId(
+    userId: number,
+    query?: AssetQuery,
+  ): Promise<{ assets: Asset[]; total: number }> {
     const { page = 1, limit = 50, search, asset_type } = query || {};
     const offset = (page - 1) * limit;
 

@@ -1,9 +1,10 @@
 import { eq } from 'drizzle-orm';
 import type { Context } from 'hono';
-import { DB_ERRORS, type DatabaseError, db } from '../../lib/database.js';
+
+import { type DatabaseError, db, DB_ERRORS } from '../../lib/database.js';
 import { encrypt, verify } from '../../lib/encryption.js';
 import env from '../../lib/env.js';
-import { type JWTPayload, encode } from '../../lib/jwt.js';
+import { encode, type JWTPayload } from '../../lib/jwt.js';
 import { logger } from '../../lib/logger.ts';
 import type { UserRepository } from '../../repository/user.js';
 import { userSchema } from '../../schema/schema.ts';
@@ -24,7 +25,13 @@ import type {
   ResetPasswordBody,
   UpdateUserDetailsBody,
 } from '../validator/user.js';
-import { ERRORS, MAIL_CONTENT, serveBadRequest, serveInternalServerError, serveUnauthorized } from './resp/error.js';
+import {
+  ERRORS,
+  MAIL_CONTENT,
+  serveBadRequest,
+  serveInternalServerError,
+  serveUnauthorized,
+} from './resp/error.js';
 import { serveData } from './resp/resp.js';
 import { serializeUser } from './serializer/user.js';
 export class AuthController {
@@ -203,7 +210,7 @@ export class AuthController {
   };
 
   private getUser = async (c: Context) => {
-    const email = c.get('jwtPayload').email;
+    const { email } = c.get('jwtPayload');
     const user = await this.service.findByEmail(email);
     return user;
   };
@@ -306,7 +313,7 @@ export class AuthController {
         // Create asset using AssetService
         const { asset: assetId } = await this.assetService.createAsset(
           user.id,
-          fileName.replace(/[^\w.-]/g, ""),
+          fileName.replace(/[^\w.-]/g, ''),
           getContentType(imageBase64),
           'profile_picture',
           buffer.length,

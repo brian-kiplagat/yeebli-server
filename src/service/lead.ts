@@ -1,8 +1,8 @@
-import type { LeadQuery, LeadRepository } from "../repository/lead.ts";
-import type { Lead } from "../schema/schema.ts";
-import type { NewLead } from "../schema/schema.ts";
-import type { ContactService } from "./contact.ts";
-import type { StripeService } from "./stripe.ts";
+import type { LeadQuery, LeadRepository } from '../repository/lead.ts';
+import type { Lead } from '../schema/schema.ts';
+import type { NewLead } from '../schema/schema.ts';
+import type { ContactService } from './contact.ts';
+import type { StripeService } from './stripe.ts';
 
 export class LeadService {
   private repository: LeadRepository;
@@ -12,7 +12,7 @@ export class LeadService {
   constructor(
     repository: LeadRepository,
     contactService: ContactService,
-    stripeService: StripeService
+    stripeService: StripeService,
   ) {
     this.repository = repository;
     this.contactService = contactService;
@@ -26,15 +26,13 @@ export class LeadService {
 
       // If no contact exists, create one
       if (!existingContact && lead.name && lead.phone) {
-        const stripeCustomer = await this.stripeService.createCustomer(
-          lead.email
-        );
+        const stripeCustomer = await this.stripeService.createCustomer(lead.email);
         await this.contactService.createFromLead(
           lead.name,
           lead.email,
           lead.phone,
           String(lead.token),
-          stripeCustomer.id
+          stripeCustomer.id,
         );
       }
     }

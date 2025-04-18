@@ -1,6 +1,7 @@
 import type { Logger as drizzleLogger } from 'drizzle-orm/logger';
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
+
 import * as schema from '../schema/schema.js';
 import env from './env.js';
 import { logger } from './logger.js';
@@ -46,4 +47,4 @@ const db = drizzle(connection, {
   mode: 'default',
   logger: new DBLogger(),
 });
-export { DB_ERRORS, connection, db };
+export { connection, db, DB_ERRORS };

@@ -1,4 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
+
 import env from '../lib/env.js';
 import { logger } from '../lib/logger.js';
 import type { StripeService } from './stripe.js';
@@ -22,7 +23,10 @@ export class GoogleService {
   async getAuthUrl() {
     return this.client.generateAuthUrl({
       access_type: 'offline',
-      scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'],
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ],
       prompt: 'consent',
     });
   }
@@ -52,14 +56,21 @@ export class GoogleService {
         const stripeCustomer = await this.stripeService.createCustomer(userInfo.email);
 
         // Create new user with explicit auth_provider
-        await this.userService.create(userInfo.name || 'Google User', userInfo.email, crypto.randomUUID(), 'host', '', {
-          google_id: userInfo.id,
-          google_access_token: tokens.access_token,
-          auth_provider: 'google',
-          is_verified: true,
-          stripe_customer_id: stripeCustomer.id,
-          profile_picture: userInfo.picture || null,
-        });
+        await this.userService.create(
+          userInfo.name || 'Google User',
+          userInfo.email,
+          crypto.randomUUID(),
+          'host',
+          '',
+          {
+            google_id: userInfo.id,
+            google_access_token: tokens.access_token,
+            auth_provider: 'google',
+            is_verified: true,
+            stripe_customer_id: stripeCustomer.id,
+            profile_picture: userInfo.picture || null,
+          },
+        );
         user = await this.userService.findByEmail(userInfo.email);
       } else if (!user.google_id) {
         // Update existing user with Google info

@@ -1,8 +1,9 @@
-import type { Context } from "hono";
-import { logger } from "../../lib/logger.js";
-import type { BookingService } from "../../service/booking.js";
-import { ERRORS, serveBadRequest } from "./resp/error.js";
-import { UserService } from "../../service/user.js";
+import type { Context } from 'hono';
+
+import { logger } from '../../lib/logger.js';
+import type { BookingService } from '../../service/booking.js';
+import { UserService } from '../../service/user.js';
+import { ERRORS, serveBadRequest } from './resp/error.js';
 
 export class BookingController {
   private bookingService: BookingService;
@@ -13,7 +14,7 @@ export class BookingController {
     this.userService = userService;
   }
   private getUser = async (c: Context) => {
-    const email = c.get("jwtPayload").email;
+    const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   };
@@ -41,14 +42,14 @@ export class BookingController {
         booking,
       });
     } catch (error) {
-      logger.error("Failed to create booking:", error);
+      logger.error('Failed to create booking:', error);
       return serveBadRequest(c, ERRORS.BOOKING_FAILED);
     }
   };
 
   public getBookingsByLead = async (c: Context) => {
     try {
-      const lead_id = c.req.param("lead_id");
+      const lead_id = c.req.param('lead_id');
       const bookings = await this.bookingService.findByLeadId(Number(lead_id));
 
       return c.json({
@@ -56,7 +57,7 @@ export class BookingController {
         bookings,
       });
     } catch (error) {
-      logger.error("Failed to get bookings:", error);
+      logger.error('Failed to get bookings:', error);
       return serveBadRequest(c, ERRORS.BOOKING_NOT_FOUND);
     }
   };

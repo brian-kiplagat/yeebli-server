@@ -1,7 +1,6 @@
-import { logger } from "../lib/logger.ts";
-import type { MembershipRepository } from "../repository/membership.ts";
-
-import type { Membership, NewMembership } from "../schema/schema.ts";
+import { logger } from '../lib/logger.ts';
+import type { MembershipRepository } from '../repository/membership.ts';
+import type { Membership, NewMembership } from '../schema/schema.ts';
 
 type MembershipQuery = {
   page?: number;
@@ -20,7 +19,7 @@ export class MembershipService {
     try {
       return await this.repository.create(plan);
     } catch (error) {
-      logger.error("Failed to create membership:", error);
+      logger.error('Failed to create membership:', error);
       throw error;
     }
   }
@@ -30,15 +29,12 @@ export class MembershipService {
   }
 
   public async getAllMemberships(
-    query?: MembershipQuery
+    query?: MembershipQuery,
   ): Promise<{ plans: Membership[]; total: number }> {
     return await this.repository.findAll(query);
   }
 
-  public async updateMembership(
-    id: number,
-    plan: Partial<Membership>
-  ): Promise<void> {
+  public async updateMembership(id: number, plan: Partial<Membership>): Promise<void> {
     await this.repository.update(id, plan);
   }
 
@@ -48,12 +44,12 @@ export class MembershipService {
 
   public async getMembershipsByUser(
     userId: number,
-    query?: MembershipQuery
+    query?: MembershipQuery,
   ): Promise<{ plans: Membership[]; total: number }> {
     try {
       return await this.repository.findByUserId(userId, query);
     } catch (error) {
-      logger.error("Failed to get memberships by user:", error);
+      logger.error('Failed to get memberships by user:', error);
       throw error;
     }
   }
@@ -62,7 +58,7 @@ export class MembershipService {
     try {
       return await this.repository.getEventsByMembership(membershipId);
     } catch (error) {
-      logger.error("Failed to get events by membership:", error);
+      logger.error('Failed to get events by membership:', error);
       throw error;
     }
   }

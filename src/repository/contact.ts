@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
+
 import { db } from '../lib/database.ts';
-import { type Contact, type NewContact, contactSchema } from '../schema/schema.js';
+import { type Contact, contactSchema, type NewContact } from '../schema/schema.js';
 
 export class ContactRepository {
   public async create(contact: NewContact) {
