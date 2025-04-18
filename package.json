@@ -3,6 +3,8 @@
     "dev": "tsx watch src/index.ts | pino-pretty",
     "start": "tsx src/index.ts",
     "check": "biome check --write",
+    "lint": "eslint ./src && prettier --check ./src",
+    "lint:fix": "eslint ./src --fix && prettier --write ./src",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:drop": "drizzle-kit drop",
@@ -38,11 +40,17 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@eslint/js": "^9.19.0",
     "@types/node": "^22.10.10",
     "drizzle-kit": "^0.30.2",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "prettier": "3.4.2",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.23.0"
   },
   "engines": {
     "node": ">=20.0.0 <23.0.0"

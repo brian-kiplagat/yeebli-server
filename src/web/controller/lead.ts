@@ -571,10 +571,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
 
-      const lead = await this.service.findByEventIdAndToken(
-        event_id,
-        token
-      );
+      const lead = await this.service.findByEventIdAndToken(event_id, token);
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
       }
@@ -583,9 +580,76 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_ALREADY_PURCHASED);
       }
 
+      //check if host has setup payments
+      const host = await this.userService.find(lead.host_id);
+      if (!host) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      if (!host.stripe_account_id) {
+        return serveBadRequest(c, ERRORS.STRIPE_ACCOUNT_ID_NOT_FOUND);
+      }
+
+      const contact = await this.contactService.findByEmail(lead.email || "");
+      if (!contact) {
+        return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
+      }
+
+      if (!contact.stripe_customer_id) {
+        const stripeCustomer = await this.stripeService.createCustomer(
+          contact.email
+        );
+        await this.contactService.update(contact.id, {
+          stripe_customer_id: stripeCustomer.id,
+        });
+        contact.stripe_customer_id = stripeCustomer.id;
+      }
+      let successUrl = "";
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      if (event.event_type == "live_venue") {
+        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
+      } else if (event.event_type == "live_video_call") {
+        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
+      } else if (event.event_type == "prerecorded") {
+        successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
+      }
+
+      const checkoutSession =
+        await this.stripeService.createLeadUpgradeCheckoutSession(
+          lead,
+          contact.stripe_customer_id,
+          {
+            mode: "payment",
+            success_url: successUrl,
+            cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
+            hostStripeAccountId: host.stripe_account_id,
+            price: membership.price,
+            eventName: event.event_name,
+            membershipName: membership.name,
+            membershipId: String(membership.id),
+            eventId: String(event.id),
+          }
+        );
+      await this.paymentService.createPayment({
+        contact_id: contact.id,
+        lead_id: lead.id,
+        event_id: Number(lead.event_id),
+        membership_id: membership.id,
+        checkout_session_id: checkoutSession.session.id,
+        stripe_customer_id: contact.stripe_customer_id,
+        amount: String(membership.price),
+        currency: "gbp",
+        status: "pending",
+        payment_type: "one_off",
+        metadata: {
+          eventName: event.event_name,
+          membershipName: membership.name,
+          sessionId: checkoutSession.session.id,
+        },
+      });
+
       return c.json({
-        success: true,
-        message: "Membership purchased successfully",
+        checkoutSession,
       });
     } catch (error) {
       logger.error(error);
