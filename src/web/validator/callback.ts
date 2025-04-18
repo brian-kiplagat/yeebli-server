@@ -34,6 +34,10 @@ const callbackQuerySchema = z.object({
   callback_type: z.enum(['instant', 'scheduled']).optional(),
 });
 
+const callbackQueryValidator = validator('query', (value, c) => {
+  return validateSchema(c, callbackQuerySchema, value);
+});
+
 type CallbackBody = z.infer<typeof callbackSchema>;
 type UpdateCallbackBody = z.infer<typeof updateCallbackSchema>;
 type CallbackQuery = z.infer<typeof callbackQuerySchema>;
@@ -41,6 +45,7 @@ type CallbackQuery = z.infer<typeof callbackQuerySchema>;
 export {
   type CallbackBody,
   type CallbackQuery,
+  callbackQueryValidator,
   callbackValidator,
   type UpdateCallbackBody,
   updateCallbackValidator,

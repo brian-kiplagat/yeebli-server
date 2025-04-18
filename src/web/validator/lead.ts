@@ -9,7 +9,7 @@ const leadSchema = z.object({
     (phone) => {
       try {
         return isValidPhoneNumber(phone);
-      } catch (error) {
+      } catch {
         return false;
       }
     },
@@ -50,7 +50,7 @@ const externalFormSchema = z.object({
     (phone) => {
       try {
         return isValidPhoneNumber(phone);
-      } catch (error) {
+      } catch {
         return false;
       }
     },

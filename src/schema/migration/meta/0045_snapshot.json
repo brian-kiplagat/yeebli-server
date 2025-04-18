@@ -103,12 +103,8 @@
           "name": "assets_user_id_user_id_fk",
           "tableFrom": "assets",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -116,9 +112,7 @@
       "compositePrimaryKeys": {
         "assets_id": {
           "name": "assets_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -186,12 +180,8 @@
           "name": "bookings_event_id_events_id_fk",
           "tableFrom": "bookings",
           "tableTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -199,12 +189,8 @@
           "name": "bookings_date_id_event_dates_id_fk",
           "tableFrom": "bookings",
           "tableTo": "event_dates",
-          "columnsFrom": [
-            "date_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["date_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -212,12 +198,8 @@
           "name": "bookings_lead_id_leads_id_fk",
           "tableFrom": "bookings",
           "tableTo": "leads",
-          "columnsFrom": [
-            "lead_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lead_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -225,9 +207,7 @@
       "compositePrimaryKeys": {
         "bookings_id": {
           "name": "bookings_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -330,12 +310,8 @@
           "name": "businesses_logo_asset_id_assets_id_fk",
           "tableFrom": "businesses",
           "tableTo": "assets",
-          "columnsFrom": [
-            "logo_asset_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["logo_asset_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -343,12 +319,8 @@
           "name": "businesses_user_id_user_id_fk",
           "tableFrom": "businesses",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -356,9 +328,7 @@
       "compositePrimaryKeys": {
         "businesses_id": {
           "name": "businesses_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -412,12 +382,8 @@
           "name": "event_dates_event_id_events_id_fk",
           "tableFrom": "event_dates",
           "tableTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -425,9 +391,7 @@
       "compositePrimaryKeys": {
         "event_dates_id": {
           "name": "event_dates_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -560,12 +524,8 @@
           "name": "events_asset_id_assets_id_fk",
           "tableFrom": "events",
           "tableTo": "assets",
-          "columnsFrom": [
-            "asset_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["asset_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -573,12 +533,8 @@
           "name": "events_host_id_user_id_fk",
           "tableFrom": "events",
           "tableTo": "user",
-          "columnsFrom": [
-            "host_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["host_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -586,9 +542,7 @@
       "compositePrimaryKeys": {
         "events_id": {
           "name": "events_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -730,12 +684,8 @@
           "name": "leads_event_id_events_id_fk",
           "tableFrom": "leads",
           "tableTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -743,12 +693,8 @@
           "name": "leads_host_id_user_id_fk",
           "tableFrom": "leads",
           "tableTo": "user",
-          "columnsFrom": [
-            "host_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["host_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -756,12 +702,8 @@
           "name": "leads_lead_status_memberships_id_fk",
           "tableFrom": "leads",
           "tableTo": "memberships",
-          "columnsFrom": [
-            "lead_status"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lead_status"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -769,12 +711,8 @@
           "name": "leads_user_id_user_id_fk",
           "tableFrom": "leads",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -782,9 +720,7 @@
       "compositePrimaryKeys": {
         "leads_id": {
           "name": "leads_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -860,12 +796,8 @@
           "name": "memberships_user_id_user_id_fk",
           "tableFrom": "memberships",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -873,9 +805,7 @@
       "compositePrimaryKeys": {
         "memberships_id": {
           "name": "memberships_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -996,9 +926,7 @@
       "compositePrimaryKeys": {
         "subscription_id": {
           "name": "subscription_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -1218,17 +1146,13 @@
       "compositePrimaryKeys": {
         "user_id": {
           "name": "user_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "checkConstraint": {}

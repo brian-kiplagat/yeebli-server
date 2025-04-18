@@ -23,6 +23,7 @@ const encode = async (id: number, email: string): Promise<string> => {
   return await sign(payload, env.SECRET_KEY);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const check = async (token: string): Promise<JWTPayload> => {
   return await verify(token, env.SECRET_KEY);
 };

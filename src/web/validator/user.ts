@@ -19,7 +19,7 @@ const registrationSchema = loginSchema.extend({
     (phone) => {
       try {
         return isValidPhoneNumber(phone);
-      } catch (error) {
+      } catch {
         return false;
       }
     },
@@ -86,7 +86,7 @@ const updateUserDetailsSchema = z.object({
       (phone) => {
         try {
           return isValidPhoneNumber(phone);
-        } catch (error) {
+        } catch {
           return false;
         }
       },
