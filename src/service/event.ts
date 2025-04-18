@@ -84,18 +84,6 @@ export class EventService {
       // Create the event
       const newEventId = await this.repository.create(event, membership_ids);
 
-      // Create all event dates in parallel
-      if (event.dates && Array.isArray(event.dates)) {
-        await Promise.all(
-          event.dates.map((date) =>
-            this.repository.createEventDate({
-              event_id: newEventId,
-              date: date,
-            }),
-          ),
-        );
-      }
-
       return newEventId;
     } catch (error) {
       logger.error('Failed to create event:', error);

@@ -15,9 +15,21 @@ export class MembershipService {
     this.repository = repository;
   }
 
-  public async createMembership(plan: NewMembership): Promise<number> {
+  public async createMembership(plan: NewMembership, dates: string[]): Promise<number> {
     try {
-      return await this.repository.create(plan);
+      const id = await this.repository.create(plan);
+      // Create all event dates in parallel
+      if (dates && Array.isArray(dates)) {
+        await Promise.all(
+          dates.map((date) =>
+            this.repository.createMembershipDate({
+              membership_id: id,
+              date: date,
+            }),
+          ),
+        );
+      }
+      return id;
     } catch (error) {
       logger.error('Failed to create membership:', error);
       throw error;

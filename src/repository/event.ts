@@ -1,11 +1,10 @@
 import { and, desc, eq, inArray, like, or } from 'drizzle-orm';
 
 import { db } from '../lib/database.js';
-import type { Event, NewEvent, NewEventDate } from '../schema/schema.js';
+import type { Event, NewEvent } from '../schema/schema.js';
 import {
   assetsSchema,
   bookings,
-  eventDates,
   eventMembershipSchema,
   eventSchema,
   memberships,
@@ -28,10 +27,6 @@ export class EventRepository {
       })),
     );
     return eventId.id;
-  }
-
-  public async createEventDate(eventDate: NewEventDate) {
-    return db.insert(eventDates).values(eventDate).$returningId();
   }
 
   public async updateEventDate(dateId: number, data: { date: string }) {

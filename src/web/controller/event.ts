@@ -82,9 +82,7 @@ export class EventController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
       const body: CreateEventBody = await c.req.json();
-      if (!body.dates || body.dates.length < 1) {
-        return serveBadRequest(c, ERRORS.EVENT_DATE_REQUIRED);
-      }
+
       const membership_ids = body.memberships;
       if (membership_ids.length < 1) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);

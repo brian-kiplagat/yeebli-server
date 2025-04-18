@@ -174,17 +174,16 @@ export const eventSchema = mysqlTable('events', {
   instructions: text('instructions'),
   landing_page_url: text('landing_page_url'),
   live_venue_address: text('live_venue_address'),
-  dates: json('dates'),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
   host_id: int('host_id')
     .references(() => userSchema.id)
     .notNull(),
 });
 
-export const eventDates = mysqlTable('event_dates', {
+export const membershipDates = mysqlTable('membership_dates', {
   id: serial('id').primaryKey(),
-  event_id: int('event_id')
-    .references(() => eventSchema.id)
+  membership_id: int('membership_id')
+    .references(() => membershipSchema.id)
     .notNull(),
   date: varchar('date', { length: 50 }).notNull(), // Format: MM/DD/YYYY
   created_at: timestamp('created_at').defaultNow(),
@@ -197,7 +196,7 @@ export const bookings = mysqlTable('bookings', {
     .references(() => eventSchema.id)
     .notNull(),
   date_id: int('date_id')
-    .references(() => eventDates.id)
+    .references(() => membershipDates.id)
     .notNull(),
   lead_id: int('lead_id')
     .references(() => leadSchema.id)
@@ -356,6 +355,8 @@ export type Lead = typeof leadSchema.$inferSelect & {
 
 export type Membership = typeof memberships.$inferSelect;
 export type NewMembership = typeof memberships.$inferInsert;
+export type MembershipDate = typeof membershipDates.$inferSelect;
+export type NewMembershipDate = typeof membershipDates.$inferInsert;
 export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type NewLead = typeof leadSchema.$inferInsert;
@@ -365,8 +366,6 @@ export type Event = typeof eventSchema.$inferSelect & {
   })[];
 };
 export type NewEvent = typeof eventSchema.$inferInsert;
-export type EventDate = typeof eventDates.$inferSelect;
-export type NewEventDate = typeof eventDates.$inferInsert;
 export type Asset = typeof assetsSchema.$inferSelect;
 export type NewAsset = typeof assetsSchema.$inferInsert;
 export type Contact = typeof contactSchema.$inferSelect;
@@ -463,9 +462,9 @@ export const bookingRelations = relations(bookings, ({ one }) => ({
     fields: [bookings.event_id],
     references: [eventSchema.id],
   }),
-  date: one(eventDates, {
+  date: one(membershipDates, {
     fields: [bookings.date_id],
-    references: [eventDates.id],
+    references: [membershipDates.id],
   }),
   lead: one(leadSchema, {
     fields: [bookings.lead_id],

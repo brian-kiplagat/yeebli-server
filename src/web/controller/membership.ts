@@ -79,10 +79,16 @@ export class MembershipController {
       }
 
       const body: CreateMembershipBody = await c.req.json();
-      const planId = await this.service.createMembership({
-        ...body,
-        user_id: user.id,
-      });
+      if (!body.dates || body.dates.length < 1) {
+        return serveBadRequest(c, ERRORS.EVENT_DATE_REQUIRED);
+      }
+      const planId = await this.service.createMembership(
+        {
+          ...body,
+          user_id: user.id,
+        },
+        body.dates,
+      );
 
       return c.json(
         {
