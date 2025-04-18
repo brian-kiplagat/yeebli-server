@@ -75,6 +75,7 @@ import {
   externalFormValidator,
   leadUpgradeValidator,
   leadValidator,
+  purchaseMembershipValidator,
   updateLeadValidator,
 } from "./validator/lead.ts";
 import {
@@ -372,6 +373,11 @@ export class Server {
       "/external-form",
       externalFormValidator,
       leadCtrl.handleExternalForm
+    );
+    lead.post(
+      "/purchase-membership",
+      purchaseMembershipValidator,
+      leadCtrl.purchaseMembership
     );
 
     // Apply auth middleware for authenticated routes

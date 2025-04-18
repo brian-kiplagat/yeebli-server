@@ -70,14 +70,23 @@ const eventLinkSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+const purchaseMembershipSchema = z.object({
+  event_id: z.number().min(1, 'Event ID is required'),
+  membership_id: z.number().min(1, 'Membership ID is required'),
+  token: z.string().min(1, 'Token is required'),
+  email: z.string().email('Invalid email address'),
+});
+
 type LeadUpgradeBody = z.infer<typeof leadUpgradeSchema>;
 type LeadBody = z.infer<typeof leadSchema>;
 type ExternalFormBody = z.infer<typeof externalFormSchema>;
 type EventLinkBody = z.infer<typeof eventLinkSchema>;
+type PurchaseMembershipBody = z.infer<typeof purchaseMembershipSchema>;
 export const eventLinkValidator = zValidator('json', eventLinkSchema);
 export const leadValidator = zValidator('json', leadSchema);
 export const updateLeadValidator = zValidator('json', updateLeadSchema);
 export const externalFormValidator = zValidator('form', externalFormSchema);
 export const leadUpgradeValidator = zValidator('json', leadUpgradeSchema);
-export type { LeadBody, ExternalFormBody, EventLinkBody, LeadUpgradeBody };
+export const purchaseMembershipValidator = zValidator('json', purchaseMembershipSchema);
+export type { LeadBody, ExternalFormBody, EventLinkBody, LeadUpgradeBody, PurchaseMembershipBody };
 export { externalFormSchema };

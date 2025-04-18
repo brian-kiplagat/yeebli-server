@@ -32,6 +32,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  MEMBERSHIP_ALREADY_PURCHASED: 'You have already purchased this membership',
   MEMBERSHIP_REQUIRED: 'Membership is required. Please add at least one membership to the event',
   INVALID_USER_ID: 'Ops, we could not find the user you are looking for. Confirm the user id and try again.',
   TEAM_NOT_FOUND: 'Ops, we could not find the team you are looking for. Confirm the team id and try again.',

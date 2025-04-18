@@ -12,6 +12,7 @@ import {
   type EventLinkBody,
   type LeadBody,
   type LeadUpgradeBody,
+  PurchaseMembershipBody,
   externalFormSchema,
 } from "../validator/lead.ts";
 import {
@@ -284,8 +285,6 @@ export class LeadController {
             contact.stripe_customer_id = stripeCustomer.id;
           }
 
-          
-
           return c.json({
             isAllowed: false,
             message: "Payment required to access this event",
@@ -294,7 +293,6 @@ export class LeadController {
             phone: lead.phone,
             id: lead.id,
             setupPayments: true,
-           
           });
         }
       }
@@ -336,7 +334,8 @@ export class LeadController {
       }
 
       // If event has membership requirement and lead hasn't paid
-      if (event.memberships.some(
+      if (
+        event.memberships.some(
           (membership) =>
             membership.membership &&
             !lead.membership_active &&
@@ -552,6 +551,44 @@ export class LeadController {
       });
     } catch (error) {
       //logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public purchaseMembership = async (c: Context) => {
+    try {
+      const body: PurchaseMembershipBody = await c.req.json();
+      const { event_id, membership_id, token, email } = body;
+
+      const event = await this.eventService.getEvent(event_id);
+      if (!event) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+
+      const membership =
+        await this.membershipService.getMembership(membership_id);
+      if (!membership) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+
+      const lead = await this.service.findByEventIdAndToken(
+        event_id,
+        token
+      );
+      if (!lead) {
+        return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
+      }
+
+      if (lead.membership_active) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_ALREADY_PURCHASED);
+      }
+
+      return c.json({
+        success: true,
+        message: "Membership purchased successfully",
+      });
+    } catch (error) {
+      logger.error(error);
       return serveInternalServerError(c, error);
     }
   };
