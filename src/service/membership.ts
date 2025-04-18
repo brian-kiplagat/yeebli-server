@@ -60,7 +60,26 @@ export class MembershipService {
     query?: MembershipQuery,
   ): Promise<{ plans: Membership[]; total: number }> {
     try {
-      return await this.repository.findByUserId(userId, query);
+      const result = await this.repository.findByUserId(userId, query);
+
+      // Group dates by membership
+      const membershipMap = new Map<number, Membership>();
+      result.plans.forEach(({ membership, date }) => {
+        if (!membershipMap.has(membership.id)) {
+          membershipMap.set(membership.id, { ...membership, dates: [] });
+        }
+        if (date) {
+          const membershipObj = membershipMap.get(membership.id);
+          if (membershipObj?.dates) {
+            membershipObj.dates.push(date);
+          }
+        }
+      });
+
+      return {
+        plans: Array.from(membershipMap.values()),
+        total: result.total,
+      };
     } catch (error) {
       logger.error('Failed to get memberships by user:', error);
       throw error;

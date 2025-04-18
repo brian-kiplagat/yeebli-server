@@ -69,8 +69,12 @@ export class MembershipRepository {
     }
 
     const plans = await db
-      .select()
+      .select({
+        membership: memberships,
+        date: membershipDates,
+      })
       .from(memberships)
+      .leftJoin(membershipDates, eq(membershipDates.membership_id, memberships.id))
       .where(and(...whereConditions))
       .limit(limit)
       .offset(offset)

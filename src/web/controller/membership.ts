@@ -122,7 +122,14 @@ export class MembershipController {
       }
 
       const body: UpdateMembershipBody = await c.req.json();
-      await this.service.updateMembership(planId, body);
+      const { name, description, price, payment_type, price_point } = body;
+      await this.service.updateMembership(planId, {
+        name,
+        description,
+        price,
+        payment_type,
+        price_point,
+      });
 
       return c.json({ message: 'Membership updated successfully' });
     } catch (error) {

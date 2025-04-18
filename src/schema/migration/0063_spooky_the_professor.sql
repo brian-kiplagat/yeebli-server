@@ -1,0 +1,2 @@
+ALTER TABLE `membership_dates` ADD `user_id` int NOT NULL;--> statement-breakpoint
+ALTER TABLE `membership_dates` ADD CONSTRAINT `membership_dates_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE no action ON UPDATE no action;

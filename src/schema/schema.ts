@@ -356,7 +356,9 @@ export type Lead = typeof leadSchema.$inferSelect & {
   membership?: Membership | null;
 };
 
-export type Membership = typeof memberships.$inferSelect;
+export type Membership = typeof memberships.$inferSelect & {
+  dates?: (typeof membershipDates.$inferSelect)[];
+};
 export type NewMembership = typeof memberships.$inferInsert;
 export type MembershipDate = typeof membershipDates.$inferSelect;
 export type NewMembershipDate = typeof membershipDates.$inferInsert;
