@@ -160,7 +160,7 @@ export class LeadController {
         if (!event) {
           return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
         }
-        const booking = await this.bookingService.create({
+        await this.bookingService.create({
           event_id: body.event_id,
           date_id: body.event_date_id,
           lead_id: lead[0].id,
@@ -180,7 +180,7 @@ export class LeadController {
           }
         }
         const paid_event = event.memberships.some(
-          (membership) => membership.membership?.name.trim() != 'Free',
+          (membership) => membership.membership?.name.trim() !== 'Free',
         )
           ? true
           : false;
@@ -230,22 +230,14 @@ export class LeadController {
           (membership) =>
             membership.membership &&
             !lead.membership_active &&
-            membership.membership.name.trim() != 'Free',
+            membership.membership.name.trim() !== 'Free',
         )
       ) {
         const host = await this.userService.find(lead.host_id);
         if (!host) {
           return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
         }
-        let successUrl = '';
-        const currentTimestamp = Math.floor(Date.now() / 1000);
-        if (event.event_type === 'live_venue') {
-          successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-        } else if (event.event_type === 'live_video_call') {
-          successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-        } else if (event.event_type === 'prerecorded') {
-          successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
-        }
+
         const contact = await this.contactService.findByEmail(lead.email || '');
         if (!contact) {
           return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
@@ -312,7 +304,7 @@ export class LeadController {
           (membership) =>
             membership.membership &&
             !lead.membership_active &&
-            membership.membership.name.trim() != 'Free',
+            membership.membership.name.trim() !== 'Free',
         )
       ) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_ACTIVE);
@@ -420,7 +412,7 @@ export class LeadController {
       const createdLead = await this.service.create(lead);
       //also create a booking for this event
       if (validatedData.registered_date && validatedData.event_id) {
-        const booking = await this.bookingService.create({
+        await this.bookingService.create({
           event_id: validatedData.event_id,
           date_id: Number(validatedData.registered_date),
           lead_id: createdLead[0].id,
@@ -442,7 +434,7 @@ export class LeadController {
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${validatedData.lead_form_email}`;
 
       const paid_event = event.memberships.some(
-        (membership) => membership.membership?.name.trim() != 'Free',
+        (membership) => membership.membership?.name.trim() !== 'Free',
       )
         ? true
         : false;
@@ -510,7 +502,7 @@ export class LeadController {
   public purchaseMembership = async (c: Context) => {
     try {
       const body: PurchaseMembershipBody = await c.req.json();
-      const { event_id, membership_id, token, email } = body;
+      const { event_id, membership_id, token } = body;
 
       const event = await this.eventService.getEvent(event_id);
       if (!event) {

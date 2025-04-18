@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
-
 import { encrypt, verify } from '../lib/encryption.js';
 import env from '../lib/env.js';
 import type { ContactRepository } from '../repository/contact.ts';
@@ -54,7 +52,7 @@ export class ContactService {
     const hashedPassword = encrypt(data.password);
     const emailToken = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const contact = await this.repository.create({
+    await this.repository.create({
       ...data,
       password: hashedPassword,
       email_token: emailToken,

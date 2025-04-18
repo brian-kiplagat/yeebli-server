@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import type { Context } from 'hono';
 
-import env from '../../lib/env.ts';
 import { logger } from '../../lib/logger.js';
 import type { SubscriptionRepository } from '../../repository/subscription.js';
 import { EventService } from '../../service/event.ts';

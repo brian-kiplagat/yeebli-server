@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, like } from 'drizzle-orm';
+import { and, asc, eq, like } from 'drizzle-orm';
 
 import { db } from '../lib/database.ts';
 import type { Membership, NewMembership } from '../schema/schema.ts';

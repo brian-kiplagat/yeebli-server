@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 
 import { verify } from '../../lib/encryption.ts';
-import { encode, type JWTPayload } from '../../lib/jwt.js';
+import { encode } from '../../lib/jwt.js';
 import { logger } from '../../lib/logger.js';
 import type { ContactService } from '../../service/contact.js';
 import { PaymentService } from '../../service/payment.ts';

@@ -1,4 +1,4 @@
-import { and, desc, eq, like } from 'drizzle-orm';
+import { and, eq, like } from 'drizzle-orm';
 
 import { db } from '../lib/database.ts';
 import {

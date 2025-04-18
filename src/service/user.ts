@@ -51,15 +51,6 @@ export class UserService {
         ...additionalFields,
       });
 
-      //create a free membership plan for the user
-      const membership = await this.membershipService.createMembership({
-        name: 'Free',
-        description: 'Free membership plan',
-        price: 0,
-        payment_type: 'one_off',
-        user_id: user[0].id,
-      });
-
       return user;
     } catch (error) {
       console.log(error);

@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or } from 'drizzle-orm';
+import { and, desc, eq, like } from 'drizzle-orm';
 
 import { db } from '../lib/database.js';
 import type { Asset, NewAsset } from '../schema/schema.js';

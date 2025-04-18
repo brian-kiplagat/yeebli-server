@@ -9,7 +9,6 @@ import {
   serial,
   text,
   timestamp,
-  unique,
   varchar,
 } from 'drizzle-orm/mysql-core';
 

@@ -74,12 +74,7 @@ export class S3Service {
     await this.client.send(command);
   }
 
-  async uploadFile(
-    key: string,
-    content: string | Buffer | Readable,
-    contentType: string,
-    assetType: string,
-  ) {
+  async uploadFile(key: string, content: string | Buffer | Readable, contentType: string) {
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,

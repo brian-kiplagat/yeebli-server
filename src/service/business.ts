@@ -1,7 +1,6 @@
 import { logger } from '../lib/logger.js';
 import type { BusinessRepository } from '../repository/business.js';
-import { NewBusiness } from '../schema/schema.ts';
-import { extractExtensionfromS3Url, getContentType } from '../util/string.ts';
+import { getContentType } from '../util/string.ts';
 import type { BusinessBody, BusinessQuery } from '../web/validator/business.ts';
 import type { AssetService } from './asset.js';
 import type { S3Service } from './s3.js';
@@ -109,18 +108,15 @@ export class BusinessService {
         user_id: userId,
       };
 
-      let updatedBusiness;
       if (existingBusiness) {
         // Update existing business
-        updatedBusiness = await this.repository.update(existingBusiness.id, businessData);
+        await this.repository.update(existingBusiness.id, businessData);
       } else {
         // Create business and team in parallel
-        const [createdBusiness, createdTeam] = await Promise.all([
+        await Promise.all([
           this.repository.create(businessData),
           this.teamService.createTeam(business.name, userId),
         ]);
-
-        updatedBusiness = createdBusiness;
       }
 
       // Return business with resolved asset URLs

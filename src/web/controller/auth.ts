@@ -25,13 +25,7 @@ import type {
   ResetPasswordBody,
   UpdateUserDetailsBody,
 } from '../validator/user.js';
-import {
-  ERRORS,
-  MAIL_CONTENT,
-  serveBadRequest,
-  serveInternalServerError,
-  serveUnauthorized,
-} from './resp/error.js';
+import { ERRORS, MAIL_CONTENT, serveBadRequest, serveInternalServerError } from './resp/error.js';
 import { serveData } from './resp/resp.js';
 import { serializeUser } from './serializer/user.js';
 export class AuthController {

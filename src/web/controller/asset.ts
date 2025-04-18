@@ -1,5 +1,4 @@
 import type { Context } from 'hono';
-import { z } from 'zod';
 
 import { logger } from '../../lib/logger.js';
 import type { AssetService } from '../../service/asset.js';

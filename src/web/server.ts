@@ -28,7 +28,6 @@ import { CallbackService } from '../service/callback.ts';
 import { ContactService } from '../service/contact.ts';
 import { EventService } from '../service/event.ts';
 import { GoogleService } from '../service/google.js';
-import { HLSService } from '../service/hls.js';
 import { LeadService } from '../service/lead.js';
 import { MembershipService } from '../service/membership.ts';
 import { PaymentService } from '../service/payment.ts';
@@ -48,7 +47,6 @@ import { CallbackController } from './controller/callback.ts';
 import { ContactController } from './controller/contact.ts';
 import { EventController } from './controller/event.ts';
 import { GoogleController } from './controller/google.js';
-import { HLSController } from './controller/hls.js';
 import { LeadController } from './controller/lead.ts';
 import { MembershipController } from './controller/membership.ts';
 import { ERRORS, serveInternalServerError, serveNotFound } from './controller/resp/error.js';
@@ -68,11 +66,9 @@ import {
   upsertEventDateValidator,
 } from './validator/event.ts';
 import { eventQueryValidator } from './validator/event.ts';
-import { hlsUploadValidator } from './validator/hls.ts';
 import {
   eventLinkValidator,
   externalFormValidator,
-  leadUpgradeValidator,
   leadValidator,
   purchaseMembershipValidator,
   updateLeadValidator,
@@ -99,7 +95,6 @@ import {
 export class Server {
   private app: Hono;
   private worker?: Worker;
-  private hlsWorker?: Worker;
 
   constructor(app: Hono) {
     this.app = app;
@@ -154,7 +149,6 @@ export class Server {
     const membershipService = new MembershipService(membershipRepo);
     const bookingService = new BookingService(bookingRepo);
     const assetService = new AssetService(assetRepo, s3Service);
-    const hlsService = new HLSService(s3Service, assetService);
 
     const userService = new UserService(userRepo, stripeService, membershipService);
     const subscriptionService = new SubscriptionService(
@@ -204,7 +198,7 @@ export class Server {
       eventService,
       leadService,
     );
-    const hlsController = new HLSController(hlsService, userService);
+
     const stripeController = new StripeController(
       stripeService,
       userService,
@@ -242,7 +236,6 @@ export class Server {
     this.registerAdminRoutes(api, adminController);
     this.registerS3Routes(api, s3Controller);
     this.registerAssetRoutes(api, assetController, teamService);
-    this.registerHLSRoutes(api, hlsController);
     this.registerStripeRoutes(api, stripeController);
     this.registerSubscriptionRoutes(api, subscriptionController);
     this.registerBookingRoutes(api, bookingCtrl);
@@ -373,15 +366,6 @@ export class Server {
     asset.delete('/:id', assetCtrl.deleteAsset);
 
     api.route('/asset', asset);
-  }
-
-  private registerHLSRoutes(api: Hono, hlsCtrl: HLSController) {
-    const hls = new Hono();
-    const authCheck = jwt({ secret: env.SECRET_KEY });
-
-    hls.post('/upload', authCheck, hlsUploadValidator, hlsCtrl.upload);
-
-    api.route('/hls', hls);
   }
 
   private registerStripeRoutes(api: Hono, stripeCtrl: StripeController) {
@@ -540,7 +524,6 @@ export class Server {
 
   public async shutDownWorker() {
     await this.worker?.close();
-    await this.hlsWorker?.close();
     await connection.quit();
   }
 }

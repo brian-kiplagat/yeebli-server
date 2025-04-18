@@ -217,7 +217,7 @@ export class AdminController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
       const result = await this.userService.delete(Number(id));
-      return c.json({ message: 'User deleted successfully' });
+      return c.json({ message: 'User deleted successfully', result });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

@@ -88,7 +88,7 @@ export class SubscriptionService {
     subscriptionId: string,
   ) {
     try {
-      const [subscription, user] = await Promise.all([
+      const [subscription] = await Promise.all([
         this.stripeService.cancelSubscription(subscriptionId),
         this.userService.update(userId, {
           subscription_status: 'canceled',

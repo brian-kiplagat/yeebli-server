@@ -1,7 +1,7 @@
 import env from '../lib/env.ts';
 import { logger } from '../lib/logger.ts';
 import type { TeamRepository } from '../repository/team.ts';
-import type { TeamMember, User } from '../schema/schema.ts';
+import type { User } from '../schema/schema.ts';
 import { sendTransactionalEmail } from '../task/sendWelcomeEmail.ts';
 import { generateSecurePassword } from '../util/string.ts';
 import type { TeamQuery } from '../web/validator/team.ts';
@@ -74,7 +74,7 @@ export class TeamService {
       if (!user) {
         // Create user with default password (they'll need to reset it)
         const tempPassword = generateSecurePassword(9);
-        const newUserID = await this.userService.create(
+        await this.userService.create(
           invitation.invitee_email.split('@')[0], // Use email prefix as name
           invitation.invitee_email,
           tempPassword, // User will need to reset this

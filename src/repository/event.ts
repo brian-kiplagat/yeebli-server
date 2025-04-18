@@ -1,5 +1,4 @@
 import { and, desc, eq, inArray, like, or } from 'drizzle-orm';
-import { number } from 'zod';
 
 import { db } from '../lib/database.js';
 import type { Event, NewEvent, NewEventDate } from '../schema/schema.js';
