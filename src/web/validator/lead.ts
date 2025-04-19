@@ -75,6 +75,7 @@ const purchaseMembershipSchema = z.object({
   membership_id: z.number().min(1, 'Membership ID is required'),
   token: z.string().min(1, 'Token is required'),
   email: z.string().email('Invalid email address'),
+  dates: z.array(z.number()).min(1, 'At least one date is required'),
 });
 
 type LeadUpgradeBody = z.infer<typeof leadUpgradeSchema>;

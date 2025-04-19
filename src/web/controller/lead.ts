@@ -533,6 +533,10 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }
 
+      if (!body.dates || body.dates.length < 1) {
+        return serveBadRequest(c, 'At least one date is required');
+      }
+
       const membership = await this.membershipService.getMembership(membership_id);
       if (!membership) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
@@ -561,6 +565,13 @@ export class LeadController {
       if (!contact) {
         return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
       }
+      let price = 0;
+      //CALCULAT PRICE
+      if (membership.billing === 'per-day') {
+        price = membership.price * body.dates.length;
+      } else if (membership.billing === 'package') {
+        price = membership.price;
+      }
 
       if (!contact.stripe_customer_id) {
         const stripeCustomer = await this.stripeService.createCustomer(contact.email);
@@ -587,7 +598,7 @@ export class LeadController {
           success_url: successUrl,
           cancel_url: `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=cancel`,
           hostStripeAccountId: host.stripe_account_id,
-          price: membership.price,
+          price: price,
           eventName: event.event_name,
           membershipName: membership.name,
           membershipId: String(membership.id),
