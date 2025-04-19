@@ -36,17 +36,17 @@ const updateLeadSchema = leadSchema.partial();
 
 // New validator for external form submissions
 const externalFormSchema = z.object({
-  lead_form_name: z
+  name: z
     .string()
     .min(1, 'Name is required')
     .max(256, 'Name is too long')
     .transform((val) => val.trim()),
-  lead_form_email: z
+  email: z
     .string()
     .email('Invalid email address')
     .max(256, 'Email is too long')
     .transform((val) => val.toLowerCase().trim()),
-  lead_form_phone: z.string().refine(
+  phone: z.string().refine(
     (phone) => {
       try {
         return isValidPhoneNumber(phone);
@@ -59,7 +59,6 @@ const externalFormSchema = z.object({
     },
   ),
   event_id: z.string().transform((val) => Number.parseInt(val, 10)),
-  date_id: z.string().transform((val) => Number.parseInt(val, 10)),
   membership_id: z.string().transform((val) => Number.parseInt(val, 10)),
   host_id: z.string().transform((val) => Number.parseInt(val, 10)),
   'cf-turnstile-response': z.string().min(1, 'Turnstile response is required'),
