@@ -520,9 +520,9 @@ export class LeadController {
 
       const extension =
         membership.billing === 'per-day'
-          ? `for ${body.dates.length} days @ ${membership.price} GBP per day`
+          ? `${body.dates.length} days of access – ${membership.price} GBP per day`
           : membership.billing === 'package'
-            ? `as package payment`
+            ? `Multi-Day Access – One Easy Payment`
             : '';
 
       if (!contact.stripe_customer_id) {
