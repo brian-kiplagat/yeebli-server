@@ -71,7 +71,7 @@ const ERRORS = {
   AUTH_FAILED: 'Authentication failed',
   NO_AUTHORIZATION_CODE: 'No authorization code provided',
   USER_EXISTS: 'User already exists',
-  USER_NOT_FOUND: 'User not found',
+  USER_NOT_FOUND: 'We cannot find the user you are looking for',
   INVALID_TOKEN: 'Ops, your code is invalid, please try again',
   LEAD_NOT_FOUND: 'Ops, this lead does not exist, please check',
   EVENT_NOT_FOUND: 'Ops, this event does not exist, please check',

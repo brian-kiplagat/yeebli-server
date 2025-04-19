@@ -178,7 +178,7 @@ export class LeadController {
         type: 'conjunction',
       });
       const formattedDates = membershipDates.map((date) =>
-        formatDateToLocale(date.date, 'Europe/London'),
+        formatDateToLocale(new Date(Number(date.date) * 1000), 'Europe/London'),
       );
       const eventDate = formatter.format(formattedDates);
 
@@ -456,8 +456,9 @@ export class LeadController {
         style: 'long',
         type: 'conjunction',
       });
-      const formattedDates =
-        membership.dates?.map((date) => formatDateToLocale(date.date, 'Europe/London')) || [];
+      const formattedDates = membershipDates.map((date) =>
+        formatDateToLocale(new Date(Number(date.date) * 1000), 'Europe/London'),
+      );
       const eventDate = formatter.format(formattedDates);
 
       const bodyText =
@@ -543,7 +544,7 @@ export class LeadController {
       }
 
       //check if host has setup payments
-      const host = await this.userService.find(lead.host_id);
+      const host = await this.userService.find(event.host_id);
       if (!host) {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
