@@ -245,7 +245,17 @@ export class EventRepository {
       .where(eq(eventMembershipSchema.event_id, eventId));
   }
 
-  public async deleteEventMemberships(eventId: number) {
+  public async deleteEventMemberships(eventId: number, membershipIds?: number[]) {
+    if (membershipIds) {
+      return db
+        .delete(eventMembershipSchema)
+        .where(
+          and(
+            eq(eventMembershipSchema.event_id, eventId),
+            inArray(eventMembershipSchema.membership_id, membershipIds),
+          ),
+        );
+    }
     return db.delete(eventMembershipSchema).where(eq(eventMembershipSchema.event_id, eventId));
   }
 

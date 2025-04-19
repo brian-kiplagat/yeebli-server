@@ -132,10 +132,27 @@ export class EventService {
     event: Omit<Partial<Event>, 'memberships'> & { memberships?: number[] },
   ): Promise<void> {
     const { memberships, ...rest } = event;
+
     if (memberships) {
-      await this.repository.deleteEventMemberships(id);
-      await this.repository.addMemberships(id, memberships);
+      // Get current memberships
+      const currentMemberships = await this.repository.findMembershipsByEventId(id);
+      const currentMembershipIds = currentMemberships.map((m) => m.membership_id);
+
+      // Find memberships to add and remove
+      const membershipsToAdd = memberships.filter((id) => !currentMembershipIds.includes(id));
+      const membershipsToRemove = currentMembershipIds.filter((id) => !memberships.includes(id));
+
+      // Remove memberships that are no longer needed
+      if (membershipsToRemove.length > 0) {
+        await this.repository.deleteEventMemberships(id, membershipsToRemove);
+      }
+
+      // Add new memberships
+      if (membershipsToAdd.length > 0) {
+        await this.repository.addMemberships(id, membershipsToAdd);
+      }
     }
+
     await this.repository.update(id, rest);
   }
 
