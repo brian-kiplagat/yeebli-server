@@ -348,7 +348,7 @@ export class StripeController {
           const lead = await this.leadService.find(Number.parseInt(leadId));
           const { eventId, membershipId, dates } = session.metadata;
           //get the number array of dates
-          const dateArray = dates.split(',').map(Number);
+          const date_ids = dates.split(',').map(Number);
           const event = await this.eventService.getEvent(Number.parseInt(eventId));
           if (lead) {
             await this.leadService.update(lead.id, {
@@ -362,10 +362,10 @@ export class StripeController {
 
             //get membership dates
             const membershipDates =
-              (await this.membershipService.getMultipleMembershipDates(dateArray)) || [];
+              (await this.membershipService.getMultipleMembershipDates(date_ids)) || [];
             //if not dates error
             if (!membershipDates || membershipDates.length === 0) {
-              logger.error(`XXXXXX - No DATES found for lead ${leadId} with dates ${dateArray}`);
+              logger.error(`XXXXXX - No DATES found for lead ${leadId} with dates ${date_ids}`);
             }
             //get the event dates
             const formatter = new Intl.ListFormat('en', {

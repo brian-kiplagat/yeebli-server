@@ -122,9 +122,6 @@ export class MembershipRepository {
   }
 
   public async getMultipleMembershipDates(dates: number[]) {
-    return await db
-      .select()
-      .from(membershipDates)
-      .where(inArray(membershipDates.date, dates.map(String)));
+    return await db.select().from(membershipDates).where(inArray(membershipDates.id, dates));
   }
 }
