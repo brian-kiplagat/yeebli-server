@@ -32,7 +32,7 @@ export class LeadController {
   private bookingService: BookingService;
   private contactService: ContactService;
   private paymentService: PaymentService;
-  private membeshipService: MembershipService;
+
   constructor(
     service: LeadService,
     userService: UserService,
@@ -43,7 +43,6 @@ export class LeadController {
     bookingService: BookingService,
     contactService: ContactService,
     paymentService: PaymentService,
-    membeshipService: MembershipService,
   ) {
     this.service = service;
     this.userService = userService;
@@ -54,7 +53,6 @@ export class LeadController {
     this.bookingService = bookingService;
     this.contactService = contactService;
     this.paymentService = paymentService;
-    this.membeshipService = membeshipService;
   }
 
   private async getUser(c: Context) {
@@ -167,7 +165,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
       //get the membership dates
-      const membershipDates = await this.membeshipService.getMembershipDates(body.membership_id);
+      const membershipDates = await this.membershipService.getMembershipDates(body.membership_id);
       //if not dates error
       if (!membershipDates) {
         return serveBadRequest(c, 'We cant find any dates for this membership plan');
@@ -309,9 +307,15 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
       }
 
+      //get the event memberships
+      const eventMemberships = await this.membershipService.getEventMemberships(body.event_id);
+      if (!eventMemberships) {
+        return serveBadRequest(c, 'Could not find membership for this event');
+      }
+
       // If event has membership requirement and lead hasn't paid
       if (
-        event.memberships.some(
+        eventMemberships.some(
           (membership) =>
             membership.membership &&
             !lead.membership_active &&
@@ -435,7 +439,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
       //get the membership dates
-      const membershipDates = await this.membeshipService.getMembershipDates(body.membership_id);
+      const membershipDates = await this.membershipService.getMembershipDates(body.membership_id);
       //if not dates error
       if (!membershipDates) {
         return serveBadRequest(c, 'We cant find any dates for this membership plan');

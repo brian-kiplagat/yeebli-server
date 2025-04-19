@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "27742f60-6421-4924-8788-ca79e4fca1d6",
-  "prevId": "e5918e38-a436-4f28-85ae-63b521e682d8",
+  "id": "aaa97ec4-45ec-4c87-86e1-a711d58971fa",
+  "prevId": "27742f60-6421-4924-8788-ca79e4fca1d6",
   "tables": {
     "assets": {
       "name": "assets",
@@ -1124,6 +1124,14 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'standalone'"
+        },
+        "billing": {
+          "name": "billing",
+          "type": "enum('per-day','package')",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'per-day'"
         },
         "created_at": {
           "name": "created_at",

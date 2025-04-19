@@ -110,4 +110,15 @@ export class MembershipRepository {
   public async deleteMembershipDate(dateId: number) {
     return await db.delete(membershipDates).where(eq(membershipDates.id, dateId));
   }
+
+  public async getEventMemberships(eventId: number) {
+    return await db
+      .select({
+        membership: memberships,
+        date: membershipDates,
+      })
+      .from(eventMembershipSchema)
+      .leftJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
+      .where(eq(eventMembershipSchema.event_id, eventId));
+  }
 }

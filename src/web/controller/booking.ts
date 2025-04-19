@@ -27,12 +27,11 @@ export class BookingController {
       }
 
       const body = await c.req.json();
-      const { event_id, date_id, lead_id } = body;
+      const { event_id, lead_id } = body;
 
       // Validate the booking
       const booking = await this.bookingService.create({
         event_id,
-        date_id,
         lead_id,
         host_id: user.id,
       });

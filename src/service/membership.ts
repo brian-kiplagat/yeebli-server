@@ -112,4 +112,8 @@ export class MembershipService {
       throw error;
     }
   }
+
+  public async getEventMemberships(eventId: number) {
+    return await this.repository.getEventMemberships(eventId);
+  }
 }
