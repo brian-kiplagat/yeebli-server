@@ -216,7 +216,7 @@ export const memberships = mysqlTable('memberships', {
   description: text('description'),
   price: int('price').notNull(),
   payment_type: mysqlEnum('payment_type', ['one_off', 'recurring']).default('one_off'),
-  price_point: mysqlEnum('price_point', ['ticket', 'course']).default('ticket'),
+  price_point: mysqlEnum('price_point', ['standalone', 'course']).default('standalone'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
   user_id: int('user_id')

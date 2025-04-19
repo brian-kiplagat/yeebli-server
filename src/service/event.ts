@@ -29,7 +29,7 @@ type EventWithAsset = Event & {
       description: string | null;
       price: number;
       payment_type: 'one_off' | 'recurring' | null;
-      price_point: 'ticket' | 'course' | null;
+      price_point: 'standalone' | 'course' | null;
     } | null;
   }>;
 };

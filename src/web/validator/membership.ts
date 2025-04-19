@@ -6,7 +6,7 @@ const membershipSchema = z.object({
   description: z.string(),
   price: z.number().min(0),
   payment_type: z.enum(['one_off', 'recurring']).default('one_off'),
-  price_point: z.enum(['ticket', 'course']).default('ticket'),
+  price_point: z.enum(['standalone', 'course']).default('standalone'),
   dates: z.array(z.string()).min(1),
 });
 
