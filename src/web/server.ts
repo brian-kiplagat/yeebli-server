@@ -177,6 +177,7 @@ export class Server {
       bookingService,
       contactService,
       paymentService,
+      membershipService,
     );
     const eventController = new EventController(eventService, userService, leadService);
     const adminController = new AdminController(

@@ -14,13 +14,8 @@ export class BookingRepository {
       where: eq(bookings.lead_id, leadId),
       with: {
         event: true,
-        date: true,
       },
     });
-  }
-
-  public async findByDateId(dateId: number) {
-    return db.select().from(bookings).where(eq(bookings.date_id, dateId));
   }
 
   public async findByUserIdandLeadId(userId: number, leadId: number) {
