@@ -143,7 +143,12 @@ export class LeadController {
       }
 
       const body: LeadBody = await c.req.json();
-
+      if (!body.membership_id) {
+        return serveBadRequest(c, 'Please select a ticket or membership plan');
+      }
+      if (!body.event_id) {
+        return serveBadRequest(c, 'Please select an event');
+      }
       //token is a random 6 digit number
       const token = Math.floor(100000 + Math.random() * 900000).toString();
       const lead = await this.service.create({
@@ -156,12 +161,6 @@ export class LeadController {
         return serveBadRequest(c, 'Ops we cant find that lead');
       }
 
-      if (!body.membership_id) {
-        return serveBadRequest(c, 'Please select a ticket or membership plan');
-      }
-      if (!body.event_id) {
-        return serveBadRequest(c, 'Please select an event');
-      }
       //get the membership
       const membership = await this.membershipService.getMembership(body.membership_id);
       if (!membership) {
@@ -396,6 +395,13 @@ export class LeadController {
         return serveBadRequest(c, 'Invalid Turnstile token');
       }
 
+      if (!body.membership_id) {
+        return serveBadRequest(c, 'Please select a ticket or membership plan');
+      }
+      if (!body.event_id) {
+        return serveBadRequest(c, 'Please select an event');
+      }
+
       const token = Math.floor(100000 + Math.random() * 900000).toString();
       const event = await this.eventService.getEvent(body.event_id);
       if (!event) {
@@ -423,12 +429,6 @@ export class LeadController {
         return serveBadRequest(c, 'Ops we cant find that lead');
       }
 
-      if (!body.membership_id) {
-        return serveBadRequest(c, 'Please select a ticket or membership plan');
-      }
-      if (!body.event_id) {
-        return serveBadRequest(c, 'Please select an event');
-      }
       //get the membership
       const membership = await this.membershipService.getMembership(body.membership_id);
       if (!membership) {
