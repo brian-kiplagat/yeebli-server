@@ -141,11 +141,6 @@ export class LeadController {
 
       const body: LeadBody = await c.req.json();
 
-      if (body.event_id) {
-        if (!body.date_id) {
-          return serveBadRequest(c, ERRORS.DATE_ID_REQUIRED);
-        }
-      }
       //token is a random 6 digit number
       const token = Math.floor(100000 + Math.random() * 900000).toString();
       const lead = await this.service.create({
@@ -154,47 +149,56 @@ export class LeadController {
         token,
         membership_level: null,
       });
-      if (lead && body.event_id && body.date_id && body.membership_id) {
-        //also create a booking for this event
-        const event = await this.eventService.getEvent(body.event_id);
-        if (!event) {
-          return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
-        }
-        await this.bookingService.create({
-          event_id: body.event_id,
-          date_id: body.date_id,
-          lead_id: lead[0].id,
-          passcode: token,
-          host_id: event.host_id,
-        });
-
-        const membership = await this.membershipService.getMembership(body.membership_id);
-        if (!membership) {
-          return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
-        }
-
-        const paid_event = membership.price > 0;
-        //send confirmation email to the lead
-        const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
-
-        const eventDate = membership.dates
-          ?.map((date) => formatDateToLocale(date.date, 'Europe/London'))
-          .join(', ');
-
-        const bodyText =
-          event.event_type === 'live_venue'
-            ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
-            : event.event_type === 'live_video_call'
-              ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
-              : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} to join the event.`;
-
-        sendTransactionalEmail(body.email, body.name, 1, {
-          subject: `${event.event_name}`,
-          title: `${event.event_name} - You've been invited`,
-          subtitle: `You've been invited to join us`,
-          body: bodyText,
-        });
+      if (!lead) {
+        return serveBadRequest(c, 'Lead not found');
       }
+
+      if (!body.membership_id) {
+        return serveBadRequest(c, 'Membership not found');
+      }
+      if (!body.event_id) {
+        return serveBadRequest(c, 'Event not found');
+      }
+
+      //also create a booking for this event
+      const event = await this.eventService.getEvent(body.event_id);
+      if (!event) {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+      }
+      await this.bookingService.create({
+        event_id: body.event_id,
+
+        lead_id: lead[0].id,
+        passcode: token,
+        host_id: event.host_id,
+      });
+
+      const membership = await this.membershipService.getMembership(body.membership_id);
+      if (!membership) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+
+      const paid_event = membership.price > 0;
+      //send confirmation email to the lead
+      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
+
+      const eventDate = membership.dates
+        ?.map((date) => formatDateToLocale(date.date, 'Europe/London'))
+        .join(', ');
+
+      const bodyText =
+        event.event_type === 'live_venue'
+          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
+          : event.event_type === 'live_video_call'
+            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
+            : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} to join the event.`;
+
+      sendTransactionalEmail(body.email, body.name, 1, {
+        subject: `${event.event_name}`,
+        title: `${event.event_name} - You've been invited`,
+        subtitle: `You've been invited to join us`,
+        body: bodyText,
+      });
 
       return c.json(lead, 201);
     } catch (error) {
@@ -408,7 +412,6 @@ export class LeadController {
       if (body.date_id && body.event_id) {
         await this.bookingService.create({
           event_id: body.event_id,
-          date_id: body.date_id,
           lead_id: createdLead[0].id,
           passcode: token,
           host_id: event.host_id,

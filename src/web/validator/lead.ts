@@ -18,7 +18,6 @@ const leadSchema = z.object({
     },
   ),
   event_id: z.number().min(0, 'Event ID is required').optional(),
-  date_id: z.number().min(0, 'Date ID is required').optional(),
   membership_id: z.number().min(0, 'Membership ID is required').optional(),
   membership_level: z.enum(['Silver', 'Gold', 'Platinum']),
   membership_active: z.boolean().default(false),

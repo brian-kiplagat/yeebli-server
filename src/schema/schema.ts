@@ -198,9 +198,7 @@ export const bookings = mysqlTable('bookings', {
   event_id: int('event_id')
     .references(() => eventSchema.id)
     .notNull(),
-  date_id: int('date_id')
-    .references(() => membershipDates.id)
-    .notNull(),
+
   lead_id: int('lead_id')
     .references(() => leadSchema.id)
     .notNull(),
@@ -466,10 +464,6 @@ export const bookingRelations = relations(bookings, ({ one }) => ({
   event: one(eventSchema, {
     fields: [bookings.event_id],
     references: [eventSchema.id],
-  }),
-  date: one(membershipDates, {
-    fields: [bookings.date_id],
-    references: [membershipDates.id],
   }),
   lead: one(leadSchema, {
     fields: [bookings.lead_id],
