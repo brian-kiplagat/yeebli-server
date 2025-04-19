@@ -1,4 +1,4 @@
-import { and, asc, eq, like } from 'drizzle-orm';
+import { and, asc, eq, inArray, like } from 'drizzle-orm';
 
 import { db } from '../lib/database.ts';
 import type { Membership, NewMembership, NewMembershipDate } from '../schema/schema.ts';
@@ -119,5 +119,12 @@ export class MembershipRepository {
       .from(eventMembershipSchema)
       .leftJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
       .where(eq(eventMembershipSchema.event_id, eventId));
+  }
+
+  public async getMultipleMembershipDates(dates: number[]) {
+    return await db
+      .select()
+      .from(membershipDates)
+      .where(inArray(membershipDates.date, dates.map(String)));
   }
 }

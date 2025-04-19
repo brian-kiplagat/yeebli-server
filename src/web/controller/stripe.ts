@@ -5,10 +5,12 @@ import { logger } from '../../lib/logger.js';
 import type { SubscriptionRepository } from '../../repository/subscription.js';
 import { EventService } from '../../service/event.ts';
 import type { LeadService } from '../../service/lead.js';
+import { MembershipService } from '../../service/membership.ts';
 import { PaymentService } from '../../service/payment.ts';
 import type { StripeService } from '../../service/stripe.js';
 import type { UserService } from '../../service/user.js';
 import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
+import { formatDateToLocale } from '../../util/string.ts';
 import { ERRORS, MAIL_CONTENT, serveInternalServerError } from './resp/error.ts';
 import { serveBadRequest } from './resp/error.ts';
 export class StripeController {
@@ -18,6 +20,7 @@ export class StripeController {
   private leadService: LeadService;
   private paymentService: PaymentService;
   private eventService: EventService;
+  private membershipService: MembershipService;
   constructor(
     stripeService: StripeService,
     userService: UserService,
@@ -25,6 +28,7 @@ export class StripeController {
     leadService: LeadService,
     paymentService: PaymentService,
     eventService: EventService,
+    membershipService: MembershipService,
   ) {
     this.stripeService = stripeService;
     this.userService = userService;
@@ -32,6 +36,7 @@ export class StripeController {
     this.leadService = leadService;
     this.paymentService = paymentService;
     this.eventService = eventService;
+    this.membershipService = membershipService;
   }
 
   public createConnectAccount = async (c: Context) => {
@@ -341,25 +346,46 @@ export class StripeController {
           const { leadId } = session.metadata;
           const sessionId = session.id;
           const lead = await this.leadService.find(Number.parseInt(leadId));
-          const { eventId } = session.metadata;
+          const { eventId, membershipId, dates } = session.metadata;
+          //get the number array of dates
+          const dateArray = dates.split(',').map(Number);
           const event = await this.eventService.getEvent(Number.parseInt(eventId));
           if (lead) {
             await this.leadService.update(lead.id, {
               membership_active: true,
-              membership_level: Number.parseInt(session.metadata.membershipId),
+              membership_level: Number.parseInt(membershipId),
             });
             //mark the payment as paid
             await this.paymentService.updatePaymentBySessionId(sessionId, {
               status: 'succeeded',
             });
+
+            //get membership dates
+            const membershipDates =
+              await this.membershipService.getMultipleMembershipDates(dateArray);
+            //if not dates error
+            if (!membershipDates || membershipDates.length === 0) {
+              logger.error(`No membership dates found for lead ${leadId}`);
+              return;
+            }
+            //get the event dates
+            const formatter = new Intl.ListFormat('en', {
+              style: 'long',
+              type: 'conjunction',
+            });
+            const formattedDates = membershipDates.map((date) =>
+              formatDateToLocale(new Date(Number(date.date) * 1000), 'Europe/London'),
+            );
+            const eventDate = formatter.format(formattedDates);
+
             if (lead.email && lead.name) {
               //send welcome email
               const body =
                 event?.event_type === 'live_venue'
-                  ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. The venue is located at ${event?.live_venue_address}. We can't wait to see you there! If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
+                  ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. The venue is located at ${event?.live_venue_address}. We can't wait to see you there! Your ticket is valid for ${eventDate}. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
                   : event?.event_type === 'live_video_call'
-                    ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. You can join the event using this link: ${event?.live_video_url}. We can't wait to see you there! If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
-                    : `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. You can access the event content at any time. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`;
+                    ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. You can join the event using this link: ${event?.live_video_url}. Your ticket is valid for ${eventDate}. We can't wait to see you there! If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
+                    : `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. You can access the event content at any time. Your ticket is valid for ${eventDate}. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`;
 
               sendTransactionalEmail(String(lead.email), String(lead.name), 1, {
                 subject: 'Your Ticket is Confirmed 🎉',

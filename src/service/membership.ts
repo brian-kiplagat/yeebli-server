@@ -116,4 +116,8 @@ export class MembershipService {
   public async getEventMemberships(eventId: number) {
     return await this.repository.getEventMemberships(eventId);
   }
+
+  public async getMultipleMembershipDates(dates: number[]) {
+    return await this.repository.getMultipleMembershipDates(dates);
+  }
 }

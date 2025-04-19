@@ -201,6 +201,7 @@ export class Server {
       leadService,
       paymentService,
       eventService,
+      membershipService,
     );
     const subscriptionController = new SubscriptionController(
       subscriptionService,
