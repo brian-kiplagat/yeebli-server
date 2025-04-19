@@ -115,7 +115,6 @@ export class MembershipRepository {
     return await db
       .select({
         membership: memberships,
-        date: membershipDates,
       })
       .from(eventMembershipSchema)
       .leftJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
