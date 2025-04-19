@@ -13,7 +13,6 @@ import type { StripeService } from '../../service/stripe.ts';
 import type { TurnstileService } from '../../service/turnstile.ts';
 import type { UserService } from '../../service/user.ts';
 import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
-import { formatDateToLocale } from '../../util/string.ts';
 import {
   type EventLinkBody,
   externalFormSchema,
@@ -141,9 +140,6 @@ export class LeadController {
       }
 
       const body: LeadBody = await c.req.json();
-      if (!body.membership_id) {
-        return serveBadRequest(c, 'Please select a ticket or membership plan');
-      }
       if (!body.event_id) {
         return serveBadRequest(c, 'Please select an event');
       }
@@ -159,27 +155,6 @@ export class LeadController {
         return serveBadRequest(c, 'Ops we cant find that lead');
       }
 
-      //get the membership
-      const membership = await this.membershipService.getMembership(body.membership_id);
-      if (!membership) {
-        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
-      }
-      //get the membership dates
-      const membershipDates = await this.membershipService.getMembershipDates(body.membership_id);
-      //if not dates error
-      if (!membershipDates) {
-        return serveBadRequest(c, 'We cant find any dates for this membership plan');
-      }
-      //get the event dates
-      const formatter = new Intl.ListFormat('en', {
-        style: 'long',
-        type: 'conjunction',
-      });
-      const formattedDates = membershipDates.map((date) =>
-        formatDateToLocale(new Date(Number(date.date) * 1000), 'Europe/London'),
-      );
-      const eventDate = formatter.format(formattedDates);
-
       //also create a booking for this event
       const event = await this.eventService.getEvent(body.event_id);
       if (!event) {
@@ -192,17 +167,15 @@ export class LeadController {
         passcode: token,
         host_id: event.host_id,
       });
-
-      const paid_event = membership.price > 0;
       //send confirmation email to the lead
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
       const bodyText =
         event.event_type === 'live_venue'
-          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
+          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Check our website here: ${eventLink} for more information.`
           : event.event_type === 'live_video_call'
-            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
-            : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space. The event is available on ${eventDate}. ${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} to join the event.`;
+            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. Check our website here: ${eventLink} for more information.`
+            : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space. Check our website here: ${eventLink} to join the event.`;
 
       sendTransactionalEmail(body.email, body.name, 1, {
         subject: `${event.event_name}`,
@@ -398,10 +371,6 @@ export class LeadController {
       if (!isValid) {
         return serveBadRequest(c, 'Invalid Turnstile token');
       }
-
-      if (!body.membership_id) {
-        return serveBadRequest(c, 'Please select a ticket or membership plan');
-      }
       if (!body.event_id) {
         return serveBadRequest(c, 'Please select an event');
       }
@@ -433,44 +402,20 @@ export class LeadController {
         return serveBadRequest(c, 'Ops we cant find that lead');
       }
 
-      //get the membership
-      const membership = await this.membershipService.getMembership(body.membership_id);
-      if (!membership) {
-        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
-      }
-      //get the membership dates
-      const membershipDates = await this.membershipService.getMembershipDates(body.membership_id);
-      //if not dates error
-      if (!membershipDates) {
-        return serveBadRequest(c, 'We cant find any dates for this membership plan');
-      }
-
       await this.bookingService.create({
         event_id: body.event_id,
         lead_id: createdLead[0].id,
         passcode: token,
         host_id: event.host_id,
       });
-
-      const paid_event = membership.price > 0;
-      //send confirmation email to the lead
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
-
-      const formatter = new Intl.ListFormat('en', {
-        style: 'long',
-        type: 'conjunction',
-      });
-      const formattedDates = membershipDates.map((date) =>
-        formatDateToLocale(new Date(Number(date.date) * 1000), 'Europe/London'),
-      );
-      const eventDate = formatter.format(formattedDates);
 
       const bodyText =
         event.event_type === 'live_venue'
-          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
+          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Check our website here: ${eventLink} for more information.`
           : event.event_type === 'live_video_call'
-            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} If you need more information, you can check our website here: ${eventLink}.`
-            : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
+            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. Check our website here: ${eventLink} for more information.`
+            : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space. Check our website here: ${eventLink} to join the event.`;
 
       sendTransactionalEmail(body.email, body.name, 1, {
         subject: 'Welcome to the event',

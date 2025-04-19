@@ -18,13 +18,7 @@ const leadSchema = z.object({
     },
   ),
   event_id: z.number().min(0, 'Event ID is required').optional(),
-  membership_id: z.number().min(0, 'Membership ID is required').optional(),
-  membership_level: z.enum(['Silver', 'Gold', 'Platinum']),
-  membership_active: z.boolean().default(false),
-  form_identifier: z.string().min(1, 'Form Identifier is required'),
   host_id: z.number().min(1, 'Host ID is required'),
-  status_identifier: z.enum(['Manual', 'Form', 'Interested', 'Member', 'Inactive Member']),
-  user_id: z.number().optional(),
 });
 
 const leadUpgradeSchema = z.object({
@@ -59,7 +53,6 @@ const externalFormSchema = z.object({
     },
   ),
   event_id: z.string().transform((val) => Number.parseInt(val, 10)),
-  membership_id: z.string().transform((val) => Number.parseInt(val, 10)),
   host_id: z.string().transform((val) => Number.parseInt(val, 10)),
   'cf-turnstile-response': z.string().min(1, 'Turnstile response is required'),
 });
