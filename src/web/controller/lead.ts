@@ -608,9 +608,7 @@ export class LeadController {
         },
       });
 
-      return c.json({
-        checkoutSession,
-      });
+      return c.json(checkoutSession.session);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
