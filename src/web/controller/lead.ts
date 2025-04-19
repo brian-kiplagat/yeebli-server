@@ -154,7 +154,7 @@ export class LeadController {
         token,
         membership_level: null,
       });
-      if (lead && body.event_id && body.date_id) {
+      if (lead && body.event_id && body.date_id && body.membership_id) {
         //also create a booking for this event
         const event = await this.eventService.getEvent(body.event_id);
         if (!event) {
@@ -168,26 +168,25 @@ export class LeadController {
           host_id: event.host_id,
         });
 
-        const paid_event = event.memberships.some(
-          (membership) => membership.membership?.name.trim() !== 'Free',
-        )
-          ? true
-          : false;
+        const membership = await this.membershipService.getMembership(body.membership_id);
+        if (!membership) {
+          return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+        }
+
+        const paid_event = membership.price > 0;
         //send confirmation email to the lead
         const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
-        //get the date_id
-        const dates = await this.eventService.getEventDate(body.date_id);
-        if (!dates) {
-          return serveBadRequest(c, ERRORS.INVALID_DATE);
-        }
-        const eventDate = formatDateToLocale(dates.date, 'Europe/London');
-        //const eventDate = formatDateToLocale  ;
+
+        const eventDate = membership.dates
+          ?.map((date) => formatDateToLocale(date.date, 'Europe/London'))
+          .join(', ');
+
         const bodyText =
           event.event_type === 'live_venue'
             ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
             : event.event_type === 'live_video_call'
               ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} for more information.`
-              : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} to join the event.`;
+              : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Check our website here: ${eventLink} to join the event.`;
 
         sendTransactionalEmail(body.email, body.name, 1, {
           subject: `${event.event_name}`,
@@ -399,11 +398,11 @@ export class LeadController {
         token: token,
         source_url: c.req.header('Referer') || 'direct',
       };
-      //get the date_id
-      const dates = await this.eventService.getEventDate(body.date_id);
-      if (!dates) {
-        return serveBadRequest(c, ERRORS.INVALID_DATE);
+      const membership = await this.membershipService.getMembership(body.membership_id);
+      if (!membership) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
+
       const createdLead = await this.service.create(lead);
       //also create a booking for this event
       if (body.date_id && body.event_id) {
@@ -416,21 +415,20 @@ export class LeadController {
         });
       }
 
-      const eventDate = formatDateToLocale(dates.date, 'Europe/London');
+      const paid_event = membership.price > 0;
+      //send confirmation email to the lead
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.lead_form_email}`;
 
-      const paid_event = event.memberships.some(
-        (membership) => membership.membership?.name.trim() !== 'Free',
-      )
-        ? true
-        : false;
+      const eventDate = membership.dates
+        ?.map((date) => formatDateToLocale(date.date, 'Europe/London'))
+        .join(', ');
 
       const bodyText =
         event.event_type === 'live_venue'
           ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Make sure to arrive on time before ${eventDate} and enjoy the experience in person.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} If you have any questions or need more details, feel free to visit our website: ${eventLink}. We look forward to seeing you there!`
           : event.event_type === 'live_video_call'
             ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. To ensure a smooth experience, we recommend joining a few minutes early before ${eventDate}.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} If you need more information, you can check our website here: ${eventLink}.`
-            : `You've booked a ticket for a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
+            : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space.${paid_event ? ` This is a paid event - please click the link below to reserve your ticket.` : ''} Simply click the link below to join: ${eventLink}. If you have any questions or need assistance, you can always visit our website. Your access passcode is: ${token}. See you there!`;
 
       sendTransactionalEmail(body.lead_form_email, body.lead_form_name, 1, {
         subject: 'Welcome to the event',
