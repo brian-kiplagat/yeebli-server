@@ -159,6 +159,19 @@ export class LeadController {
       if (!body.event_id) {
         return serveBadRequest(c, 'Event not found');
       }
+      //get the membership
+      const membership = await this.membershipService.getMembership(body.membership_id);
+      if (!membership) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+      //if not dates error
+      if (!membership.dates) {
+        return c.json({ membership, error: 'Membership dates not found' }, 400);
+      }
+      //get the event dates
+      const eventDate = membership.dates
+        ?.map((date) => formatDateToLocale(date.date, 'Europe/London'))
+        .join(', ');
 
       //also create a booking for this event
       const event = await this.eventService.getEvent(body.event_id);
@@ -173,18 +186,9 @@ export class LeadController {
         host_id: event.host_id,
       });
 
-      const membership = await this.membershipService.getMembership(body.membership_id);
-      if (!membership) {
-        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
-      }
-
       const paid_event = membership.price > 0;
       //send confirmation email to the lead
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
-
-      const eventDate = membership.dates
-        ?.map((date) => formatDateToLocale(date.date, 'Europe/London'))
-        .join(', ');
 
       const bodyText =
         event.event_type === 'live_venue'
