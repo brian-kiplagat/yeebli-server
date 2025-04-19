@@ -32,6 +32,7 @@ export class LeadController {
   private bookingService: BookingService;
   private contactService: ContactService;
   private paymentService: PaymentService;
+  private membeshipService: MembershipService;
   constructor(
     service: LeadService,
     userService: UserService,
@@ -42,6 +43,7 @@ export class LeadController {
     bookingService: BookingService,
     contactService: ContactService,
     paymentService: PaymentService,
+    membeshipService: MembershipService,
   ) {
     this.service = service;
     this.userService = userService;
@@ -52,6 +54,7 @@ export class LeadController {
     this.bookingService = bookingService;
     this.contactService = contactService;
     this.paymentService = paymentService;
+    this.membeshipService = membeshipService;
   }
 
   private async getUser(c: Context) {
@@ -150,26 +153,28 @@ export class LeadController {
         membership_level: null,
       });
       if (!lead) {
-        return serveBadRequest(c, 'Lead not found');
+        return serveBadRequest(c, 'Ops we cant find that lead');
       }
 
       if (!body.membership_id) {
-        return serveBadRequest(c, 'Membership not found');
+        return serveBadRequest(c, 'Please select a ticket or membership plan');
       }
       if (!body.event_id) {
-        return serveBadRequest(c, 'Event not found');
+        return serveBadRequest(c, 'Please select an event');
       }
       //get the membership
       const membership = await this.membershipService.getMembership(body.membership_id);
       if (!membership) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
+      //get the membership dates
+      const membershipDates = await this.membeshipService.getMembershipDates(body.membership_id);
       //if not dates error
-      if (!membership.dates) {
-        return c.json({ membership, error: 'Membership dates not found' }, 400);
+      if (!membershipDates) {
+        return serveBadRequest(c, 'We cant find any dates for this membership plan');
       }
       //get the event dates
-      const eventDate = membership.dates
+      const eventDate = membershipDates
         ?.map((date) => formatDateToLocale(date.date, 'Europe/London'))
         .join(', ');
 
