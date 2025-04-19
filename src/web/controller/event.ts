@@ -49,6 +49,7 @@ export class EventController {
         return c.json(events);
       }
       const events = await this.service.getEventsByUser(user.id, query);
+      //from the memberships, get the dates for each membership
       return c.json(events);
     } catch (error) {
       logger.error(error);

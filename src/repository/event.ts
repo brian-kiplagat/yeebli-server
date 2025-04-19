@@ -56,14 +56,36 @@ export class EventRepository {
         event_id: eventMembershipSchema.event_id,
         membership_id: eventMembershipSchema.membership_id,
         membership: memberships,
+        dates: membershipDates,
       })
       .from(eventMembershipSchema)
       .innerJoin(memberships, eq(eventMembershipSchema.membership_id, memberships.id))
+      .leftJoin(membershipDates, eq(memberships.id, membershipDates.membership_id))
       .where(eq(eventMembershipSchema.event_id, id));
+
+    // Group dates by membership
+    const membershipsWithDates = eventMemberships.reduce(
+      (acc, em) => {
+        if (!acc[em.membership_id]) {
+          acc[em.membership_id] = {
+            ...em,
+            dates: [],
+          };
+        }
+        if (em.dates) {
+          acc[em.membership_id].dates.push(em.dates);
+        }
+        return acc;
+      },
+      {} as Record<number, any>,
+    );
 
     return {
       ...result[0],
-      memberships: eventMemberships,
+      memberships: Object.values(membershipsWithDates).map((m) => ({
+        ...m.membership,
+        dates: m.dates,
+      })),
     };
   }
 
@@ -114,7 +136,6 @@ export class EventRepository {
     // Map dates and memberships to events
     const eventsWithRelations = events.map((event) => ({
       ...event,
-
       memberships: eventMemberships
         .filter((em) => em.event_id === event.event.id)
         .map((em) => em.membership),
@@ -176,7 +197,6 @@ export class EventRepository {
     // Map dates and memberships to events
     const eventsWithRelations = events.map((event) => ({
       ...event,
-
       memberships: eventMemberships
         .filter((em) => em.event_id === event.event.id)
         .map((em) => em.membership),
@@ -211,10 +231,6 @@ export class EventRepository {
       .where(eq(eventSchema.asset_id, assetId))
       .limit(1);
     return result[0];
-  }
-
-  public async findBookingsByDateId(dateId: number) {
-    return db.select().from(bookings).where(eq(bookings.date_id, dateId));
   }
 
   public async findBookingsByEventId(eventId: number) {
