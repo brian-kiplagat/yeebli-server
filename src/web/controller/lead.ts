@@ -566,7 +566,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.CONTACT_NOT_FOUND);
       }
       let price = 0;
-      //CALCULAT PRICE
+      //CALCULATE PRICE BASED ON BILLING TYPE
       if (membership.billing === 'per-day') {
         price = membership.price * body.dates.length;
       } else if (membership.billing === 'package') {
@@ -603,6 +603,7 @@ export class LeadController {
           membershipName: membership.name,
           membershipId: String(membership.id),
           eventId: String(event.id),
+          dates: body.dates,
         },
       );
       await this.paymentService.createPayment({
@@ -620,6 +621,7 @@ export class LeadController {
           eventName: event.event_name,
           membershipName: membership.name,
           sessionId: checkoutSession.session.id,
+          dates: body.dates,
         },
       });
 

@@ -216,6 +216,7 @@ export class StripeService {
       membershipName: string;
       membershipId: string;
       eventId: string;
+      dates: number[];
     },
   ) {
     try {
@@ -242,6 +243,7 @@ export class StripeService {
           type: 'lead_upgrade',
           eventId: params.eventId,
           membershipId: params.membershipId,
+          dates: String(params.dates),
         },
       };
 
