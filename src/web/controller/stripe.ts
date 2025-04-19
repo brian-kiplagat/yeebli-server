@@ -362,11 +362,10 @@ export class StripeController {
 
             //get membership dates
             const membershipDates =
-              await this.membershipService.getMultipleMembershipDates(dateArray);
+              (await this.membershipService.getMultipleMembershipDates(dateArray)) || [];
             //if not dates error
             if (!membershipDates || membershipDates.length === 0) {
-              logger.error(`No membership dates found for lead ${leadId}`);
-              return;
+              logger.error(`XXXXXX - No DATES found for lead ${leadId} with dates ${dateArray}`);
             }
             //get the event dates
             const formatter = new Intl.ListFormat('en', {
