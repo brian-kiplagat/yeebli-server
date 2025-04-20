@@ -17,9 +17,9 @@ const eventSchema = z.object({
 
 const eventStreamSchema = z.object({
   event_id: z.number(),
-  token: z.string().optional(),
-  email: z.string().email().optional(),
-  isHost: z.boolean().optional(),
+  token: z.string().nullable().optional(),
+  email: z.string().email().nullable().optional(),
+  isHost: z.boolean().nullable().optional(),
 });
 
 export const eventValidator = zValidator('json', eventSchema);
