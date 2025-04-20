@@ -250,7 +250,7 @@ export class EventController {
         return serveBadRequest(c, ERRORS.EVENT_NOT_PRERECORDED);
       }
       if (body.isHost) {
-        return c.json({ event });
+        return c.json({ event, isHost: true });
       }
       if (!token) {
         return serveBadRequest(c, ERRORS.TOKEN_REQUIRED);
@@ -285,7 +285,7 @@ export class EventController {
         )
         .filter(Boolean);
 
-      return c.json({ lead, membership, event, selectedDates });
+      return c.json({ lead, membership, event, selectedDates, isHost: false });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
