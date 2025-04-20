@@ -267,7 +267,12 @@ export class EventController {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
 
-      return c.json({ lead, membership, event });
+      // Map lead's selected dates to full date objects
+      const selectedDates = (lead.dates || [])
+        .map((dateId) => (membership.dates || []).find((date) => date.id === dateId))
+        .filter(Boolean);
+
+      return c.json({ lead, membership, event, selectedDates });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
