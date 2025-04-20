@@ -250,7 +250,11 @@ export class EventController {
         return serveBadRequest(c, ERRORS.EVENT_NOT_PRERECORDED);
       }
       if (body.isHost) {
-        return c.json({ event, isHost: true });
+        // For host, return all dates from all memberships as selected
+        const allDates = (event.memberships as unknown as { dates: { id: number }[] }[]).flatMap(
+          (m) => m.dates || [],
+        );
+        return c.json({ event, isHost: true, selectedDates: allDates });
       }
       if (!token) {
         return serveBadRequest(c, ERRORS.TOKEN_REQUIRED);
