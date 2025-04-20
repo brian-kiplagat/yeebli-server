@@ -267,9 +267,16 @@ export class EventController {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
 
-      // Map lead's selected dates to full date objects
+      // Find the matching membership in event.memberships
+      const matchingMembership = event.memberships.find((m) => m.id === lead.membership_level) as
+        | { dates: { id: number }[] }
+        | undefined;
+
+      // Map lead's selected dates to full date objects from the matching membership
       const selectedDates = (lead.dates || [])
-        .map((dateId) => (membership.dates || []).find((date) => date.id === dateId))
+        .map((dateId) =>
+          (matchingMembership?.dates || []).find((date: { id: number }) => date.id === dateId),
+        )
         .filter(Boolean);
 
       return c.json({ lead, membership, event, selectedDates });
