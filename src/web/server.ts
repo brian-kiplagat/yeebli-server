@@ -59,7 +59,12 @@ import { adminCreateUserValidator } from './validator/admin.ts';
 import { assetQueryValidator } from './validator/asset.ts';
 import { businessQueryValidator, businessValidator } from './validator/business.js';
 import { callbackValidator, updateCallbackValidator } from './validator/callback.ts';
-import { cancelEventValidator, eventValidator, updateEventValidator } from './validator/event.ts';
+import {
+  cancelEventValidator,
+  eventStreamValidator,
+  eventValidator,
+  updateEventValidator,
+} from './validator/event.ts';
 import { eventQueryValidator } from './validator/event.ts';
 import {
   eventLinkValidator,
@@ -178,7 +183,12 @@ export class Server {
       contactService,
       paymentService,
     );
-    const eventController = new EventController(eventService, userService, leadService);
+    const eventController = new EventController(
+      eventService,
+      userService,
+      leadService,
+      membershipService,
+    );
     const adminController = new AdminController(
       adminService,
       userService,
@@ -304,6 +314,7 @@ export class Server {
     // Unauthenticated routes
     event.get('/:id', eventCtrl.getEvent);
     event.get('/:id/memberships', eventCtrl.getEventMemberships);
+    event.post('/stream', eventStreamValidator, eventCtrl.streamPrerecordedEvent);
 
     // Apply auth middleware for authenticated routes
     event.use(authCheck);

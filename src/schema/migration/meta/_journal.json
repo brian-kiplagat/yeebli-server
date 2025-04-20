@@ -463,6 +463,13 @@
       "when": 1745067405925,
       "tag": "0066_flashy_outlaw_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "5",
+      "when": 1745142679864,
+      "tag": "0067_tan_nighthawk",
+      "breakpoints": true
     }
   ]
 }

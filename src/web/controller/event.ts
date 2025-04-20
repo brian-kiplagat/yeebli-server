@@ -3,19 +3,27 @@ import type { Context } from 'hono';
 import env from '../../lib/env.js';
 import { logger } from '../../lib/logger.js';
 import type { EventService } from '../../service/event.js';
-import type { LeadService } from '../../service/lead.js';
+import { LeadService } from '../../service/lead.js';
+import { MembershipService } from '../../service/membership.ts';
 import type { UserService } from '../../service/user.js';
-import type { CreateEventBody, UpdateEventBody } from '../validator/event.ts';
+import type { CreateEventBody, EventStreamBody, UpdateEventBody } from '../validator/event.ts';
 import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
 export class EventController {
   private service: EventService;
   private userService: UserService;
   private leadService: LeadService;
+  private membershipService: MembershipService;
 
-  constructor(service: EventService, userService: UserService, leadService: LeadService) {
+  constructor(
+    service: EventService,
+    userService: UserService,
+    leadService: LeadService,
+    membershipService: MembershipService,
+  ) {
     this.service = service;
     this.userService = userService;
     this.leadService = leadService;
+    this.membershipService = membershipService;
   }
 
   private async getUser(c: Context) {
@@ -224,6 +232,42 @@ export class EventController {
 
       const memberships = await this.service.getMembershipsByEventId(eventId);
       return c.json(memberships);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public streamPrerecordedEvent = async (c: Context) => {
+    try {
+      const body: EventStreamBody = await c.req.json();
+      const { event_id, token, email } = body;
+      const event = await this.service.getEvent(event_id);
+      if (!event) {
+        return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
+      }
+      if (event.event_type !== 'prerecorded') {
+        return serveBadRequest(c, ERRORS.EVENT_NOT_PRERECORDED);
+      }
+      const lead = await this.leadService.findByEventIdAndToken(event_id, token);
+      if (!lead) {
+        return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
+      }
+      if (lead.email !== email) {
+        return serveBadRequest(c, ERRORS.LEAD_EMAIL_MISMATCH);
+      }
+      if (!lead.membership_active) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_ACTIVE);
+      }
+      if (!lead.membership_level) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+      const membership = await this.membershipService.getMembership(lead.membership_level);
+      if (!membership) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+
+      return c.json({ lead, membership, event });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

@@ -35,6 +35,8 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  LEAD_EMAIL_MISMATCH: 'The lead email does not match the email provided',
+  EVENT_NOT_PRERECORDED: 'This event is not a prerecorded event',
   DATE_ID_REQUIRED: 'Date is required',
   MEMBERSHIP_ALREADY_PURCHASED: 'You have already purchased this membership',
   MEMBERSHIP_REQUIRED: 'Membership is required. Please add at least one membership to the event',

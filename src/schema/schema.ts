@@ -152,6 +152,7 @@ export const leadSchema = mysqlTable('leads', {
     .references(() => membershipSchema.id)
     .notNull()
     .default(1),
+  dates: json('dates').$type<number[]>(),
   source_url: text('source_url'),
   membership_level: int('membership_level')
     .references(() => membershipSchema.id)

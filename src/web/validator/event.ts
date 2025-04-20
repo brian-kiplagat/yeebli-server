@@ -15,8 +15,14 @@ const eventSchema = z.object({
   success_url: z.string().optional(),
 });
 
-export const eventValidator = zValidator('json', eventSchema);
+const eventStreamSchema = z.object({
+  event_id: z.number(),
+  token: z.string(),
+  email: z.string(),
+});
 
+export const eventValidator = zValidator('json', eventSchema);
+export const eventStreamValidator = zValidator('json', eventStreamSchema);
 const updateEventSchema = eventSchema.partial();
 export const updateEventValidator = zValidator('json', updateEventSchema);
 
@@ -39,3 +45,4 @@ export type EventQuery = z.infer<typeof eventQuerySchema>;
 export type UpdateEventBody = z.infer<typeof updateEventSchema>;
 export type CancelEventBody = z.infer<typeof cancelEventSchema>;
 export type CreateEventBody = z.infer<typeof eventSchema>;
+export type EventStreamBody = z.infer<typeof eventStreamSchema>;
