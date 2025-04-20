@@ -249,6 +249,12 @@ export class EventController {
       if (event.event_type !== 'prerecorded') {
         return serveBadRequest(c, ERRORS.EVENT_NOT_PRERECORDED);
       }
+      if (body.isHost) {
+        return c.json({ event });
+      }
+      if (!token) {
+        return serveBadRequest(c, ERRORS.TOKEN_REQUIRED);
+      }
       const lead = await this.leadService.findByEventIdAndToken(event_id, token);
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);

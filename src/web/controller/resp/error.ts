@@ -35,6 +35,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  TOKEN_REQUIRED: 'Token is required',
   LEAD_EMAIL_MISMATCH: 'The lead email does not match the email provided',
   EVENT_NOT_PRERECORDED: 'This event is not a prerecorded event',
   DATE_ID_REQUIRED: 'Date is required',
