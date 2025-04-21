@@ -79,8 +79,10 @@ export class MembershipController {
       }
 
       const body: CreateMembershipBody = await c.req.json();
-      if (!body.dates || body.dates.length < 1) {
-        return serveBadRequest(c, ERRORS.EVENT_DATE_REQUIRED);
+      if (body.price_point === 'standalone') {
+        if (!body.dates || body.dates.length < 1) {
+          return serveBadRequest(c, ERRORS.EVENT_DATE_REQUIRED);
+        }
       }
       const planId = await this.service.createMembership(
         {
@@ -89,7 +91,6 @@ export class MembershipController {
         },
         body.dates,
       );
-
       return c.json(
         {
           message: 'Membership created successfully',

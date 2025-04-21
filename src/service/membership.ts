@@ -15,7 +15,10 @@ export class MembershipService {
     this.repository = repository;
   }
 
-  public async createMembership(plan: NewMembership, dates: string[]): Promise<number> {
+  public async createMembership(
+    plan: NewMembership,
+    dates: string[] | null | undefined,
+  ): Promise<number> {
     try {
       const id = await this.repository.create(plan);
       // Create all event dates in parallel
