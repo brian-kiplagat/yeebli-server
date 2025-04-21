@@ -166,7 +166,7 @@ export class LeadController {
         //send confirmation email to the lead
         const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
-        const bodyText = `Thank you for your interest in WOW Fest! To secure your place at this exciting event, please click the link below:
+        const bodyText = `Thank you for your interest in ${event.event_name}! To secure your place at this exciting event, please click the link below:
         ${eventLink}`;
 
         sendTransactionalEmail(body.email, body.name, 1, {
@@ -403,7 +403,7 @@ export class LeadController {
       });
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
-      const bodyText = `Thank you for your interest in WOW Fest! To secure your place at this exciting event, please click the link below:
+      const bodyText = `Thank you for your interest in ${event.event_name}! To secure your place at this exciting event, please click the link below:
         ${eventLink}`;
       sendTransactionalEmail(body.email, body.name, 1, {
         subject: `${event.event_name}`,
