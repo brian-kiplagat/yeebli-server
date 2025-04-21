@@ -140,9 +140,6 @@ export class LeadController {
       }
 
       const body: LeadBody = await c.req.json();
-      if (!body.event_id) {
-        return serveBadRequest(c, 'Please select an event');
-      }
       //token is a random 6 digit number
       const token = Math.floor(100000 + Math.random() * 900000).toString();
       const lead = await this.service.create({
@@ -154,35 +151,31 @@ export class LeadController {
       if (!lead) {
         return serveBadRequest(c, 'Ops we cant find that lead');
       }
+      //if there was a event id, create a booking for this event
+      if (body.event_id) {
+        const event = await this.eventService.getEvent(body.event_id);
+        if (!event) {
+          return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+        }
+        await this.bookingService.create({
+          event_id: body.event_id,
+          lead_id: lead[0].id,
+          passcode: token,
+          host_id: event.host_id,
+        });
+        //send confirmation email to the lead
+        const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
-      //also create a booking for this event
-      const event = await this.eventService.getEvent(body.event_id);
-      if (!event) {
-        return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
+        const bodyText = `Thank you for your interest in WOW Fest! To secure your place at this exciting event, please click the link below:
+        ${eventLink}`;
+
+        sendTransactionalEmail(body.email, body.name, 1, {
+          subject: `${event.event_name}`,
+          title: `${event.event_name}`,
+          subtitle: `Here are the details or this event`,
+          body: bodyText,
+        });
       }
-      await this.bookingService.create({
-        event_id: body.event_id,
-
-        lead_id: lead[0].id,
-        passcode: token,
-        host_id: event.host_id,
-      });
-      //send confirmation email to the lead
-      const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
-
-      const bodyText =
-        event.event_type === 'live_venue'
-          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Check our website here: ${eventLink} for more information.`
-          : event.event_type === 'live_video_call'
-            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. Check our website here: ${eventLink} for more information.`
-            : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space. Check our website here: ${eventLink} to join the event.`;
-
-      sendTransactionalEmail(body.email, body.name, 1, {
-        subject: `${event.event_name}`,
-        title: `${event.event_name} - You've been invited`,
-        subtitle: `You've been invited to join us`,
-        body: bodyText,
-      });
 
       return c.json(lead, 201);
     } catch (error) {
@@ -410,17 +403,12 @@ export class LeadController {
       });
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
-      const bodyText =
-        event.event_type === 'live_venue'
-          ? `You're invited to a live, in-person event! The venue is located at ${event.live_venue_address}. Check our website here: ${eventLink} for more information.`
-          : event.event_type === 'live_video_call'
-            ? `Get ready for a live video call event! You can join from anywhere using this link: ${event.live_video_url}. Check our website here: ${eventLink} for more information.`
-            : `You're invited to a virtual event! Enjoy the experience from the comfort of your own space. Check our website here: ${eventLink} to join the event.`;
-
+      const bodyText = `Thank you for your interest in WOW Fest! To secure your place at this exciting event, please click the link below:
+        ${eventLink}`;
       sendTransactionalEmail(body.email, body.name, 1, {
-        subject: 'Welcome to the event',
-        title: 'Welcome to the event',
-        subtitle: `You have been registered for the event`,
+        subject: `${event.event_name}`,
+        title: `${event.event_name}`,
+        subtitle: `Here are the details or this event`,
         body: bodyText,
       });
       return c.json(
