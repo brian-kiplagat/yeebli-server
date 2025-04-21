@@ -17,7 +17,7 @@ const leadSchema = z.object({
       message: 'Invalid phone number format. Must include country code (e.g., +1, +44, +81)',
     },
   ),
-  event_id: z.number().min(0, 'Event ID is required').optional(),
+  event_id: z.number().min(0, 'Event ID is required').nullable().optional(),
   host_id: z.number().min(1, 'Host ID is required'),
 });
 
