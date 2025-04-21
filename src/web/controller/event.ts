@@ -8,6 +8,7 @@ import { MembershipService } from '../../service/membership.ts';
 import type { UserService } from '../../service/user.js';
 import type { CreateEventBody, EventStreamBody, UpdateEventBody } from '../validator/event.ts';
 import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
+
 export class EventController {
   private service: EventService;
   private userService: UserService;
@@ -96,6 +97,16 @@ export class EventController {
       if (membership_ids.length < 1) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
       }
+      //ensure the membership_ids are valid
+      const memberships = await this.membershipService.getMultipleMemberships(membership_ids);
+      if (memberships.length !== membership_ids.length) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+      //ensure none of the memberships.price_point is a `course`
+      const isCourse = memberships.some((m) => m.price_point === 'course');
+      if (isCourse) {
+        return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
+      }
       const eventId = await this.service.createEvent(
         {
           ...body,
@@ -139,6 +150,19 @@ export class EventController {
 
       const body: UpdateEventBody = await c.req.json();
       const { memberships, ...rest } = body;
+      if (!memberships) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
+      }
+      //ensure the membership_ids are valid
+      const memberships_records = await this.membershipService.getMultipleMemberships(memberships);
+      if (memberships_records.length !== memberships.length) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+      //ensure none of the memberships.price_point is a `course`
+      const isCourse = memberships_records.some((m) => m.price_point === 'course');
+      if (isCourse) {
+        return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
+      }
       await this.service.updateEvent(eventId, { ...rest, memberships });
 
       return c.json({ message: 'Event updated successfully' });

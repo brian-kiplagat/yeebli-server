@@ -26,6 +26,11 @@ export class MembershipRepository {
     return result[0];
   }
 
+  async findMultiple(ids: number[]): Promise<Membership[]> {
+    if (ids.length === 0) return [];
+    return await db.select().from(memberships).where(inArray(memberships.id, ids));
+  }
+
   async findAll(query?: MembershipQuery) {
     const { page = 1, limit = 10, search } = query || {};
     const offset = (page - 1) * limit;

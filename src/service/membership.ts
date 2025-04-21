@@ -123,4 +123,13 @@ export class MembershipService {
   public async getMultipleMembershipDates(dates: number[]) {
     return await this.repository.getMultipleMembershipDates(dates);
   }
+
+  public async getMultipleMemberships(ids: number[]): Promise<Membership[]> {
+    try {
+      return await this.repository.findMultiple(ids);
+    } catch (error) {
+      logger.error('Failed to get multiple memberships:', error);
+      throw error;
+    }
+  }
 }

@@ -37,6 +37,8 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  COURSE_MEMBERSHIP_NOT_ALLOWED:
+    'Course memberships are not allowed for creating events. Choose membership with a `standalone` price point',
   TOKEN_REQUIRED: 'Token is required',
   LEAD_EMAIL_MISMATCH: 'The lead email does not match the email provided',
   EVENT_NOT_PRERECORDED: 'This event is not a prerecorded event',
