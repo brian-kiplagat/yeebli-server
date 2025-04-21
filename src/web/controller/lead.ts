@@ -359,13 +359,6 @@ export class LeadController {
       const formData = await c.req.parseBody();
       const body = externalFormSchema.parse(formData);
 
-      // Verify Turnstile token
-      const ip = c.req.header('CF-Connecting-IP');
-      const isValid = await this.turnstileService.verify(body['cf-turnstile-response'], ip);
-
-      if (!isValid) {
-        return serveBadRequest(c, 'Invalid Turnstile token');
-      }
       if (!body.event_id) {
         return serveBadRequest(c, 'Please select an event');
       }

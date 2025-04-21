@@ -54,7 +54,6 @@ const externalFormSchema = z.object({
   ),
   event_id: z.string().transform((val) => Number.parseInt(val, 10)),
   host_id: z.string().transform((val) => Number.parseInt(val, 10)),
-  'cf-turnstile-response': z.string().min(1, 'Turnstile response is required'),
 });
 
 const eventLinkSchema = z.object({
