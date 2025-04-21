@@ -70,6 +70,8 @@ export class ContactService {
       title: 'Thanks for signing up',
       subtitle: `${emailToken}`,
       body: `Welcome to Yeebli. Your code is ${emailToken}`,
+      buttonText: 'Ok, got it',
+      buttonLink: `${env.FRONTEND_URL}`,
     });
 
     return createdContact;
@@ -89,6 +91,8 @@ export class ContactService {
       title: 'Thanks for signing up',
       subtitle: `${emailToken}`,
       body: `Welcome to Yeebli. Your code is ${emailToken}`,
+      buttonText: 'Ok, got it',
+      buttonLink: `${env.FRONTEND_URL}`,
     });
 
     return { message: 'Verification email sent' };
@@ -122,7 +126,8 @@ export class ContactService {
       title: 'Reset password',
       subtitle: `${resetToken}`,
       body: `Please click this link to reset your password: ${env.FRONTEND_URL}/onboarding/reset?token=${resetToken}&email=${contact.email}`,
-      cta_url: `${env.FRONTEND_URL}/onboarding/reset?token=${resetToken}&email=${contact.email}`,
+      buttonText: 'Reset password',
+      buttonLink: `${env.FRONTEND_URL}/onboarding/reset?token=${resetToken}&email=${contact.email}`,
     });
 
     return { message: 'Reset password link sent successfully' };

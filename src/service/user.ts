@@ -1,4 +1,5 @@
 import { encrypt } from '../lib/encryption.ts';
+import env from '../lib/env.ts';
 import { logger } from '../lib/logger.ts';
 import type { UserRepository } from '../repository/user.ts';
 import type { User } from '../schema/schema.ts';
@@ -92,6 +93,8 @@ export class UserService {
         title: 'Welcome to Yeebli',
         subtitle: 'Your subscription is now active',
         body: 'Thank you for subscribing to Yeebli. Your subscription is now active and you can start using all our features.',
+        buttonText: 'Ok, got it',
+        buttonLink: `${env.FRONTEND_URL}`,
       });
 
       logger.info(`Welcome email sent to ${email}`);

@@ -7,7 +7,14 @@ const sendTransactionalEmail = async (
   email: string,
   name: string,
   templateId: number,
-  params: Record<string, string>,
+  params: {
+    subject: string;
+    title: string;
+    subtitle: string;
+    body: string;
+    buttonText: string;
+    buttonLink: string;
+  },
 ) => {
   try {
     const response = await fetch(BREVO_API_URL, {

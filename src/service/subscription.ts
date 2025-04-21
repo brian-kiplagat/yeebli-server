@@ -1,3 +1,4 @@
+import env from '../lib/env.ts';
 import { logger } from '../lib/logger.ts';
 import type { SubscriptionRepository } from '../repository/subscription.ts';
 import type { User } from '../schema/schema.ts';
@@ -99,6 +100,8 @@ export class SubscriptionService {
         title: 'We Are Sorry to See You Go',
         subtitle: 'Your subscription has been cancelled',
         body: `We're truly sorry to see you leave. Your subscription has been successfully cancelled, and your premium access has now ended. If you have any feedback about your experience or if there's anything we could have done better, we'd love to hear from you. If you ever change your mind, you can easily regain full access to all premium features by subscribing again at any time. Our support team is always here to help—feel free to reach out whenever you need. Thank you for being with us.`,
+        buttonText: 'Ok, got it',
+        buttonLink: `${env.FRONTEND_URL}`,
       });
       return subscription;
     } catch (error) {

@@ -130,6 +130,8 @@ export class AuthController {
         title: 'Thanks for signing up',
         subtitle: `${token}`,
         body: `Welcome to Yeebli. Your code code is ${token}`,
+        buttonText: 'Ok, got it',
+        buttonLink: `${env.FRONTEND_URL}`,
       });
 
       return serveData(c, {
@@ -191,7 +193,8 @@ export class AuthController {
         title: 'Reset password',
         subtitle: `${token}`,
         body: `Please click this link to reset your password: ${env.FRONTEND_URL}/onboarding/reset?token=${token}&email=${user.email}`,
-        cta_url: `${env.FRONTEND_URL}/onboarding/reset?token=${token}&email=${user.email}`,
+        buttonText: 'Reset password',
+        buttonLink: `${env.FRONTEND_URL}/onboarding/reset?token=${token}&email=${user.email}`,
       });
       return serveData(c, {
         success: true,
@@ -226,6 +229,8 @@ export class AuthController {
         title: 'Password reset',
         subtitle: `Your password has been reset successfully`,
         body: `Your password has been reset successfully. If this was not you, please contact support. Thanks again for using Yeebli!`,
+        buttonText: 'Ok, got it',
+        buttonLink: `${env.FRONTEND_URL}`,
       });
       return serveData(c, {
         success: true,

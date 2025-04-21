@@ -182,6 +182,8 @@ export class EventController {
         title: 'Event Cancelled',
         subtitle: `The event "${event.event_name}" has been cancelled.`,
         body: `We're sorry to inform you that the event "${event.event_name}" has been cancelled by the host. If you'd like a refund, please contact the host directly at ${host.email} or ${host.phone} and provide your booking details.`,
+        buttonText: 'Ok, got it',
+        buttonLink: `${env.FRONTEND_URL}`,
       });
       return c.json({ message: 'Event cancelled successfully' });
     } catch (error) {

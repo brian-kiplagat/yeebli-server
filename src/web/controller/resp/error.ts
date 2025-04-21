@@ -3,6 +3,8 @@ import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 
+import env from '../../../lib/env.ts';
+
 const serveNotFound = (c: Context, message: string) => {
   return c.json({ error: message }, <ContentfulStatusCode>StatusCodes.NOT_FOUND);
 };
@@ -99,6 +101,8 @@ const MAIL_CONTENT = {
     title: 'Password Changed',
     subtitle: 'Your password has been changed successfully',
     body: 'Your password has been changed successfully. If this was not you, please contact support immediately.',
+    buttonText: 'Ok, got it',
+    buttonLink: `${env.FRONTEND_URL}`,
   },
   SUBSCRIPTION_CANCELLED: {
     subject: 'Your subscription has been cancelled',
@@ -111,11 +115,15 @@ const MAIL_CONTENT = {
     title: 'Subscription Ended',
     subtitle: 'Your access to premium features has expired',
     body: "Your subscription has officially ended, and your access to premium features has been discontinued. We hope you enjoyed your time with Yeebli! If you'd like to continue benefiting from exclusive features, you can renew your subscription anytime by visiting your account settings. We'd love to have you back, and if you need any help re-subscribing or have any questions, don't hesitate to contact our support team. Thank you for being part of our community!",
+    buttonText: 'Ok, got it',
+    buttonLink: `${env.FRONTEND_URL}`,
   },
   SUBSCRIPTION_TRIAL_ENDED: {
     subject: 'Your trial has ended',
     title: 'Trial Period Expired',
     subtitle: 'Upgrade now to continue enjoying premium features!',
+    buttonText: 'Ok, got it',
+    buttonLink: `${env.FRONTEND_URL}`,
     body: "Your trial period has ended, and access to premium features has been disabled. We hope you had a great experience exploring all that Yeebli has to offer! To continue using our premium features, you can upgrade to a full subscription at any time. Don't miss out on everything Yeebli provides—seamless access, exclusive tools, and an enhanced user experience. Visit your account now to subscribe and unlock the full potential of our platform!",
   },
   SUBSCRIPTION_PAYMENT_FAILED: {
@@ -123,18 +131,24 @@ const MAIL_CONTENT = {
     title: 'Payment Issue Detected',
     subtitle: 'We were unable to process your payment',
     body: 'We attempted to process your latest subscription payment, but unfortunately, it was unsuccessful. This could be due to an expired card, insufficient funds, or a payment authorization issue. Please check your payment details in your account settings and try again to avoid any disruption to your service. If you need assistance or have questions regarding this issue, our support team is available to help. Please update your payment method at your earliest convenience to continue enjoying Yeebli without interruption.',
+    buttonText: 'Ok, got it',
+    buttonLink: `${env.FRONTEND_URL}`,
   },
   SUBSCRIPTION_PAYMENT_SUCCEEDED: {
     subject: 'Your subscription payment was successful',
     title: 'Payment Received',
     subtitle: 'Your subscription is active!',
     body: "Good news! Your latest subscription payment was processed successfully, and your access to Yeebli's premium features remains active. Thank you for being a valued member of our community! If you ever need to review your billing details or update your payment method, you can do so in your account settings. We appreciate your continued support and hope you continue to enjoy all the features that Yeebli has to offer. If you have any questions, feel free to reach out to us.",
+    buttonText: 'Ok, got it',
+    buttonLink: `${env.FRONTEND_URL}`,
   },
   SUBSCRIPTION_TRIAL_STARTED: {
     subject: 'Your trial has started',
     title: 'Welcome to Your Free Trial!',
     subtitle: 'Enjoy premium features for a limited time',
     body: "Your free trial has officially begun! For the duration of your trial period, you'll have full access to all of Yeebli's premium features. We encourage you to explore and take advantage of everything our platform has to offer. When your trial ends, you'll have the opportunity to continue enjoying uninterrupted service by subscribing to one of our plans. If you have any questions during your trial, our support team is here to assist. Enjoy your experience with Yeebli!",
+    buttonText: 'Ok, got it',
+    buttonLink: `${env.FRONTEND_URL}`,
   },
 };
 

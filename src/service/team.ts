@@ -44,6 +44,8 @@ export class TeamService {
         title: "You've been invited to join a team",
         subtitle: 'Join the team to collaborate',
         body: `You've been invited to join the "${teamName}" team. Click the link below to accept the invitation. ${acceptUrl}`,
+        buttonText: 'Accept invitation',
+        buttonLink: acceptUrl,
       });
 
       return invitationId;
@@ -92,6 +94,8 @@ export class TeamService {
           title: 'Welcome to Yeebli',
           subtitle: 'Change your password',
           body: `A new account was created with your email ${user.email}. We also created a random temporary password for you. Please change your password immediately after logging in. Your temporary password is ${tempPassword}`,
+          buttonText: 'Ok, got it',
+          buttonLink: `${env.FRONTEND_URL}`,
         });
       }
 
@@ -110,6 +114,8 @@ export class TeamService {
         title: 'Welcome aboard 🎉',
         subtitle: 'Team invite accepted',
         body: "You've successfully joined the team. Start collaborating and making things happen with your teammates!",
+        buttonText: 'Ok, got it',
+        buttonLink: `${env.FRONTEND_URL}`,
       });
 
       return invitation;

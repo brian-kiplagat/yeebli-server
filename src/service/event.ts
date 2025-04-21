@@ -216,6 +216,8 @@ export class EventService {
       title: string;
       subtitle: string;
       body: string;
+      buttonText: string;
+      buttonLink: string;
     },
   ) {
     // Get all bookings for this date

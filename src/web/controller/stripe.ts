@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import type { Context } from 'hono';
 
+import env from '../../lib/env.ts';
 import { logger } from '../../lib/logger.js';
 import type { SubscriptionRepository } from '../../repository/subscription.js';
 import { EventService } from '../../service/event.ts';
@@ -392,6 +393,8 @@ export class StripeController {
                 title: "You're All Set for the Event!",
                 subtitle: String(lead.token),
                 body: body,
+                buttonText: 'Ok, got it',
+                buttonLink: `${env.FRONTEND_URL}`,
               });
             }
           }

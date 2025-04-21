@@ -174,6 +174,8 @@ export class LeadController {
           title: `${event.event_name}`,
           subtitle: `Here are the details or this event`,
           body: bodyText,
+          buttonText: 'Secure your place',
+          buttonLink: eventLink,
         });
       }
 
@@ -410,6 +412,8 @@ export class LeadController {
         title: `${event.event_name}`,
         subtitle: `Here are the details or this event`,
         body: bodyText,
+        buttonText: 'Secure your place',
+        buttonLink: eventLink,
       });
       return c.json(
         {
