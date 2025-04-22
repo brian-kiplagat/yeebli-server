@@ -264,8 +264,7 @@ export class StripeController {
       logger.info(`Processing subscription event: ${subscription.status} for user ${userId}`);
 
       //get plan id and product id from metadata
-      const { priceId } = subscription.metadata;
-      const { productId } = subscription.metadata;
+      const { priceId, productId } = subscription.metadata;
 
       // Update user's subscription status
       await this.userService.update(Number.parseInt(userId), {
