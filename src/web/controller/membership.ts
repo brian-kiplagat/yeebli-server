@@ -155,13 +155,19 @@ export class MembershipController {
       if (plan.user_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
-      //if membership si lnked to any event, do not delete
+
+      // Get all events linked to this membership
       const events = await this.service.getEventsByMembership(planId);
-      const hasActiveEvents = events.some((event) => event.events.status === 'active');
-      if (hasActiveEvents) {
-        return serveBadRequest(c, ERRORS.MEMBERSHIP_LINKED_TO_EVENT);
+
+      // If there are events, check if any are active
+      if (events.length > 0) {
+        const hasActiveEvents = events.some((event) => event.events.status === 'active');
+        if (hasActiveEvents) {
+          return serveBadRequest(c, ERRORS.MEMBERSHIP_LINKED_TO_EVENT);
+        }
       }
 
+      // If no active events or no events at all, proceed with deletion
       await this.service.deleteMembership(planId);
       return c.json({ message: 'Membership deleted successfully' });
     } catch (error) {
