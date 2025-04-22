@@ -15,6 +15,12 @@ export class PaymentRepository {
     });
   }
 
+  public async findPaymentsByLeadId(leadId: number) {
+    return db.query.paymentSchema.findMany({
+      where: eq(paymentSchema.lead_id, leadId),
+    });
+  }
+
   public async updatePayment(id: number, data: Partial<typeof paymentSchema.$inferInsert>) {
     return db.update(paymentSchema).set(data).where(eq(paymentSchema.id, id));
   }

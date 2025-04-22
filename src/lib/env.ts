@@ -29,6 +29,10 @@ const envSchema = z.object({
   GOOGLE_CALLBACK_URL: z.string(),
   GOOGLE_REDIRECT_URL: z.string(),
   FRONTEND_URL: z.string(),
+  STRIPE_TEST_CLIENT_ID: z.string(),
+  STRIPE_TEST_SECRET_KEY: z.string(),
+  STRIPE_TEST_PUBLISHABLE_KEY: z.string(),
+  STRIPE_TEST_WEBHOOK_SECRET: z.string(),
 });
 
 export default envSchema.parse(process.env);

@@ -13,7 +13,8 @@ export class StripeService {
     this.stripe = new Stripe(env.STRIPE_SECRET_KEY, {
       apiVersion: '2025-02-24.acacia',
     });
-    this.clientId = env.STRIPE_CLIENT_ID;
+    this.clientId =
+      env.NODE_ENV === 'production' ? env.STRIPE_CLIENT_ID : env.STRIPE_TEST_CLIENT_ID;
     this.redirectUri = env.STRIPE_OAUTH_REDIRECT_URI;
   }
 

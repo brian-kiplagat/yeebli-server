@@ -109,6 +109,9 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
 
+      //get all payments for this lead
+      const payments = await this.paymentService.findByLeadId(lead.id);
+
       // Get all events booked by this lead
       const bookedEvents = await this.bookingService.findByUserIdandLeadId(user.id, lead.id);
 
@@ -119,6 +122,7 @@ export class LeadController {
           ...lead,
           events: bookedEvents,
           membership: membership,
+          payments: payments,
         });
       }
       //if there is date, get multiple dates
@@ -128,6 +132,7 @@ export class LeadController {
           ...lead,
           bookings: bookedEvents,
           dates: dates,
+          payments: payments,
         });
       }
 

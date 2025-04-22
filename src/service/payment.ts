@@ -43,4 +43,13 @@ export class PaymentService {
       throw error;
     }
   }
+
+  public async findByLeadId(leadId: number) {
+    try {
+      return await this.paymentRepo.findPaymentsByLeadId(leadId);
+    } catch (error) {
+      logger.error('Error finding payments by lead ID:', error);
+      throw error;
+    }
+  }
 }
