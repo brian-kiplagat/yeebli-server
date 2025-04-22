@@ -124,7 +124,7 @@ export class LeadController {
 
       return c.json({
         ...lead,
-        events: bookedEvents,
+        bookings: bookedEvents,
       });
     } catch (error) {
       logger.error(error);
