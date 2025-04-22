@@ -121,6 +121,15 @@ export class LeadController {
           membership: membership,
         });
       }
+      //if there is date, get multiple dates
+      if (lead.dates) {
+        const dates = await this.membershipService.getMultipleMembershipDates(lead.dates);
+        return c.json({
+          ...lead,
+          bookings: bookedEvents,
+          dates: dates,
+        });
+      }
 
       return c.json({
         ...lead,
