@@ -174,6 +174,7 @@ export class MembershipController {
             {
               hasActiveEvents,
               events,
+              event_names,
               message: `This membership is linked to ${event_names}. Deleting this will cause issues with existing contacts registered for the event. Please cancel the event first then try again.`,
             },
             400,
