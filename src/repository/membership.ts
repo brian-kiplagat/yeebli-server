@@ -104,6 +104,13 @@ export class MembershipRepository {
         created_at: eventSchema.created_at,
         updated_at: eventSchema.updated_at,
         host_id: eventSchema.host_id,
+        event_membership: {
+          id: eventMembershipSchema.id,
+          event_id: eventMembershipSchema.event_id,
+          membership_id: eventMembershipSchema.membership_id,
+          created_at: eventMembershipSchema.created_at,
+          updated_at: eventMembershipSchema.updated_at,
+        },
       })
       .from(eventSchema)
       .innerJoin(eventMembershipSchema, eq(eventSchema.id, eventMembershipSchema.event_id))
