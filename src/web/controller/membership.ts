@@ -163,11 +163,18 @@ export class MembershipController {
       if (events.length > 0) {
         const hasActiveEvents = events.some((event) => event.status === 'active');
         if (hasActiveEvents) {
+          //join with conjunction
+          const formatter = new Intl.ListFormat('en', {
+            style: 'long',
+            type: 'conjunction',
+          });
+          const event_names = formatter.format(events.map((event) => event.event_name));
+
           return c.json(
             {
               hasActiveEvents,
               events,
-              message: ERRORS.MEMBERSHIP_LINKED_TO_EVENT,
+              message: `This membership is linked to ${event_names}. Deleting this will cause issues with existing contacts registered for the event. Please cancel the event first then try again.`,
             },
             400,
           );
