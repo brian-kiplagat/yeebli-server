@@ -95,7 +95,16 @@ export class MembershipRepository {
 
   async getEventsByMembership(membershipId: number) {
     return await db
-      .select()
+      .select({
+        id: eventSchema.id,
+        event_name: eventSchema.event_name,
+        event_description: eventSchema.event_description,
+        event_type: eventSchema.event_type,
+        status: eventSchema.status,
+        created_at: eventSchema.created_at,
+        updated_at: eventSchema.updated_at,
+        host_id: eventSchema.host_id,
+      })
       .from(eventSchema)
       .innerJoin(eventMembershipSchema, eq(eventSchema.id, eventMembershipSchema.event_id))
       .where(eq(eventMembershipSchema.membership_id, membershipId));

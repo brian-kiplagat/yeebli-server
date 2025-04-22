@@ -161,7 +161,7 @@ export class MembershipController {
 
       // If there are events, check if any are active
       if (events.length > 0) {
-        const hasActiveEvents = events.some((event) => event.events.status === 'active');
+        const hasActiveEvents = events.some((event) => event.status === 'active');
         if (hasActiveEvents) {
           return c.json(
             {
