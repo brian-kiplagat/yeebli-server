@@ -163,7 +163,14 @@ export class MembershipController {
       if (events.length > 0) {
         const hasActiveEvents = events.some((event) => event.events.status === 'active');
         if (hasActiveEvents) {
-          return serveBadRequest(c, ERRORS.MEMBERSHIP_LINKED_TO_EVENT);
+          return c.json(
+            {
+              hasActiveEvents,
+              events,
+              message: ERRORS.MEMBERSHIP_LINKED_TO_EVENT,
+            },
+            400,
+          );
         }
       }
 
