@@ -512,13 +512,6 @@ export class LeadController {
         price = membership.price;
       }
 
-      const extension =
-        membership.billing === 'per-day'
-          ? `${body.dates.length} days of access – ${membership.price} GBP per day`
-          : membership.billing === 'package'
-            ? `Multi-Day Access – One Easy Payment`
-            : '';
-
       if (!contact.stripe_customer_id) {
         const stripeCustomer = await this.stripeService.createCustomer(contact.email);
         await this.contactService.update(contact.id, {
@@ -546,7 +539,7 @@ export class LeadController {
           hostStripeAccountId: host.stripe_account_id,
           price: price,
           eventName: event.event_name,
-          membershipName: membership.name + ' ' + extension,
+          membershipName: membership.name,
           membershipId: String(membership.id),
           eventId: String(event.id),
           dates: body.dates,
