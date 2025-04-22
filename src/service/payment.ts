@@ -12,7 +12,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.createPayment(payment);
     } catch (error) {
-      logger.error('Error creating payment:', error);
+      logger.error(error);
       throw error;
     }
   }
@@ -21,7 +21,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.updatePayment(id, payment);
     } catch (error) {
-      logger.error('Error updating payment:', error);
+      logger.error(error);
       throw error;
     }
   }
@@ -30,7 +30,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.updatePaymentBySessionId(sessionId, payment);
     } catch (error) {
-      logger.error('Error updating payment:', error);
+      logger.error(error);
       throw error;
     }
   }
@@ -39,7 +39,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.findPaymentsByContactId(contactId);
     } catch (error) {
-      logger.error('Error finding payments by contact ID:', error);
+      logger.error(error);
       throw error;
     }
   }
@@ -48,7 +48,7 @@ export class PaymentService {
     try {
       return await this.paymentRepo.findPaymentsByLeadId(leadId);
     } catch (error) {
-      logger.error('Error finding payments by lead ID:', error);
+      logger.error(error);
       throw error;
     }
   }

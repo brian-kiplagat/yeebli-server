@@ -431,7 +431,7 @@ export class LeadController {
         201,
       );
     } catch (error) {
-      logger.error('Error handling external form:', error);
+      logger.error(error);
       return serveInternalServerError(c, error);
     }
   };
