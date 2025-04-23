@@ -48,9 +48,6 @@ export class SubscriptionService {
           userId: String(user.id),
           type: 'subscription',
         },
-        payment_intent_data: {
-          setup_future_usage: 'off_session',
-        },
         subscription_data: {
           trial_period_days: 14,
           metadata: {
