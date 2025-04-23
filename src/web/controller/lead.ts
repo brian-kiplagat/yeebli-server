@@ -13,6 +13,7 @@ import type { StripeService } from '../../service/stripe.ts';
 import type { TurnstileService } from '../../service/turnstile.ts';
 import type { UserService } from '../../service/user.ts';
 import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
+import { formatDateToLocale } from '../../util/string.ts';
 import {
   type EventLinkBody,
   externalFormSchema,
@@ -491,6 +492,65 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
       }
 
+      //define success urls
+      let successUrl = '';
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      if (event.event_type === 'live_venue') {
+        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
+      } else if (event.event_type === 'live_video_call') {
+        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
+      } else if (event.event_type === 'prerecorded') {
+        successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
+      }
+
+      //If membership price is 0, return a success message
+      if (membership.price === 0) {
+        await this.service.update(lead.id, {
+          membership_active: true,
+          membership_level: membership_id,
+          dates: body.dates,
+        });
+        //get membership dates
+        const membershipDates =
+          (await this.membershipService.getMultipleMembershipDates(body.dates)) || [];
+        //if not dates error
+        if (!membershipDates || membershipDates.length === 0) {
+          return serveBadRequest(c, 'Could not find dates from membership');
+        }
+        //get the event dates
+        const formatter = new Intl.ListFormat('en', {
+          style: 'long',
+          type: 'conjunction',
+        });
+        const formattedDates = membershipDates.map((date) =>
+          formatDateToLocale(new Date(Number(date.date) * 1000), 'Europe/London'),
+        );
+        const eventDate = formatter.format(formattedDates);
+        if (lead.email && lead.name) {
+          //send welcome email
+          const body =
+            event?.event_type === 'live_venue'
+              ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. The venue is located at ${event?.live_venue_address}. We can't wait to see you there! Your ticket is valid for ${eventDate}. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
+              : event?.event_type === 'live_video_call'
+                ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. You can join the event using this link: ${event?.live_video_url}. Your ticket is valid for ${eventDate}. We can't wait to see you there! If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
+                : `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. You can access the event content at any time. Your ticket is valid for ${eventDate}. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`;
+
+          sendTransactionalEmail(String(lead.email), String(lead.name), 1, {
+            subject: 'Your Ticket is Confirmed 🎉',
+            title: "You're All Set for the Event!",
+            subtitle: String(lead.token),
+            body: body,
+            buttonText: 'Ok, got it',
+            buttonLink: `${env.FRONTEND_URL}`,
+          });
+        }
+        return c.json({
+          success: true,
+          successUrl: successUrl,
+          message: 'Membership purchased successfully',
+        });
+      }
+
       if (lead.membership_active) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_ALREADY_PURCHASED);
       }
@@ -523,15 +583,6 @@ export class LeadController {
           stripe_customer_id: stripeCustomer.id,
         });
         contact.stripe_customer_id = stripeCustomer.id;
-      }
-      let successUrl = '';
-      const currentTimestamp = Math.floor(Date.now() / 1000);
-      if (event.event_type === 'live_venue') {
-        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-      } else if (event.event_type === 'live_video_call') {
-        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-      } else if (event.event_type === 'prerecorded') {
-        successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
       }
 
       const checkoutSession = await this.stripeService.createLeadUpgradeCheckoutSession(
