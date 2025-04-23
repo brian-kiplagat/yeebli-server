@@ -200,6 +200,9 @@ export class StripeService {
     success_url: string;
     cancel_url: string;
     metadata?: Record<string, string>;
+    payment_intent_data?: {
+      setup_future_usage?: 'off_session';
+    };
     subscription_data?: {
       trial_period_days?: number;
       metadata?: Record<string, string>;
