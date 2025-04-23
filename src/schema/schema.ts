@@ -207,6 +207,7 @@ export const bookings = mysqlTable('bookings', {
     .references(() => userSchema.id)
     .notNull(),
   passcode: varchar('passcode', { length: 255 }),
+  dates: json('dates').$type<number[]>(),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });

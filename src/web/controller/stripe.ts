@@ -4,6 +4,7 @@ import type { Context } from 'hono';
 import env from '../../lib/env.ts';
 import { logger } from '../../lib/logger.js';
 import type { SubscriptionRepository } from '../../repository/subscription.js';
+import { BookingService } from '../../service/booking.ts';
 import { EventService } from '../../service/event.ts';
 import type { LeadService } from '../../service/lead.js';
 import { MembershipService } from '../../service/membership.ts';
@@ -22,6 +23,7 @@ export class StripeController {
   private paymentService: PaymentService;
   private eventService: EventService;
   private membershipService: MembershipService;
+  private bookingService: BookingService;
   constructor(
     stripeService: StripeService,
     userService: UserService,
@@ -30,6 +32,7 @@ export class StripeController {
     paymentService: PaymentService,
     eventService: EventService,
     membershipService: MembershipService,
+    bookingService: BookingService,
   ) {
     this.stripeService = stripeService;
     this.userService = userService;
@@ -38,6 +41,7 @@ export class StripeController {
     this.paymentService = paymentService;
     this.eventService = eventService;
     this.membershipService = membershipService;
+    this.bookingService = bookingService;
   }
 
   public createConnectAccount = async (c: Context) => {
@@ -368,6 +372,14 @@ export class StripeController {
             if (!membershipDates || membershipDates.length === 0) {
               logger.error(`DATE ERROR - No DATES found for lead ${leadId} with dates ${date_ids}`);
             }
+            //create booking for this paid user
+            this.bookingService.create({
+              event_id: Number(lead.event_id),
+              lead_id: lead.id,
+              passcode: lead.token,
+              host_id: lead.host_id,
+              dates: date_ids,
+            });
             //get the event dates
             const formatter = new Intl.ListFormat('en', {
               style: 'long',

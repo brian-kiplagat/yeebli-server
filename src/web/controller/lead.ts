@@ -405,12 +405,6 @@ export class LeadController {
         return serveBadRequest(c, 'Ops we cant find that lead');
       }
 
-      await this.bookingService.create({
-        event_id: body.event_id,
-        lead_id: createdLead[0].id,
-        passcode: token,
-        host_id: event.host_id,
-      });
       const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
       const bodyText = `Thank you for your interest in ${event.event_name}! To secure your place at this exciting event, please click the link below:
@@ -521,6 +515,14 @@ export class LeadController {
         if (!membershipDates || membershipDates.length === 0) {
           return serveBadRequest(c, 'Could not find dates from membership');
         }
+        //create a free booking
+        this.bookingService.create({
+          event_id: body.event_id,
+          lead_id: lead.id,
+          passcode: token,
+          host_id: event.host_id,
+          dates: body.dates,
+        });
         //get the event dates
         const formatter = new Intl.ListFormat('en', {
           style: 'long',
