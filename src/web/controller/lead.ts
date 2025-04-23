@@ -492,18 +492,11 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.LEAD_WITH_TOKEN_NOT_FOUND);
       }
 
-      //define success urls
-      let successUrl = '';
-      const currentTimestamp = Math.floor(Date.now() / 1000);
-      if (event.event_type === 'live_venue') {
-        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-      } else if (event.event_type === 'live_video_call') {
-        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
-      } else if (event.event_type === 'prerecorded') {
-        successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
+      if (lead.membership_active) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_ALREADY_PURCHASED);
       }
 
-      //If membership price is 0, return a success message
+      //If membership price is 0, book the ticket immediately
       if (membership.price === 0) {
         await this.service.update(lead.id, {
           membership_active: true,
@@ -550,9 +543,15 @@ export class LeadController {
           message: 'Membership purchased successfully',
         });
       }
-
-      if (lead.membership_active) {
-        return serveBadRequest(c, ERRORS.MEMBERSHIP_ALREADY_PURCHASED);
+      //define success urls
+      let successUrl = '';
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      if (event.event_type === 'live_venue') {
+        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
+      } else if (event.event_type === 'live_video_call') {
+        successUrl = `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success&timestamp=${currentTimestamp}`;
+      } else if (event.event_type === 'prerecorded') {
+        successUrl = `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`;
       }
 
       //check if host has setup payments
