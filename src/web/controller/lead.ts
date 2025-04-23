@@ -379,7 +379,7 @@ export class LeadController {
       }
 
       const token = Math.floor(100000 + Math.random() * 900000).toString();
-      const event = await this.eventService.getEvent(body.event_id);
+      const event = await this.eventService.getEventOnly(body.event_id);
       if (!event) {
         return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
       }

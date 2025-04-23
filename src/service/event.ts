@@ -114,6 +114,11 @@ export class EventService {
     };
   }
 
+  public async getEventOnly(id: number) {
+    const result = await this.repository.find(id);
+    return result.event;
+  }
+
   public async getAllEvents(
     query?: EventQuery,
   ): Promise<{ events: EventWithRelations[]; total: number }> {
