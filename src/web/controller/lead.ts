@@ -533,14 +533,26 @@ export class LeadController {
               : event?.event_type === 'live_video_call'
                 ? `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. You can join the event using this link: ${event?.live_video_url}. Your ticket is valid for ${eventDate}. We can't wait to see you there! If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`
                 : `We're thrilled to let you know that your ticket has been successfully confirmed! You're now officially part of ${event?.event_name}. You can access the event content at any time. Your ticket is valid for ${eventDate}. If you have any questions, need assistance, or just want to say hi, feel free to reach out to our support team at any time — we're always here to help.`;
+          const buttonText =
+            event?.event_type === 'live_venue'
+              ? 'View Event Details'
+              : event?.event_type === 'live_video_call'
+                ? 'Join Event'
+                : 'Go to Event';
+          const buttonLink =
+            event?.event_type === 'live_venue'
+              ? `${env.FRONTEND_URL}/event/${event?.id}`
+              : event?.event_type === 'live_video_call'
+                ? `${event?.live_video_url}`
+                : `${env.FRONTEND_URL}/event/${event?.id}`;
 
           sendTransactionalEmail(String(lead.email), String(lead.name), 1, {
             subject: 'Your Ticket is Confirmed 🎉',
             title: "You're All Set for the Event!",
             subtitle: String(lead.token),
             body: body,
-            buttonText: 'Ok, got it',
-            buttonLink: `${env.FRONTEND_URL}`,
+            buttonText: buttonText,
+            buttonLink: buttonLink,
           });
         }
         return c.json({
