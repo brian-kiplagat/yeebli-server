@@ -212,6 +212,7 @@ export class Server {
       paymentService,
       eventService,
       membershipService,
+      bookingService,
     );
     const subscriptionController = new SubscriptionController(
       subscriptionService,
