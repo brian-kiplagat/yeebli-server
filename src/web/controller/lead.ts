@@ -544,7 +544,7 @@ export class LeadController {
               ? `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`
               : event?.event_type === 'live_video_call'
                 ? `${event?.live_video_url}`
-                : `${env.FRONTEND_URL}/event/${event?.id}`;
+                : `${env.FRONTEND_URL}/events/event?token=${lead.token}&email=${lead.email}&code=${lead.event_id}`;
 
           sendTransactionalEmail(String(lead.email), String(lead.name), 1, {
             subject: 'Your Ticket is Confirmed 🎉',
