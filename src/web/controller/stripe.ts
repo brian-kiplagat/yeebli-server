@@ -406,7 +406,7 @@ export class StripeController {
                     : 'Go to Event';
               const buttonLink =
                 event?.event_type === 'live_venue'
-                  ? `${env.FRONTEND_URL}/event/${event?.id}`
+                  ? `${env.FRONTEND_URL}/events/thank-you?token=${lead.token}&email=${lead.email}&code=${lead.event_id}&action=success`
                   : event?.event_type === 'live_video_call'
                     ? `${event?.live_video_url}`
                     : `${env.FRONTEND_URL}/event/${event?.id}`;
