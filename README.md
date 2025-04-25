@@ -283,10 +283,10 @@ CREATE DATABASE hono;
 Still in the MySQL shell:
 
 ```sql
-CREATE USER 'admin'@'localhost' IDENTIFIED BY 'Wagwan!2001';
+CREATE USER 'admin'@'%' IDENTIFIED BY 'Wagwan!2001';
 ```
 
-You can replace `'localhost'` with `'%'` if the user needs remote access.
+You can replace `'%'` with `'localhost'` or `'192.169.....'` to be more specific.
 
 ---
 
@@ -295,7 +295,7 @@ You can replace `'localhost'` with `'%'` if the user needs remote access.
 Now give the user access to the `hono` database:
 
 ```sql
-GRANT ALL PRIVILEGES ON hono.* TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON hono.* TO 'admin'@'%';
 FLUSH PRIVILEGES;
 ```
 
