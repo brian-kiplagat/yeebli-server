@@ -41,8 +41,12 @@ export class MembershipRepository {
     }
 
     const plans = await db
-      .select()
+      .select({
+        membership: memberships,
+        date: membershipDates,
+      })
       .from(memberships)
+      .leftJoin(membershipDates, eq(membershipDates.membership_id, memberships.id))
       .where(and(...whereConditions))
       .limit(limit)
       .offset(offset)
@@ -54,14 +58,6 @@ export class MembershipRepository {
       .where(and(...whereConditions));
 
     return { plans, total: total.length };
-  }
-
-  async update(id: number, plan: Partial<Membership>): Promise<void> {
-    await db.update(memberships).set(plan).where(eq(memberships.id, id));
-  }
-
-  async delete(id: number): Promise<void> {
-    await db.delete(memberships).where(eq(memberships.id, id));
   }
 
   async findByUserId(userId: number, query?: MembershipQuery) {
@@ -91,6 +87,13 @@ export class MembershipRepository {
       .where(and(...whereConditions));
 
     return { plans, total: total.length };
+  }
+  async update(id: number, plan: Partial<Membership>): Promise<void> {
+    await db.update(memberships).set(plan).where(eq(memberships.id, id));
+  }
+
+  async delete(id: number): Promise<void> {
+    await db.delete(memberships).where(eq(memberships.id, id));
   }
 
   async getEventsByMembership(membershipId: number) {

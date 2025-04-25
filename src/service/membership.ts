@@ -47,7 +47,25 @@ export class MembershipService {
   public async getAllMemberships(
     query?: MembershipQuery,
   ): Promise<{ plans: Membership[]; total: number }> {
-    return await this.repository.findAll(query);
+    const result = await this.repository.findAll(query);
+    // Group dates by membership
+    const membershipMap = new Map<number, Membership>();
+    result.plans.forEach(({ membership, date }) => {
+      if (!membershipMap.has(membership.id)) {
+        membershipMap.set(membership.id, { ...membership, dates: [] });
+      }
+      if (date) {
+        const membershipObj = membershipMap.get(membership.id);
+        if (membershipObj?.dates) {
+          membershipObj.dates.push(date);
+        }
+      }
+    });
+
+    return {
+      plans: Array.from(membershipMap.values()),
+      total: result.total,
+    };
   }
 
   public async updateMembership(id: number, plan: Partial<Membership>): Promise<void> {

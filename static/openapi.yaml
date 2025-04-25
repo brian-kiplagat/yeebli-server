@@ -1,10 +1,13 @@
 openapi: 3.1.0
 info:
-  description: All APIs currently supported by Hono Starter
-  title: Hono Starter
+  description: Yeebli Server API Documentation
+  title: Yeebli Server
   version: 1.0.0
 servers:
-  - url: http://localhost:3000
+- url: http://localhost:3000
+  description: Local development server
+- url: https://api.3themind.com
+  description: Production server
 paths:
   /v1/user/login:
     post:
@@ -30,8 +33,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-          description: The request was successful, and the server has returned the
-            requested resource in the response body.
+          description: The request was successful, and the server has returned the requested resource in the response body.
         '401':
           content:
             application/json:
@@ -39,35 +41,10 @@ paths:
                 properties:
                   error:
                     type: string
-          description: Authentication is required to access the requested resource. The
-            client must include the appropriate credentials.
+          description: Authentication is required to access the requested resource.
       summary: Login
       tags:
-        - User
-  /v1/user/me:
-    get:
-      operationId: getUser
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: OK - Successful request with response body
-        '401':
-          content:
-            application/json:
-              schema:
-                properties:
-                  error:
-                    type: string
-          description: Authentication is required to access the requested resource. The
-            client must include the appropriate credentials.
-      security:
-        - bearerAuth: []
-      summary: Get user
-      tags:
-        - User
+      - User
   /v1/user/register:
     post:
       operationId: register
@@ -102,12 +79,2361 @@ paths:
                 properties:
                   error:
                     type: string
-          description: The server encountered an unexpected condition that prevented it
-            from fulfilling the request. Report the issue to the support team if
-            it persists.
+          description: Server error
       summary: Register
       tags:
-        - User
+      - User
+  /v1/user/me:
+    get:
+      operationId: getUser
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: OK - Successful request with response body
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication is required to access the requested resource.
+      security:
+      - bearerAuth: []
+      summary: Get user
+      tags:
+      - User
+  /v1/user/send-token:
+    post:
+      operationId: sendToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Token sent successfully
+        '500':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Server error
+      summary: Send verification token
+      tags:
+      - User
+  /v1/user/verify-registration:
+    post:
+      operationId: verifyRegistration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                token:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Registration verified successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid token
+      summary: Verify registration
+      tags:
+      - User
+  /v1/user/request-reset-password:
+    post:
+      operationId: requestResetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Reset password email sent
+        '404':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: User not found
+      summary: Request password reset
+      tags:
+      - User
+  /v1/user/reset-password:
+    post:
+      operationId: resetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                token:
+                  type: string
+                  required: true
+                password:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid token
+      summary: Reset password
+      tags:
+      - User
+  /v1/user/reset-password-in-app:
+    post:
+      operationId: resetPasswordInApp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                currentPassword:
+                  type: string
+                  required: true
+                newPassword:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Password reset successful
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid current password
+      security:
+      - bearerAuth: []
+      summary: Reset password in app
+      tags:
+      - User
+  /v1/user/details:
+    put:
+      operationId: updateUserDetails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: User details updated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Update user details
+      tags:
+      - User
+  /v1/user/auth/google:
+    get:
+      operationId: initiateGoogleAuth
+      responses:
+        '302':
+          description: Redirect to Google OAuth
+      summary: Initiate Google authentication
+      tags:
+      - User
+  /v1/user/auth/google/callback:
+    get:
+      operationId: handleGoogleCallback
+      parameters:
+      - name: code
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: Google authentication successful
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication failed
+      summary: Handle Google OAuth callback
+      tags:
+      - User
+  /v1/lead/lead-validate-event:
+    post:
+      operationId: validateEventLink
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                eventId:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Event link validated successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid event link
+      summary: Validate event link
+      tags:
+      - Lead
+  /v1/lead/validate-ticket-payment:
+    post:
+      operationId: validateTicketPayment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                eventId:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Ticket payment validated successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid ticket payment
+      summary: Validate ticket payment
+      tags:
+      - Lead
+  /v1/lead/external-form:
+    post:
+      operationId: handleExternalForm
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                eventId:
+                  type: string
+                  required: true
+                formData:
+                  type: object
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Form submitted successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid form data
+      summary: Handle external form submission
+      tags:
+      - Lead
+  /v1/lead/purchase-membership:
+    post:
+      operationId: purchaseMembership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                membershipId:
+                  type: string
+                  required: true
+                paymentMethodId:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Membership purchased successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid purchase request
+      summary: Purchase membership
+      tags:
+      - Lead
+  /v1/lead:
+    get:
+      operationId: getLeads
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lead'
+          description: List of leads
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get all leads
+      tags:
+      - Lead
+    post:
+      operationId: createLead
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Lead'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+          description: Lead created successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Create lead
+      tags:
+      - Lead
+  /v1/lead/{id}:
+    get:
+      operationId: getLead
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+          description: Lead details
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get lead by ID
+      tags:
+      - Lead
+    put:
+      operationId: updateLead
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Lead'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+          description: Lead updated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Update lead
+      tags:
+      - Lead
+    delete:
+      operationId: deleteLead
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Lead deleted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Delete lead
+      tags:
+      - Lead
+  /v1/lead/unique-leads:
+    post:
+      operationId: getUniqueLeads
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lead'
+          description: List of unique leads
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get unique leads
+      tags:
+      - Lead
+  /v1/event/{id}:
+    get:
+      operationId: getEvent
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+          description: Event details
+        '404':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Event not found
+      summary: Get event by ID
+      tags:
+      - Event
+    put:
+      operationId: updateEvent
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+          description: Event updated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Update event
+      tags:
+      - Event
+    delete:
+      operationId: deleteEvent
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Event deleted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Delete event
+      tags:
+      - Event
+  /v1/event/{id}/memberships:
+    get:
+      operationId: getEventMemberships
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Membership'
+          description: List of event memberships
+        '404':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Event not found
+      summary: Get event memberships
+      tags:
+      - Event
+  /v1/event/stream:
+    post:
+      operationId: streamPrerecordedEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                eventId:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Event stream started
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid event ID
+      summary: Stream prerecorded event
+      tags:
+      - Event
+  /v1/event:
+    get:
+      operationId: getEvents
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+          description: List of events
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get all events
+      tags:
+      - Event
+    post:
+      operationId: createEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+          description: Event created successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Create event
+      tags:
+      - Event
+  /v1/event/cancel:
+    post:
+      operationId: cancelEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                eventId:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Event cancelled successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Cancel event
+      tags:
+      - Event
+  /v1/admin/user/{id}:
+    get:
+      operationId: getParticularUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: User details
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get user by ID (admin)
+      tags:
+      - Admin
+    put:
+      operationId: updateParticularUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: User updated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Update user (admin)
+      tags:
+      - Admin
+    delete:
+      operationId: deleteUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: User deleted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Delete user (admin)
+      tags:
+      - Admin
+  /v1/admin/users:
+    get:
+      operationId: getUsers
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: List of users
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get all users (admin)
+      tags:
+      - Admin
+  /v1/admin/user:
+    post:
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: User created successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Create user (admin)
+      tags:
+      - Admin
+  /v1/admin/leads:
+    get:
+      operationId: getLeads
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lead'
+          description: List of leads
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get all leads (admin)
+      tags:
+      - Admin
+  /v1/admin/events:
+    get:
+      operationId: getEvents
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+          description: List of events
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get all events (admin)
+      tags:
+      - Admin
+  /v1/s3/presigned-url:
+    post:
+      operationId: generatePresignedUrl
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  url:
+                    type: string
+                  fields:
+                    type: object
+          description: Presigned URL generated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Generate presigned URL
+      tags:
+      - S3
+  /v1/asset/{id}:
+    get:
+      operationId: getAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+          description: Asset details
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get asset by ID
+      tags:
+      - Asset
+    delete:
+      operationId: deleteAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Asset deleted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Delete asset
+      tags:
+      - Asset
+  /v1/asset:
+    get:
+      operationId: getAssets
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Asset'
+          description: List of assets
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get all assets
+      tags:
+      - Asset
+    post:
+      operationId: createAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Asset'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+          description: Asset created successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Create asset
+      tags:
+      - Asset
+  /v1/asset/{id}/rename:
+    put:
+      operationId: renameAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+          description: Asset renamed successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Rename asset
+      tags:
+      - Asset
+  /v1/stripe/connect/oauth:
+    get:
+      operationId: initiateOAuth
+      responses:
+        '302':
+          description: Redirect to Stripe OAuth
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Initiate Stripe OAuth
+      tags:
+      - Stripe
+  /v1/stripe/connect/oauth/callback:
+    get:
+      operationId: handleOAuthCallback
+      parameters:
+      - name: code
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OAuth completed successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: OAuth failed
+      summary: Handle Stripe OAuth callback
+      tags:
+      - Stripe
+  /v1/stripe/product/{id}/{priceId}:
+    get:
+      operationId: getProduct
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: priceId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: Product details
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get product details
+      tags:
+      - Stripe
+  /v1/stripe/list/payment/methods:
+    get:
+      operationId: getCardDetails
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentMethod'
+          description: List of payment methods
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get payment methods
+      tags:
+      - Stripe
+  /v1/stripe/webhook:
+    post:
+      operationId: handleWebhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Webhook handled successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid webhook
+      summary: Handle Stripe webhook
+      tags:
+      - Stripe
+  /v1/subscription:
+    get:
+      operationId: getSubscriptions
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+          description: List of subscriptions
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get subscriptions
+      tags:
+      - Subscription
+    post:
+      operationId: subscribe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                planId:
+                  type: string
+                  required: true
+                paymentMethodId:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: Subscription created successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Create subscription
+      tags:
+      - Subscription
+    delete:
+      operationId: cancelSubscription
+      responses:
+        '200':
+          description: Subscription cancelled successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Cancel subscription
+      tags:
+      - Subscription
+  /v1/booking:
+    post:
+      operationId: createBooking
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: Booking created successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid booking data
+      summary: Create booking
+      tags:
+      - Booking
+  /v1/booking/lead/{lead_id}:
+    get:
+      operationId: getBookingsByLead
+      parameters:
+      - name: lead_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+          description: List of bookings for lead
+        '404':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Lead not found
+      summary: Get bookings by lead
+      tags:
+      - Booking
+  /v1/business/my:
+    get:
+      operationId: getMyBusiness
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Business'
+          description: Business details
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get my business
+      tags:
+      - Business
+    post:
+      operationId: upsertBusiness
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Business'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Business'
+          description: Business updated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Update business
+      tags:
+      - Business
+  /v1/business:
+    get:
+      operationId: getAllBusinesses
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Business'
+          description: List of businesses
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get all businesses
+      tags:
+      - Business
+  /v1/membership/{id}:
+    get:
+      operationId: getMembership
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membership'
+          description: Membership details
+        '404':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Membership not found
+      summary: Get membership by ID
+      tags:
+      - Membership
+    put:
+      operationId: updateMembership
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Membership'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membership'
+          description: Membership updated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Update membership
+      tags:
+      - Membership
+    delete:
+      operationId: deleteMembership
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Membership deleted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Delete membership
+      tags:
+      - Membership
+  /v1/membership/{id}/dates-for-plan:
+    get:
+      operationId: getEventDates
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+          description: List of event dates
+        '404':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Membership not found
+      summary: Get event dates for plan
+      tags:
+      - Membership
+  /v1/membership:
+    get:
+      operationId: getMemberships
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Membership'
+          description: List of memberships
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get all memberships
+      tags:
+      - Membership
+    post:
+      operationId: createMembership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Membership'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membership'
+          description: Membership created successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Create membership
+      tags:
+      - Membership
+  /v1/membership/{id}/dates/{dateId}:
+    delete:
+      operationId: deleteMembershipDate
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: dateId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Membership date deleted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Delete membership date
+      tags:
+      - Membership
+  /v1/team/create:
+    post:
+      operationId: createTeam
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Team'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+          description: Team created successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Create team
+      tags:
+      - Team
+  /v1/team/invite:
+    post:
+      operationId: inviteMember
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                  required: true
+                role:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Member invited successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Invite team member
+      tags:
+      - Team
+  /v1/team/invitations:
+    get:
+      operationId: getTeamInvitations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamInvitation'
+          description: List of team invitations
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get team invitations
+      tags:
+      - Team
+  /v1/team/my-invitations:
+    get:
+      operationId: getMyInvitations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamInvitation'
+          description: List of my invitations
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get my invitations
+      tags:
+      - Team
+  /v1/team/invitations/{id}:
+    delete:
+      operationId: deleteInvitation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Invitation deleted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Delete invitation
+      tags:
+      - Team
+  /v1/team/invitations/{id}/accept:
+    post:
+      operationId: acceptInvitation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Invitation accepted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Accept invitation
+      tags:
+      - Team
+  /v1/team/invitations/{id}/reject:
+    post:
+      operationId: rejectInvitation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Invitation rejected successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Reject invitation
+      tags:
+      - Team
+  /v1/team/my-team/members:
+    get:
+      operationId: getMyTeamMembers
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamMember'
+          description: List of team members
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get my team members
+      tags:
+      - Team
+  /v1/team/my-teams:
+    get:
+      operationId: getMyTeams
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+          description: List of my teams
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get my teams
+      tags:
+      - Team
+  /v1/team/revoke-access:
+    post:
+      operationId: revokeAccess
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                userId:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Access revoked successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Revoke team access
+      tags:
+      - Team
+  /v1/contact/login:
+    post:
+      operationId: contactLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                  required: true
+                password:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+          description: Login successful
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid credentials
+      summary: Contact login
+      tags:
+      - Contact
+  /v1/contact/me:
+    get:
+      operationId: contactMe
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+          description: Contact details
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get contact details
+      tags:
+      - Contact
+  /v1/contact/payment-methods:
+    get:
+      operationId: contactPaymentMethods
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentMethod'
+          description: List of payment methods
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get contact payment methods
+      tags:
+      - Contact
+  /v1/contact/send-token:
+    post:
+      operationId: contactSendToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Token sent successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid email
+      summary: Send contact verification token
+      tags:
+      - Contact
+  /v1/contact/verify-registration:
+    post:
+      operationId: contactVerifyRegistration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                token:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Registration verified successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid token
+      summary: Verify contact registration
+      tags:
+      - Contact
+  /v1/contact/request-reset-password:
+    post:
+      operationId: contactRequestResetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Reset password email sent
+        '404':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Contact not found
+      summary: Request contact password reset
+      tags:
+      - Contact
+  /v1/contact/reset-password:
+    post:
+      operationId: contactResetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                token:
+                  type: string
+                  required: true
+                password:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid token
+      summary: Reset contact password
+      tags:
+      - Contact
+  /v1/contact/reset-password-in-app:
+    post:
+      operationId: contactResetPasswordInApp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                currentPassword:
+                  type: string
+                  required: true
+                newPassword:
+                  type: string
+                  required: true
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Password reset successful
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid current password
+      security:
+      - bearerAuth: []
+      summary: Reset contact password in app
+      tags:
+      - Contact
+  /v1/contact/details:
+    put:
+      operationId: updateContactDetails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+          description: Contact details updated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Update contact details
+      tags:
+      - Contact
+  /v1/callback:
+    post:
+      operationId: createCallback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Callback'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Callback'
+          description: Callback created successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Invalid callback data
+      summary: Create callback
+      tags:
+      - Callback
+  /v1/callback/{id}:
+    get:
+      operationId: getCallback
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Callback'
+          description: Callback details
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get callback by ID
+      tags:
+      - Callback
+    put:
+      operationId: updateCallback
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Callback'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Callback'
+          description: Callback updated successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Update callback
+      tags:
+      - Callback
+    delete:
+      operationId: deleteCallback
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Callback deleted successfully
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Delete callback
+      tags:
+      - Callback
+  /v1/callback/lead/{leadId}:
+    get:
+      operationId: getCallbacksByLeadId
+      parameters:
+      - name: leadId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Callback'
+          description: List of callbacks for lead
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get callbacks by lead ID
+      tags:
+      - Callback
+  /v1/callback/uncalled:
+    get:
+      operationId: getUncalledCallbacks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Callback'
+          description: List of uncalled callbacks
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get uncalled callbacks
+      tags:
+      - Callback
+  /v1/callback/scheduled:
+    get:
+      operationId: getScheduledCallbacks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Callback'
+          description: List of scheduled callbacks
+        '401':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+          description: Authentication required
+      security:
+      - bearerAuth: []
+      summary: Get scheduled callbacks
+      tags:
+      - Callback
 components:
   schemas:
     User:
@@ -121,15 +2447,314 @@ components:
         createdAt:
           type: string
       required:
-        - id
-        - name
-        - email
-        - createdAt
+      - id
+      - name
+      - email
+      - createdAt
+      type: object
+    Lead:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        eventId:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - name
+      - email
+      - eventId
+      - createdAt
+      type: object
+    Event:
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - title
+      - startDate
+      - status
+      - createdAt
+      type: object
+    Membership:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        eventId:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - name
+      - price
+      - eventId
+      - createdAt
+      type: object
+    Asset:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        url:
+          type: string
+        type:
+          type: string
+        size:
+          type: integer
+        createdAt:
+          type: string
+      required:
+      - id
+      - name
+      - url
+      - type
+      - size
+      - createdAt
+      type: object
+    Product:
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        currency:
+          type: string
+      required:
+      - id
+      - name
+      - price
+      - currency
+      type: object
+    PaymentMethod:
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        card:
+          type: object
+          properties:
+            brand:
+              type: string
+            last4:
+              type: string
+            exp_month:
+              type: integer
+            exp_year:
+              type: integer
+      required:
+      - id
+      - type
+      - card
+      type: object
+    Subscription:
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        currentPeriodEnd:
+          type: string
+        plan:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+      required:
+      - id
+      - status
+      - currentPeriodEnd
+      - plan
+      type: object
+    Booking:
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: string
+        eventId:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - leadId
+      - eventId
+      - status
+      - createdAt
+      type: object
+    Business:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        logo:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - name
+      - createdAt
+      type: object
+    Team:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - name
+      - createdAt
+      type: object
+    TeamInvitation:
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - email
+      - role
+      - status
+      - createdAt
+      type: object
+    TeamMember:
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        role:
+          type: string
+        joinedAt:
+          type: string
+      required:
+      - id
+      - userId
+      - role
+      - joinedAt
+      type: object
+    Contact:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - name
+      - email
+      - createdAt
+      type: object
+    Callback:
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: string
+        scheduledAt:
+          type: string
+        status:
+          type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - id
+      - leadId
+      - scheduledAt
+      - status
+      - createdAt
       type: object
   securitySchemes:
     bearerAuth:
       scheme: Bearer
       type: http
 tags:
-  - description: ''
-    name: User
+- description: User management endpoints
+  name: User
+- description: Lead management endpoints
+  name: Lead
+- description: Event management endpoints
+  name: Event
+- description: Admin management endpoints
+  name: Admin
+- description: S3 storage endpoints
+  name: S3
+- description: Asset management endpoints
+  name: Asset
+- description: Stripe integration endpoints
+  name: Stripe
+- description: Subscription management endpoints
+  name: Subscription
+- description: Booking management endpoints
+  name: Booking
+- description: Business management endpoints
+  name: Business
+- description: Team management endpoints
+  name: Team
+- description: Contact management endpoints
+  name: Contact
+- description: Callback management endpoints
+  name: Callback
