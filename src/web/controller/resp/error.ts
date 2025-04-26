@@ -44,7 +44,7 @@ const ERRORS = {
   EPISODE_NOT_FOUND: 'We could not find this episode, please check the episode id',
   PODCAST_NOT_FOUND: 'We could not find this podcast, please check the podcast id',
   COURSE_MEMBERSHIP_NOT_ALLOWED:
-    'Course memberships are not allowed for creating events. Choose membership with a `standalone` price point',
+    'Course and Standalone memberships are not allowed for creating podcasts. Choose membership with a `podcast` price point',
   TOKEN_REQUIRED: 'Token is required',
   LEAD_EMAIL_MISMATCH: 'The lead email does not match the email provided',
   EVENT_NOT_PRERECORDED: 'This event is not a prerecorded event',

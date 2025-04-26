@@ -498,6 +498,13 @@
       "when": 1745689900035,
       "tag": "0071_skinny_rafael_vega",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "5",
+      "when": 1745690641395,
+      "tag": "0072_slim_king_cobra",
+      "breakpoints": true
     }
   ]
 }
