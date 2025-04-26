@@ -340,6 +340,37 @@ export const callbackSchema = mysqlTable('callbacks', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const podcastSchema = mysqlTable('podcasts', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  cover_image_asset_id: int('cover_image_asset_id')
+    .references(() => assetsSchema.id)
+    .notNull(),
+  podcast_type: mysqlEnum('podcast_type', ['prerecorded', 'link']).default('prerecorded'),
+  episode_type: mysqlEnum('episode_type', ['single', 'multiple']).default('multiple'),
+  host_id: int('host_id')
+    .references(() => userSchema.id)
+    .notNull(),
+  status: mysqlEnum('status', ['draft', 'published', 'archived']).default('draft'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+  link_url: text('link_url'),
+});
+
+export const podcastEpisodeSchema = mysqlTable('podcast_episodes', {
+  id: serial('id').primaryKey(),
+  podcast_id: int('podcast_id')
+    .references(() => podcastSchema.id)
+    .notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  audio_asset_id: int('audio_asset_id').references(() => assetsSchema.id),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+  order: int('order'),
+});
+
 export const eventMembershipSchema = mysqlTable('event_memberships', {
   id: serial('id').primaryKey(),
   event_id: int('event_id')
@@ -388,6 +419,20 @@ export type NewUser = typeof userSchema.$inferInsert;
 export type NewBusiness = typeof businessSchema.$inferInsert;
 export type Callback = typeof callbackSchema.$inferSelect;
 export type NewCallback = typeof callbackSchema.$inferInsert;
+export type Podcast = typeof podcastSchema.$inferSelect & {
+  cover?: Asset | null;
+  host?: {
+    id: number;
+    name: string;
+    email: string;
+  } | null;
+  episodes?: PodcastEpisode[];
+};
+export type NewPodcast = typeof podcastSchema.$inferInsert;
+export type PodcastEpisode = typeof podcastEpisodeSchema.$inferSelect & {
+  audio?: Asset | null;
+};
+export type NewPodcastEpisode = typeof podcastEpisodeSchema.$inferInsert;
 
 // Define relations
 export const userRelations = relations(userSchema, ({ one }) => ({
@@ -505,5 +550,28 @@ export const eventMembershipRelations = relations(eventMembershipSchema, ({ one 
   membership: one(membershipSchema, {
     fields: [eventMembershipSchema.membership_id],
     references: [membershipSchema.id],
+  }),
+}));
+
+export const podcastRelations = relations(podcastSchema, ({ one, many }) => ({
+  cover: one(assetsSchema, {
+    fields: [podcastSchema.cover_image_asset_id],
+    references: [assetsSchema.id],
+  }),
+  host: one(userSchema, {
+    fields: [podcastSchema.host_id],
+    references: [userSchema.id],
+  }),
+  episodes: many(podcastEpisodeSchema),
+}));
+
+export const podcastEpisodeRelations = relations(podcastEpisodeSchema, ({ one }) => ({
+  podcast: one(podcastSchema, {
+    fields: [podcastEpisodeSchema.podcast_id],
+    references: [podcastSchema.id],
+  }),
+  audio: one(assetsSchema, {
+    fields: [podcastEpisodeSchema.audio_asset_id],
+    references: [assetsSchema.id],
   }),
 }));
