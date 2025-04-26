@@ -44,9 +44,49 @@ export class PodcastService {
     }
   }
 
-  async updatePodcast(id: number, update: Partial<Podcast>) {
+  async updatePodcast(
+    id: number,
+    update: Partial<Podcast> & { assets?: number[]; memberships?: number[] },
+  ) {
     try {
-      await this.repository.updatePodcast(id, update);
+      const { memberships, ...rest } = update;
+
+      // Handle memberships
+      if (memberships) {
+        // Get current memberships
+        const currentMemberships = await this.repository.findPodcastMemberships(id);
+        const currentMembershipIds = currentMemberships.map(
+          (m: { membership_id: number }) => m.membership_id,
+        );
+
+        // Find memberships to add and remove
+        const membershipsToAdd = memberships.filter(
+          (membershipId: number) => !currentMembershipIds.includes(membershipId),
+        );
+        const membershipsToRemove = currentMembershipIds.filter(
+          (membershipId: number) => !memberships.includes(membershipId),
+        );
+
+        // Remove memberships that are no longer needed
+        if (membershipsToRemove.length > 0) {
+          await Promise.all(
+            membershipsToRemove.map((membershipId: number) =>
+              this.repository.deletePodcastMembership(id, membershipId),
+            ),
+          );
+        }
+
+        // Add new memberships
+        if (membershipsToAdd.length > 0) {
+          await Promise.all(
+            membershipsToAdd.map((membershipId: number) =>
+              this.repository.addPodcastMembership(id, membershipId),
+            ),
+          );
+        }
+      }
+
+      await this.repository.updatePodcast(id, rest);
     } catch (error) {
       logger.error(error);
       throw error;

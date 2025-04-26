@@ -153,4 +153,22 @@ export class PodcastRepository {
   async deleteEpisode(id: number) {
     await db.delete(podcastEpisodeSchema).where(eq(podcastEpisodeSchema.id, id));
   }
+
+  async findPodcastMemberships(podcast_id: number) {
+    return db
+      .select()
+      .from(podcastMembershipSchema)
+      .where(eq(podcastMembershipSchema.podcast_id, podcast_id));
+  }
+
+  async deletePodcastMembership(podcast_id: number, membership_id: number) {
+    await db
+      .delete(podcastMembershipSchema)
+      .where(
+        and(
+          eq(podcastMembershipSchema.podcast_id, podcast_id),
+          eq(podcastMembershipSchema.membership_id, membership_id),
+        ),
+      );
+  }
 }

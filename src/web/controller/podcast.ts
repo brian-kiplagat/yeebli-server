@@ -4,7 +4,7 @@ import { logger } from '../../lib/logger.js';
 import { MembershipService } from '../../service/membership.ts';
 import type { PodcastService } from '../../service/podcast.js';
 import type { UserService } from '../../service/user.js';
-import { CreatePodcastBody } from '../validator/podcast.ts';
+import { CreatePodcastBody, UpdatePodcastBody } from '../validator/podcast.ts';
 import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
 
 export class PodcastController {
@@ -152,7 +152,33 @@ export class PodcastController {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
-      const body = await c.req.json();
+      const body: UpdatePodcastBody = await c.req.json();
+
+      const { assets, memberships, podcast_type, link_url } = body;
+
+      if ((!assets || assets.length === 0) && podcast_type === 'prerecorded') {
+        return serveBadRequest(c, ERRORS.INVALID_ASSETS);
+      }
+
+      if (podcast_type === 'link' && !link_url) {
+        return serveBadRequest(c, ERRORS.INVALID_LINK_URL);
+      }
+
+      if (!memberships || memberships.length < 1) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
+      }
+      //ensure the membership_ids are valid
+      const memberships_record = await this.membershipService.getMultipleMemberships(memberships);
+      if (memberships_record.length !== memberships.length) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+      //ensure none of the memberships.price_point is a `course` or `event`
+      const isCourse = memberships_record.some(
+        (m) => m.price_point === 'course' || m.price_point === 'standalone',
+      );
+      if (isCourse) {
+        return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
+      }
       await this.service.updatePodcast(podcastId, body);
 
       return c.json({ message: 'Podcast updated successfully' });
