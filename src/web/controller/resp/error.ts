@@ -37,6 +37,8 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  EPISODE_NOT_FOUND: 'We could not find this episode, please check the episode id',
+  PODCAST_NOT_FOUND: 'We could not find this podcast, please check the podcast id',
   COURSE_MEMBERSHIP_NOT_ALLOWED:
     'Course memberships are not allowed for creating events. Choose membership with a `standalone` price point',
   TOKEN_REQUIRED: 'Token is required',

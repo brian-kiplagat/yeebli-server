@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 import { logger } from '../../lib/logger.js';
 import type { PodcastService } from '../../service/podcast.js';
 import type { UserService } from '../../service/user.js';
+import { CreatePodcastBody } from '../validator/podcast.ts';
 import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from './resp/error.js';
 
 export class PodcastController {
@@ -78,7 +79,7 @@ export class PodcastController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
 
-      const body = await c.req.json();
+      const body: CreatePodcastBody = await c.req.json();
       const podcastId = await this.service.createPodcast({
         ...body,
         host_id: user.id,
@@ -99,14 +100,14 @@ export class PodcastController {
       }
 
       const podcastId = Number(c.req.param('id'));
-      const podcast = await this.service.getPodcast(podcastId);
+      const record = await this.service.getPodcast(podcastId);
 
-      if (!podcast) {
+      if (!record) {
         return serveNotFound(c, ERRORS.PODCAST_NOT_FOUND);
       }
 
       // Only master, owner, or the podcast host can update
-      if (user.role !== 'master' && user.role !== 'owner' && podcast.host_id !== user.id) {
+      if (user.role !== 'master' && user.role !== 'owner' && record.podcast.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -128,14 +129,14 @@ export class PodcastController {
       }
 
       const podcastId = Number(c.req.param('id'));
-      const podcast = await this.service.getPodcast(podcastId);
+      const record = await this.service.getPodcast(podcastId);
 
-      if (!podcast) {
+      if (!record) {
         return serveNotFound(c, ERRORS.PODCAST_NOT_FOUND);
       }
 
       // Only master, owner, or the podcast host can delete
-      if (user.role !== 'master' && user.role !== 'owner' && podcast.host_id !== user.id) {
+      if (user.role !== 'master' && user.role !== 'owner' && record.podcast.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -155,14 +156,14 @@ export class PodcastController {
       }
 
       const podcastId = Number(c.req.param('podcastId'));
-      const podcast = await this.service.getPodcast(podcastId);
+      const record = await this.service.getPodcast(podcastId);
 
-      if (!podcast) {
+      if (!record) {
         return serveNotFound(c, ERRORS.PODCAST_NOT_FOUND);
       }
 
       // Only master, owner, or the podcast host can add episodes
-      if (user.role !== 'master' && user.role !== 'owner' && podcast.host_id !== user.id) {
+      if (user.role !== 'master' && user.role !== 'owner' && record.podcast.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -204,19 +205,14 @@ export class PodcastController {
       }
 
       const episodeId = Number(c.req.param('episodeId'));
-      const episode = await this.service.getEpisode(episodeId);
+      const record = await this.service.getEpisode(episodeId);
 
-      if (!episode) {
+      if (!record) {
         return serveNotFound(c, ERRORS.EPISODE_NOT_FOUND);
       }
 
-      const podcast = await this.service.getPodcast(episode.podcast_id);
-      if (!podcast) {
-        return serveNotFound(c, ERRORS.PODCAST_NOT_FOUND);
-      }
-
       // Only master, owner, or the podcast host can update episodes
-      if (user.role !== 'master' && user.role !== 'owner' && podcast.host_id !== user.id) {
+      if (user.role !== 'master' && user.role !== 'owner' && record.episode.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -238,19 +234,14 @@ export class PodcastController {
       }
 
       const episodeId = Number(c.req.param('episodeId'));
-      const episode = await this.service.getEpisode(episodeId);
+      const record = await this.service.getEpisode(episodeId);
 
-      if (!episode) {
+      if (!record) {
         return serveNotFound(c, ERRORS.EPISODE_NOT_FOUND);
       }
 
-      const podcast = await this.service.getPodcast(episode.podcast_id);
-      if (!podcast) {
-        return serveNotFound(c, ERRORS.PODCAST_NOT_FOUND);
-      }
-
       // Only master, owner, or the podcast host can delete episodes
-      if (user.role !== 'master' && user.role !== 'owner' && podcast.host_id !== user.id) {
+      if (user.role !== 'master' && user.role !== 'owner' && record.episode.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 

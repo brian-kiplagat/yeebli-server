@@ -368,7 +368,9 @@ export const podcastEpisodeSchema = mysqlTable('podcast_episodes', {
   audio_asset_id: int('audio_asset_id').references(() => assetsSchema.id),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
-  order: int('order'),
+  host_id: int('user_id')
+    .references(() => userSchema.id)
+    .notNull(),
 });
 
 export const eventMembershipSchema = mysqlTable('event_memberships', {
@@ -573,5 +575,9 @@ export const podcastEpisodeRelations = relations(podcastEpisodeSchema, ({ one })
   audio: one(assetsSchema, {
     fields: [podcastEpisodeSchema.audio_asset_id],
     references: [assetsSchema.id],
+  }),
+  host: one(userSchema, {
+    fields: [podcastEpisodeSchema.host_id],
+    references: [userSchema.id],
   }),
 }));

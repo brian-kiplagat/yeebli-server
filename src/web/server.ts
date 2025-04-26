@@ -17,6 +17,7 @@ import { EventRepository } from '../repository/event.ts';
 import { LeadRepository } from '../repository/lead.js';
 import { MembershipRepository } from '../repository/membership.ts';
 import { PaymentRepository } from '../repository/payment.ts';
+import { PodcastRepository } from '../repository/podcast.js';
 import { SubscriptionRepository } from '../repository/subscription.js';
 import { TeamRepository } from '../repository/team.js';
 import { UserRepository } from '../repository/user.js';
@@ -31,6 +32,7 @@ import { GoogleService } from '../service/google.js';
 import { LeadService } from '../service/lead.js';
 import { MembershipService } from '../service/membership.ts';
 import { PaymentService } from '../service/payment.ts';
+import { PodcastService } from '../service/podcast.js';
 import { S3Service } from '../service/s3.js';
 import { StripeService } from '../service/stripe.js';
 import { SubscriptionService } from '../service/subscription.js';
@@ -49,6 +51,7 @@ import { EventController } from './controller/event.ts';
 import { GoogleController } from './controller/google.js';
 import { LeadController } from './controller/lead.ts';
 import { MembershipController } from './controller/membership.ts';
+import { PodcastController } from './controller/podcast.js';
 import { ERRORS, serveInternalServerError, serveNotFound } from './controller/resp/error.js';
 import { S3Controller } from './controller/s3.js';
 import { StripeController } from './controller/stripe.js';
@@ -74,6 +77,13 @@ import {
   updateLeadValidator,
 } from './validator/lead.ts';
 import { membershipQueryValidator, membershipValidator } from './validator/membership.ts';
+import {
+  podcastEpisodeValidator,
+  podcastQueryValidator,
+  podcastValidator,
+  updateEpisodeValidator,
+  updatePodcastValidator,
+} from './validator/podcast.ts';
 import { subscriptionRequestValidator } from './validator/subscription.ts';
 import {
   createTeamValidator,
@@ -136,6 +146,7 @@ export class Server {
     const businessRepo = new BusinessRepository();
     const paymentRepo = new PaymentRepository();
     const callbackRepo = new CallbackRepository();
+    const podcastRepo = new PodcastRepository();
     // Setup services
     const contactService = new ContactService(contactRepo);
     const s3Service = new S3Service();
@@ -160,6 +171,7 @@ export class Server {
     const paymentService = new PaymentService(paymentRepo);
     const businessService = new BusinessService(businessRepo, s3Service, assetService, teamService);
     const callbackService = new CallbackService(callbackRepo);
+    const podcastService = new PodcastService(podcastRepo, s3Service);
 
     // Setup workers
     this.registerWorker(userService);
@@ -235,6 +247,7 @@ export class Server {
 
     // Setup controllers
     const callbackController = new CallbackController(callbackService, userService, eventService);
+    const podcastController = new PodcastController(podcastService, userService);
 
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
@@ -251,6 +264,7 @@ export class Server {
     this.registerTeamRoutes(api, teamController);
     this.registerContactRoutes(api, contactController);
     this.registerCallbackRoutes(api, callbackController);
+    this.registerPodcastRoutes(api, podcastController, teamService);
   }
 
   private registerUserRoutes(api: Hono, authCtrl: AuthController, googleCtrl: GoogleController) {
@@ -519,6 +533,36 @@ export class Server {
     callback.post('/:id/called', authCheck, callbackCtrl.markCallbackAsCalled);
 
     api.route('/callback', callback);
+  }
+
+  private registerPodcastRoutes(
+    api: Hono,
+    podcastCtrl: PodcastController,
+    teamService: TeamService,
+  ) {
+    const podcast = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    // Unauthenticated routes
+    podcast.get('/:id', podcastCtrl.getPodcast);
+    podcast.get('/', podcastQueryValidator, podcastCtrl.getPodcasts);
+
+    // Apply auth middleware for authenticated routes
+    podcast.use(authCheck);
+    podcast.use(teamAccess(teamService));
+
+    // Authenticated routes
+    podcast.post('/', podcastValidator, podcastCtrl.createPodcast);
+    podcast.put('/:id', updatePodcastValidator, podcastCtrl.updatePodcast);
+    podcast.delete('/:id', podcastCtrl.deletePodcast);
+
+    // Episode routes (all authenticated)
+    podcast.post('/:podcastId/episode', podcastEpisodeValidator, podcastCtrl.addEpisode);
+    podcast.get('/:podcastId/episodes', podcastCtrl.getEpisodes);
+    podcast.put('/episode/:episodeId', updateEpisodeValidator, podcastCtrl.updateEpisode);
+    podcast.delete('/episode/:episodeId', podcastCtrl.deleteEpisode);
+
+    api.route('/podcast', podcast);
   }
 
   private registerWorker(userService: UserService) {
