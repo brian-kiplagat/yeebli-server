@@ -545,13 +545,13 @@ export class Server {
 
     // Unauthenticated routes
     podcast.get('/:id', podcastCtrl.getPodcast);
-    podcast.get('/', podcastQueryValidator, podcastCtrl.getPodcasts);
 
     // Apply auth middleware for authenticated routes
     podcast.use(authCheck);
     podcast.use(teamAccess(teamService));
 
     // Authenticated routes
+    podcast.get('/', podcastQueryValidator, podcastCtrl.getPodcasts);
     podcast.post('/', podcastValidator, podcastCtrl.createPodcast);
     podcast.put('/:id', updatePodcastValidator, podcastCtrl.updatePodcast);
     podcast.delete('/:id', podcastCtrl.deletePodcast);
