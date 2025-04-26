@@ -4,7 +4,7 @@ import { db } from '../lib/database.js';
 import type { NewPodcast, NewPodcastEpisode, Podcast, PodcastEpisode } from '../schema/schema.js';
 import {
   assetsSchema,
-  membershipSchema,
+  memberships,
   podcastEpisodeSchema,
   podcastMembershipSchema,
   podcastSchema,
@@ -48,22 +48,22 @@ export class PodcastRepository {
     if (!podcast) return null;
 
     // Get all memberships for the podcast with full membership details
-    const memberships = await db
+    const podcastMemberships = await db
       .select({
-        membership: {
-          id: podcastMembershipSchema.id,
-          podcast_id: podcastMembershipSchema.podcast_id,
-          membership_id: podcastMembershipSchema.membership_id,
-          created_at: podcastMembershipSchema.created_at,
-          updated_at: podcastMembershipSchema.updated_at,
-        },
-        membership_details: membershipSchema,
+        id: memberships.id,
+        name: memberships.name,
+        description: memberships.description,
+        price: memberships.price,
+        payment_type: memberships.payment_type,
+        price_point: memberships.price_point,
+        billing: memberships.billing,
+        membership_id: podcastMembershipSchema.membership_id,
       })
       .from(podcastMembershipSchema)
-      .leftJoin(membershipSchema, eq(podcastMembershipSchema.membership_id, membershipSchema.id))
+      .leftJoin(memberships, eq(podcastMembershipSchema.membership_id, memberships.id))
       .where(eq(podcastMembershipSchema.podcast_id, id));
 
-    return { ...podcast, memberships };
+    return { ...podcast, memberships: podcastMemberships };
   }
 
   async findAllPodcasts(query: PodcastQuery = {}) {
