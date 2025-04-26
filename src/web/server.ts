@@ -247,7 +247,7 @@ export class Server {
 
     // Setup controllers
     const callbackController = new CallbackController(callbackService, userService, eventService);
-    const podcastController = new PodcastController(podcastService, userService);
+    const podcastController = new PodcastController(podcastService, userService, membershipService);
 
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
