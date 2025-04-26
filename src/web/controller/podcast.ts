@@ -72,7 +72,10 @@ export class PodcastController {
         return serveNotFound(c, ERRORS.PODCAST_NOT_FOUND);
       }
 
-      return c.json(podcast);
+      //from each episode, build an array of the asset_ids
+      const episodeAssetIds = podcast.episodes.map((episode) => episode.audio?.id);
+
+      return c.json({ ...podcast, assets_ids: episodeAssetIds });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
