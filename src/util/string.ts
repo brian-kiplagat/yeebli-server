@@ -180,3 +180,23 @@ export const generateSecurePassword = (length = 8): string => {
     .sort(() => Math.random() - 0.5)
     .join('');
 };
+
+export const getContentTypeFromAssetType = (assetType: string): string => {
+  switch (assetType) {
+    case 'image':
+      return 'image/jpeg';
+    case 'video':
+      return 'video/mp4';
+    case 'audio':
+      return 'audio/mpeg';
+    case 'document':
+      return 'application/pdf';
+    default:
+      return 'application/octet-stream';
+  }
+};
+
+export const getKeyFromUrl = (url: string): string => {
+  const urlParts = url.split('.amazonaws.com/');
+  return urlParts[1] || '';
+};

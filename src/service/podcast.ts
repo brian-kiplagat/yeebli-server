@@ -1,6 +1,7 @@
 import { logger } from '../lib/logger.js';
 import type { PodcastRepository } from '../repository/podcast.js';
 import type { NewPodcast, NewPodcastEpisode, Podcast, PodcastEpisode } from '../schema/schema.js';
+import { getContentTypeFromAssetType, getKeyFromUrl } from '../util/string.ts';
 import type { S3Service } from './s3.js';
 
 export class PodcastService {
@@ -54,8 +55,8 @@ export class PodcastService {
       // Add presigned URLs for cover and audio assets
       if (podcast.cover?.asset_url) {
         const presignedUrl = await this.s3Service.generateGetUrl(
-          this.getKeyFromUrl(podcast.cover.asset_url),
-          this.getContentType(podcast.cover.asset_type),
+          getKeyFromUrl(podcast.cover.asset_url),
+          getContentTypeFromAssetType('image'),
           86400,
         );
         podcast.cover = { ...podcast.cover, presignedUrl };
@@ -65,8 +66,8 @@ export class PodcastService {
         episodes.map(async (episode) => {
           if (episode.audio?.asset_url) {
             const presignedUrl = await this.s3Service.generateGetUrl(
-              this.getKeyFromUrl(episode.audio.asset_url),
-              this.getContentType(episode.audio.asset_type),
+              getKeyFromUrl(episode.audio.asset_url),
+              getContentTypeFromAssetType('audio'),
               86400,
             );
             episode.audio = { ...episode.audio, presignedUrl };
@@ -94,8 +95,8 @@ export class PodcastService {
         podcasts.map(async (podcast) => {
           if (podcast.cover?.asset_url) {
             const presignedUrl = await this.s3Service.generateGetUrl(
-              this.getKeyFromUrl(podcast.cover.asset_url),
-              this.getContentType(podcast.cover.asset_type),
+              getKeyFromUrl(podcast.cover.asset_url),
+              getContentTypeFromAssetType('image'),
               86400,
             );
             podcast.cover = { ...podcast.cover, presignedUrl };
@@ -145,8 +146,8 @@ export class PodcastService {
 
       if (episode.audio?.asset_url) {
         const presignedUrl = await this.s3Service.generateGetUrl(
-          this.getKeyFromUrl(episode.audio.asset_url),
-          this.getContentType(episode.audio.asset_type),
+          getKeyFromUrl(episode.audio.asset_url),
+          getContentTypeFromAssetType('audio'),
           86400,
         );
         episode.audio = { ...episode.audio, presignedUrl };
@@ -168,8 +169,8 @@ export class PodcastService {
         episodes.map(async (episode) => {
           if (episode.audio?.asset_url) {
             const presignedUrl = await this.s3Service.generateGetUrl(
-              this.getKeyFromUrl(episode.audio.asset_url),
-              this.getContentType(episode.audio.asset_type),
+              getKeyFromUrl(episode.audio.asset_url),
+              getContentTypeFromAssetType('audio'),
               86400,
             );
             episode.audio = { ...episode.audio, presignedUrl };
@@ -191,26 +192,6 @@ export class PodcastService {
     } catch (error) {
       logger.error(error);
       throw error;
-    }
-  }
-
-  private getKeyFromUrl(url: string): string {
-    const urlParts = url.split('.amazonaws.com/');
-    return urlParts[1] || '';
-  }
-
-  private getContentType(assetType: string): string {
-    switch (assetType) {
-      case 'image':
-        return 'image/jpeg';
-      case 'video':
-        return 'video/mp4';
-      case 'audio':
-        return 'audio/mpeg';
-      case 'document':
-        return 'application/pdf';
-      default:
-        return 'application/octet-stream';
     }
   }
 }
