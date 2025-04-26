@@ -57,7 +57,8 @@ export class PodcastRepository {
         payment_type: memberships.payment_type,
         price_point: memberships.price_point,
         billing: memberships.billing,
-        membership_id: podcastMembershipSchema.membership_id,
+        podcast_id: podcastMembershipSchema.podcast_id,
+        podcast_membership_id: podcastMembershipSchema.id,
       })
       .from(podcastMembershipSchema)
       .leftJoin(memberships, eq(podcastMembershipSchema.membership_id, memberships.id))
