@@ -9,7 +9,7 @@ const podcastSchema = z.object({
   episode_type: z.enum(['single', 'multiple']),
   status: z.enum(['draft', 'published', 'archived']),
   link_url: z.string().optional(),
-  assets: z.array(z.number()).optional(),
+  assets: z.array(z.number()),
 });
 
 const podcastEpisodeSchema = z.object({

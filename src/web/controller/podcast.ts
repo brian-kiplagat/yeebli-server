@@ -80,10 +80,18 @@ export class PodcastController {
       }
 
       const body: CreatePodcastBody = await c.req.json();
-      const podcastId = await this.service.createPodcast({
-        ...body,
-        host_id: user.id,
-      });
+      const { assets } = body;
+      if (!assets || assets.length === 0) {
+        return serveBadRequest(c, ERRORS.INVALID_ASSETS);
+      }
+
+      const podcastId = await this.service.createPodcast(
+        {
+          ...body,
+          host_id: user.id,
+        },
+        assets,
+      );
 
       return c.json({ message: 'Podcast created successfully', podcastId }, 201);
     } catch (error) {

@@ -37,6 +37,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  INVALID_ASSETS: 'Please add some audio assets to the podcast',
   EPISODE_NOT_FOUND: 'We could not find this episode, please check the episode id',
   PODCAST_NOT_FOUND: 'We could not find this podcast, please check the podcast id',
   COURSE_MEMBERSHIP_NOT_ALLOWED:

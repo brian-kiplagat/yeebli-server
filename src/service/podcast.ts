@@ -12,9 +12,23 @@ export class PodcastService {
     this.s3Service = s3Service;
   }
 
-  async createPodcast(podcast: NewPodcast) {
+  async createPodcast(podcast: NewPodcast, assets: number[]) {
     try {
-      return await this.repository.createPodcast(podcast);
+      const podcastId = await this.repository.createPodcast(podcast);
+      //promise loop through assets and add them to the podcast
+      await Promise.all(
+        assets.map(async (asset, index) => {
+          const adding = await this.repository.addEpisode({
+            title: 'Episode ' + (index + 1),
+            description: 'Sample description for episode ' + (index + 1),
+            host_id: podcast.host_id,
+            podcast_id: podcastId,
+            audio_asset_id: asset,
+          });
+          return adding;
+        }),
+      );
+      return podcastId;
     } catch (error) {
       logger.error(error);
       throw error;
