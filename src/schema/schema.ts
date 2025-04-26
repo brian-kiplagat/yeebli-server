@@ -385,6 +385,18 @@ export const eventMembershipSchema = mysqlTable('event_memberships', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const podcastMembershipSchema = mysqlTable('podcast_memberships', {
+  id: serial('id').primaryKey(),
+  podcast_id: int('podcast_id')
+    .references(() => podcastSchema.id)
+    .notNull(),
+  membership_id: int('membership_id')
+    .references(() => membershipSchema.id)
+    .notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export type Lead = typeof leadSchema.$inferSelect & {
   event?: Event | null;
   membership?: Membership | null;
@@ -435,7 +447,8 @@ export type PodcastEpisode = typeof podcastEpisodeSchema.$inferSelect & {
   audio?: Asset | null;
 };
 export type NewPodcastEpisode = typeof podcastEpisodeSchema.$inferInsert;
-
+export type PodcastMembership = typeof podcastMembershipSchema.$inferSelect;
+export type NewPodcastMembership = typeof podcastMembershipSchema.$inferInsert;
 // Define relations
 export const userRelations = relations(userSchema, ({ one }) => ({
   business: one(businessSchema, {
@@ -551,6 +564,17 @@ export const eventMembershipRelations = relations(eventMembershipSchema, ({ one 
   }),
   membership: one(membershipSchema, {
     fields: [eventMembershipSchema.membership_id],
+    references: [membershipSchema.id],
+  }),
+}));
+
+export const podcastMembershipRelations = relations(podcastMembershipSchema, ({ one }) => ({
+  podcast: one(podcastSchema, {
+    fields: [podcastMembershipSchema.podcast_id],
+    references: [podcastSchema.id],
+  }),
+  membership: one(membershipSchema, {
+    fields: [podcastMembershipSchema.membership_id],
     references: [membershipSchema.id],
   }),
 }));

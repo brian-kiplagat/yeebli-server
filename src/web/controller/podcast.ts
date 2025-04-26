@@ -1,6 +1,7 @@
 import type { Context } from 'hono';
 
 import { logger } from '../../lib/logger.js';
+import { MembershipService } from '../../service/membership.ts';
 import type { PodcastService } from '../../service/podcast.js';
 import type { UserService } from '../../service/user.js';
 import { CreatePodcastBody } from '../validator/podcast.ts';
@@ -9,10 +10,16 @@ import { ERRORS, serveBadRequest, serveInternalServerError, serveNotFound } from
 export class PodcastController {
   private service: PodcastService;
   private userService: UserService;
+  private membershipService: MembershipService;
 
-  constructor(service: PodcastService, userService: UserService) {
+  constructor(
+    service: PodcastService,
+    userService: UserService,
+    membershipService: MembershipService,
+  ) {
     this.service = service;
     this.userService = userService;
+    this.membershipService = membershipService;
   }
 
   private async getUser(c: Context) {
@@ -90,12 +97,30 @@ export class PodcastController {
         return serveBadRequest(c, ERRORS.INVALID_LINK_URL);
       }
 
+      const membership_ids = body.memberships;
+      if (membership_ids.length < 1) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
+      }
+      //ensure the membership_ids are valid
+      const memberships = await this.membershipService.getMultipleMemberships(membership_ids);
+      if (memberships.length !== membership_ids.length) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+      }
+      //ensure none of the memberships.price_point is a `course` or `event`
+      const isCourse = memberships.some(
+        (m) => m.price_point === 'course' || m.price_point === 'standalone',
+      );
+      if (isCourse) {
+        return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
+      }
+
       const podcastId = await this.service.createPodcast(
         {
           ...body,
           host_id: user.id,
         },
         assets,
+        membership_ids,
       );
 
       return c.json({ message: 'Podcast created successfully', podcastId }, 201);

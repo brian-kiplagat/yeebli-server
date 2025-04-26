@@ -13,7 +13,7 @@ export class PodcastService {
     this.s3Service = s3Service;
   }
 
-  async createPodcast(podcast: NewPodcast, assets: number[] | undefined) {
+  async createPodcast(podcast: NewPodcast, assets: number[] | undefined, membership_ids: number[]) {
     try {
       const podcastId = await this.repository.createPodcast(podcast);
       //promise loop through assets and add them to the podcast
@@ -31,6 +31,12 @@ export class PodcastService {
           }),
         );
       }
+      //promise loop through membership_ids and add them to the podcast
+      await Promise.all(
+        membership_ids.map(async (membership_id) => {
+          await this.repository.addPodcastMembership(podcastId, membership_id);
+        }),
+      );
       return podcastId;
     } catch (error) {
       logger.error(error);

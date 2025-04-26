@@ -37,6 +37,8 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  ONLY_PODCASTS_MEMBERSHIPS_ALLOWED:
+    'Only podcasts memberships are allowed for creating podcasts. Choose membership with a `podcast` price point',
   INVALID_LINK_URL: 'Please provide a link url for the podcast',
   INVALID_ASSETS: 'Please add some audio assets to the podcast',
   EPISODE_NOT_FOUND: 'We could not find this episode, please check the episode id',

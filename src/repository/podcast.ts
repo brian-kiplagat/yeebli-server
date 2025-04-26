@@ -2,7 +2,13 @@ import { and, desc, eq, like } from 'drizzle-orm';
 
 import { db } from '../lib/database.js';
 import type { NewPodcast, NewPodcastEpisode, Podcast, PodcastEpisode } from '../schema/schema.js';
-import { assetsSchema, podcastEpisodeSchema, podcastSchema, userSchema } from '../schema/schema.js';
+import {
+  assetsSchema,
+  podcastEpisodeSchema,
+  podcastMembershipSchema,
+  podcastSchema,
+  userSchema,
+} from '../schema/schema.js';
 
 export interface PodcastQuery {
   page?: number;
@@ -76,6 +82,17 @@ export class PodcastRepository {
   async deletePodcast(id: number) {
     await db.delete(podcastEpisodeSchema).where(eq(podcastEpisodeSchema.podcast_id, id));
     await db.delete(podcastSchema).where(eq(podcastSchema.id, id));
+  }
+
+  async addPodcastMembership(podcast_id: number, membership_id: number) {
+    const [result] = await db
+      .insert(podcastMembershipSchema)
+      .values({
+        podcast_id,
+        membership_id,
+      })
+      .$returningId();
+    return result.id;
   }
 
   async addEpisode(episode: NewPodcastEpisode) {
