@@ -4,6 +4,7 @@ import { db } from '../lib/database.js';
 import type { NewPodcast, NewPodcastEpisode, Podcast, PodcastEpisode } from '../schema/schema.js';
 import {
   assetsSchema,
+  membershipSchema,
   podcastEpisodeSchema,
   podcastMembershipSchema,
   podcastSchema,
@@ -43,7 +44,26 @@ export class PodcastRepository {
       .leftJoin(userSchema, eq(podcastSchema.host_id, userSchema.id))
       .where(eq(podcastSchema.id, id))
       .limit(1);
-    return podcast;
+
+    if (!podcast) return null;
+
+    // Get all memberships for the podcast with full membership details
+    const memberships = await db
+      .select({
+        membership: {
+          id: podcastMembershipSchema.id,
+          podcast_id: podcastMembershipSchema.podcast_id,
+          membership_id: podcastMembershipSchema.membership_id,
+          created_at: podcastMembershipSchema.created_at,
+          updated_at: podcastMembershipSchema.updated_at,
+        },
+        membership_details: membershipSchema,
+      })
+      .from(podcastMembershipSchema)
+      .leftJoin(membershipSchema, eq(podcastMembershipSchema.membership_id, membershipSchema.id))
+      .where(eq(podcastMembershipSchema.podcast_id, id));
+
+    return { ...podcast, memberships };
   }
 
   async findAllPodcasts(query: PodcastQuery = {}) {

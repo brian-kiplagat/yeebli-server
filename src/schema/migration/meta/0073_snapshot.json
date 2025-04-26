@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "28d305ac-cf8b-48b4-83ed-07b8cf1e0839",
-  "prevId": "6b62ae41-18ba-4c83-80b3-c00984f10a05",
+  "id": "061ebabd-9043-4d7f-b112-195745e541eb",
+  "prevId": "28d305ac-cf8b-48b4-83ed-07b8cf1e0839",
   "tables": {
     "assets": {
       "name": "assets",
@@ -1603,6 +1603,13 @@
         },
         "link_url": {
           "name": "link_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "landing_page_url": {
+          "name": "landing_page_url",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

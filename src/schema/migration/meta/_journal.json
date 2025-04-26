@@ -505,6 +505,13 @@
       "when": 1745690641395,
       "tag": "0072_slim_king_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "5",
+      "when": 1745694213481,
+      "tag": "0073_majestic_blink",
+      "breakpoints": true
     }
   ]
 }

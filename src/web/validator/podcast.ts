@@ -9,6 +9,7 @@ const podcastSchema = z.object({
   episode_type: z.enum(['single', 'multiple']),
   status: z.enum(['draft', 'published', 'archived']),
   link_url: z.string().optional(),
+  landing_page_url: z.string(),
   assets: z.array(z.number()).optional(),
   memberships: z.array(z.number()),
 });

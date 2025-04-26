@@ -356,6 +356,7 @@ export const podcastSchema = mysqlTable('podcasts', {
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
   link_url: text('link_url'),
+  landing_page_url: text('landing_page_url'),
 });
 
 export const podcastEpisodeSchema = mysqlTable('podcast_episodes', {

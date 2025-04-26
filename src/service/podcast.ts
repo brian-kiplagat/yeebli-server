@@ -60,17 +60,16 @@ export class PodcastService {
 
       const episodes = await this.repository.findEpisodesByPodcast(id);
 
-      // Add presigned URLs for cover and audio assets
+      let coverPresignedUrl = null;
       if (podcast.cover?.asset_url) {
-        const presignedUrl = await this.s3Service.generateGetUrl(
+        coverPresignedUrl = await this.s3Service.generateGetUrl(
           getKeyFromUrl(podcast.cover.asset_url),
           getContentTypeFromAssetType('image'),
           86400,
         );
-        podcast.cover = { ...podcast.cover, presignedUrl };
       }
 
-      const episodesWithUrls = await Promise.all(
+      const audioPresignedUrls = await Promise.all(
         episodes.map(async (episode) => {
           if (episode.audio?.asset_url) {
             const presignedUrl = await this.s3Service.generateGetUrl(
@@ -78,15 +77,17 @@ export class PodcastService {
               getContentTypeFromAssetType('audio'),
               86400,
             );
-            episode.audio = { ...episode.audio, presignedUrl };
+            return { episode_id: episode.episode.id, presignedUrl };
           }
-          return episode;
+          return null;
         }),
       );
 
       return {
         ...podcast,
-        episodes: episodesWithUrls,
+        episodes,
+        coverPresignedUrl,
+        audioPresignedUrls: audioPresignedUrls.filter(Boolean),
       };
     } catch (error) {
       logger.error(error);
@@ -98,18 +99,17 @@ export class PodcastService {
     try {
       const { podcasts, total } = await this.repository.findAllPodcasts(query);
 
-      // Add presigned URLs for cover assets
       const podcastsWithUrls = await Promise.all(
         podcasts.map(async (podcast) => {
+          let coverPresignedUrl = null;
           if (podcast.cover?.asset_url) {
-            const presignedUrl = await this.s3Service.generateGetUrl(
+            coverPresignedUrl = await this.s3Service.generateGetUrl(
               getKeyFromUrl(podcast.cover.asset_url),
               getContentTypeFromAssetType('image'),
               86400,
             );
-            podcast.cover = { ...podcast.cover, presignedUrl };
           }
-          return podcast;
+          return { ...podcast, coverPresignedUrl };
         }),
       );
 
@@ -152,16 +152,16 @@ export class PodcastService {
       const episode = await this.repository.findEpisode(id);
       if (!episode) return undefined;
 
+      let audioPresignedUrl = null;
       if (episode.audio?.asset_url) {
-        const presignedUrl = await this.s3Service.generateGetUrl(
+        audioPresignedUrl = await this.s3Service.generateGetUrl(
           getKeyFromUrl(episode.audio.asset_url),
           getContentTypeFromAssetType('audio'),
           86400,
         );
-        episode.audio = { ...episode.audio, presignedUrl };
       }
 
-      return episode;
+      return { ...episode, audioPresignedUrl };
     } catch (error) {
       logger.error(error);
       throw error;
@@ -172,18 +172,17 @@ export class PodcastService {
     try {
       const episodes = await this.repository.findEpisodesByPodcast(podcast_id);
 
-      // Add presigned URLs for audio assets
       const episodesWithUrls = await Promise.all(
         episodes.map(async (episode) => {
+          let audioPresignedUrl = null;
           if (episode.audio?.asset_url) {
-            const presignedUrl = await this.s3Service.generateGetUrl(
+            audioPresignedUrl = await this.s3Service.generateGetUrl(
               getKeyFromUrl(episode.audio.asset_url),
               getContentTypeFromAssetType('audio'),
               86400,
             );
-            episode.audio = { ...episode.audio, presignedUrl };
           }
-          return episode;
+          return { ...episode, audioPresignedUrl };
         }),
       );
 
