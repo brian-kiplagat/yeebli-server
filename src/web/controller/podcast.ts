@@ -81,8 +81,13 @@ export class PodcastController {
 
       const body: CreatePodcastBody = await c.req.json();
       const { assets } = body;
-      if (!assets || assets.length === 0) {
+
+      if ((!assets || assets.length === 0) && body.podcast_type === 'prerecorded') {
         return serveBadRequest(c, ERRORS.INVALID_ASSETS);
+      }
+
+      if (body.podcast_type === 'link' && !body.link_url) {
+        return serveBadRequest(c, ERRORS.INVALID_LINK_URL);
       }
 
       const podcastId = await this.service.createPodcast(
