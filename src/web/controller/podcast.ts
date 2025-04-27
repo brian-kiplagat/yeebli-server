@@ -179,7 +179,8 @@ export class PodcastController {
       if (isCourse) {
         return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
       }
-      await this.service.updatePodcast(podcastId, body);
+      const episodes = record.episodes.map((ep) => ep.episode);
+      await this.service.updatePodcast(podcastId, body, episodes);
 
       return c.json({ message: 'Podcast updated successfully' });
     } catch (error) {

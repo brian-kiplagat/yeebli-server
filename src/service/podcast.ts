@@ -47,9 +47,10 @@ export class PodcastService {
   async updatePodcast(
     id: number,
     update: Partial<Podcast> & { assets?: number[]; memberships?: number[] },
+    episodes: PodcastEpisode[],
   ) {
     try {
-      const { memberships, ...rest } = update;
+      const { memberships, assets, ...rest } = update;
 
       // Handle memberships
       if (memberships) {
@@ -82,6 +83,45 @@ export class PodcastService {
             membershipsToAdd.map((membershipId: number) =>
               this.repository.addPodcastMembership(id, membershipId),
             ),
+          );
+        }
+      }
+      //handle assets and episodes
+      // Handle assets and episodes
+      if (assets) {
+        const currentAssetIds = episodes.map((episode) => episode.audio_asset_id);
+
+        // Find assets to add and remove
+        const assetsToAdd = assets.filter((assetId) => !currentAssetIds.includes(assetId));
+        const assetsToRemove = currentAssetIds.filter(
+          (assetId) => !assets.includes(Number(assetId)),
+        );
+
+        // Remove episodes for assets that are no longer needed
+        if (assetsToRemove.length > 0) {
+          await Promise.all(
+            assetsToRemove.map((assetId) => {
+              const episode = episodes.find((ep) => ep.audio_asset_id === assetId);
+              if (episode) {
+                return this.repository.deleteEpisode(episode.id);
+              }
+            }),
+          );
+        }
+
+        // Add new episodes for new assets
+        if (assetsToAdd.length > 0) {
+          await Promise.all(
+            assetsToAdd.map(async (assetId, index) => {
+              const episodeNumber = episodes.length + index + 1;
+              return this.repository.addEpisode({
+                title: `Episode ${episodeNumber}`,
+                description: `Episode ${episodeNumber} description`,
+                host_id: Number(rest.host_id),
+                podcast_id: id,
+                audio_asset_id: assetId,
+              });
+            }),
           );
         }
       }
