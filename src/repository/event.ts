@@ -11,12 +11,7 @@ import {
   memberships,
   userSchema,
 } from '../schema/schema.js';
-
-export interface EventQuery {
-  page?: number;
-  limit?: number;
-  search?: string;
-}
+import { EventQuery } from '../web/validator/event.ts';
 
 export class EventRepository {
   public async create(event: NewEvent, membership_ids: number[]) {

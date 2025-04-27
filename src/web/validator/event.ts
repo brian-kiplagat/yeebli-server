@@ -35,8 +35,8 @@ const cancelEventSchema = z.object({
 export const cancelEventValidator = zValidator('json', cancelEventSchema);
 
 export const eventQuerySchema = z.object({
-  page: z.coerce.number().optional().default(1),
-  limit: z.coerce.number().optional().default(10),
+  page: z.coerce.number().optional(),
+  limit: z.coerce.number().optional(),
   search: z.string().optional(),
 });
 

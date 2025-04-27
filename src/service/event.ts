@@ -1,7 +1,8 @@
 import { logger } from '../lib/logger.js';
-import type { EventQuery, EventRepository } from '../repository/event.ts';
+import type { EventRepository } from '../repository/event.ts';
 import type { Asset, Booking, Event, NewEvent } from '../schema/schema.js';
 import { sendTransactionalEmail } from '../task/sendWelcomeEmail.js';
+import { EventQuery } from '../web/validator/event.ts';
 import type { LeadService } from './lead.ts';
 import type { S3Service } from './s3.js';
 

@@ -1,5 +1,5 @@
 import { logger } from '../lib/logger.js';
-import type { PodcastRepository } from '../repository/podcast.js';
+import type { PodcastQuery, PodcastRepository } from '../repository/podcast.js';
 import type { NewPodcast, NewPodcastEpisode, Podcast, PodcastEpisode } from '../schema/schema.js';
 import { getContentTypeFromAssetType, getKeyFromUrl } from '../util/string.ts';
 import type { S3Service } from './s3.js';
@@ -135,7 +135,7 @@ export class PodcastService {
     }
   }
 
-  async getAllPodcasts(query: any) {
+  async getAllPodcasts(query: PodcastQuery) {
     try {
       const { podcasts, total } = await this.repository.findAllPodcasts(query);
 
