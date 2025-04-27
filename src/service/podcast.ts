@@ -48,6 +48,7 @@ export class PodcastService {
     id: number,
     update: Partial<Podcast> & { assets?: number[]; memberships?: number[] },
     episodes: PodcastEpisode[],
+    host_id: number,
   ) {
     try {
       const { memberships, assets, ...rest } = update;
@@ -87,7 +88,6 @@ export class PodcastService {
         }
       }
       //handle assets and episodes
-      // Handle assets and episodes
       if (assets) {
         const currentAssetIds = episodes.map((episode) => episode.audio_asset_id);
 
@@ -117,7 +117,7 @@ export class PodcastService {
               return this.repository.addEpisode({
                 title: `Episode ${episodeNumber}`,
                 description: `Episode ${episodeNumber} description`,
-                host_id: Number(rest.host_id),
+                host_id: host_id,
                 podcast_id: id,
                 audio_asset_id: assetId,
               });

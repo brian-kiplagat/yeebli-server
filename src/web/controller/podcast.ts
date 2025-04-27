@@ -180,7 +180,11 @@ export class PodcastController {
         return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
       }
       const episodes = record.episodes.map((ep) => ep.episode);
-      await this.service.updatePodcast(podcastId, body, episodes);
+      const { host_id } = record.podcast;
+      if (!host_id) {
+        return serveBadRequest(c, ERRORS.HOST_ID_NOT_FOUND);
+      }
+      await this.service.updatePodcast(podcastId, body, episodes, host_id);
 
       return c.json({ message: 'Podcast updated successfully' });
     } catch (error) {
