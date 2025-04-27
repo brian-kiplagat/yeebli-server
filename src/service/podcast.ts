@@ -116,7 +116,7 @@ export class PodcastService {
               const episodeNumber = episodes.length + index + 1;
               return this.repository.addEpisode({
                 title: `Episode ${episodeNumber}`,
-                description: `Episode ${episodeNumber} description`,
+                description: `Sample description for episode ${episodeNumber}`,
                 host_id: host_id,
                 podcast_id: id,
                 audio_asset_id: assetId,
