@@ -46,26 +46,136 @@ Create a new file `.env` in the root folder and copy contents from the `.env.tem
 docker compose up -d
 ```
 
-### 3. 🗄️ Database Setup
+## 💾 Database Configuration
 
-#### Generate
+### MySQL Configuration
+
+The MySQL database is configured in `docker-compose.yml` with the following settings:
+
+```yaml
+db:
+  image: mysql
+  restart: no
+  ports:
+    - '3306:3306'
+  volumes:
+    - mysql_data:/var/lib/mysql
+  environment:
+    MYSQL_ROOT_PASSWORD: password
+    MYSQL_USER: admin
+    MYSQL_PASSWORD: Wagwan!2001
+    MYSQL_DATABASE: hono
+```
+
+- **Database Name**: `hono`
+- **Admin User**: `admin`
+- **Admin Password**: `Wagwan!2001`
+- **Root Password**: `password`
+- **Port**: 3306
+- **Data Persistence**: Data is stored in a Docker volume named `mysql_data`
+
+### Database Setup
+
+#### Generate Database Schema
 
 ```bash
 pnpm run db:generate
 ```
 
-#### Migrate
+#### Run Migrations
 
 ```bash
 pnpm run db:migrate
 ```
 
-### 4. 🚀 Run the app
+### Accessing MySQL
+
+#### Using Docker
+
+```bash
+# List running containers
+docker ps
+
+# Access MySQL inside container
+docker exec -it <CONTAINER_ID> mysql -u admin -p
+```
+
+#### Using WSL (Windows)
+
+1. Open WSL:
+
+```powershell
+wsl
+```
+
+2. Connect to MySQL:
+
+```bash
+sudo docker exec -it <CONTAINER_ID> mysql -u admin -p
+```
+
+3. Verify database access:
+
+```sql
+SHOW DATABASES;
+USE hono;
+SHOW TABLES;
+```
+
+### Drizzle Studio
+
+For database browsing and management:
+
+```bash
+pnpm drizzle-kit studio
+open https://local.drizzle.studio/
+```
+
+## 🚀 Local Development
+
+### 1. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 2. Start Development Server
 
 ```bash
 pnpm run dev
-open http://localhost:3000/doc
 ```
+
+The server will start on `http://localhost:3000`
+
+### 3. Access API Documentation
+
+The Swagger UI documentation is available at:
+
+```
+http://localhost:3000/doc
+```
+
+### 4. API Routes
+
+The server exposes the following main API routes:
+
+- `/v1/user` - User management and authentication
+- `/v1/lead` - Lead management
+- `/v1/event` - Event management
+- `/v1/admin` - Admin operations
+- `/v1/s3` - S3 file operations
+- `/v1/asset` - Asset management
+- `/v1/stripe` - Stripe payment integration
+- `/v1/subscription` - Subscription management
+- `/v1/booking` - Booking management
+- `/v1/business` - Business management
+- `/v1/membership` - Membership management
+- `/v1/team` - Team management
+- `/v1/contact` - Contact management
+- `/v1/callback` - Callback management
+- `/v1/podcast` - Podcast management
+
+For detailed API documentation, visit the Swagger UI at `/doc`
 
 ## 📚 API Documentation
 
@@ -79,254 +189,51 @@ https://github.com/mikefarah/yq
 yq eval -o=json static/openapi.yaml > static/openapi.json
 ```
 
-And the JSON doc will be generated.
-
-## 💾 Drizzle Studio For Database Browsing
-
-```bash
-pnpm drizzle-kit studio
-open https://local.drizzle.studio/
-```
-
-## 🐳 Docker for local development
+## 🐳 Docker Installation (Windows)
 
 To install Docker on Windows, you'll need to install **Docker Desktop** and **WSL 2** (Windows Subsystem for Linux). Below are the step-by-step instructions:
 
----
+### 1. 🐧 Enable WSL 2 and Install a Linux Distribution
 
-## **1. 🐧 Enable WSL 2 and Install a Linux Distribution**
-
-WSL 2 is required for Docker to run on Windows efficiently.
-
-### **Step 1: Enable WSL**
-
-1. Open **PowerShell as Administrator** and run the following command to enable WSL:
-
+1. Open **PowerShell as Administrator** and run:
    ```powershell
    wsl --install
    ```
-
-   This will install the default Linux distribution (Ubuntu) and enable WSL 2.
-
 2. Restart your computer after installation.
 
----
+### 2. 🐳 Install Docker Desktop
 
-## **2. 🐳 Install Docker Desktop**
+1. Download [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
+2. Run the installer and ensure "Use WSL 2 instead of Hyper-V" is checked
+3. Click Install and restart when prompted
 
-### **Step: Download Docker Desktop**
+### 3. ⚙️ Configure Docker
 
-- Visit the [official Docker website](https://www.docker.com/products/docker-desktop) and download **Docker Desktop for Windows**.
+1. Open Docker Desktop
+2. Go to Settings > General
+3. Check "Use the WSL 2 based engine"
+4. Click Apply & Restart
 
-### **Step: Install Docker Desktop**
-
-1. Run the **Docker Desktop Installer.exe** file.
-2. In the installation settings:
-
-   - Ensure **"Use WSL 2 instead of Hyper-V"** is checked.
-   - Click **Install** and wait for the process to complete.
-
-3. Once the installation is done, click **Close and restart**.
-
----
-
-## **3. ⚙️ Configure Docker to Use WSL 2**
-
-1. Open Docker Desktop.
-2. Go to **Settings** > **General**.
-3. Check **"Use the WSL 2 based engine"**.
-4. Click **Apply & Restart**.
-
----
-
-## **4. ✅ Verify Installation**
-
-1. Open **PowerShell** or **Command Prompt** and run:
-
-   ```powershell
-   docker --version
-   ```
-
-   This should return the installed Docker version.
-
-2. Run the **hello-world** container to test:
-   ```powershell
-   docker run hello-world
-   ```
-   If everything is set up correctly, you will see a message confirming that Docker is working.
-
----
-
-### **Optional: 🔍 Confirm MySQL Works**
-
-Once the migration is complete, and you've run:
-
-```bash
-pnpm run db:generate
-pnpm run db:migrate
-```
-
-Confirm that MySQL inside the container works on the WSL Ubuntu command line using the credentials from your `.env` file.
-
-To connect to MySQL using the `.env` credentials you provided (`DB_USER=user`, `DB_PASSWORD=password`), follow these steps:
-
----
-
-### **1. 🐧 Open Ubuntu in WSL**
-
-Run the following in **PowerShell** or **Command Prompt**:
+### 4. ✅ Verify Installation
 
 ```powershell
-wsl
+docker --version
+docker run hello-world
 ```
 
----
+### Troubleshooting
 
-### **2. 📊 List Running Docker Containers**
-
-Inside Ubuntu, check if MySQL is running in Docker:
-
-```bash
-docker ps
-```
-
-Look for the **CONTAINER ID** of the MySQL container.
-
----
-
-### **3. 🔐 Access MySQL Inside the Container**
-
-Now, use the **CONTAINER ID** to execute MySQL:
-
-```bash
-sudo docker exec -it <CONTAINER_ID> mysql -u user -p
-```
-
-Replace `<CONTAINER_ID>` with the actual ID from `docker ps`. When prompted, enter the **password** (`password` from `.env`).
-
----
-
-### **4. ✅ Verify Database Access**
-
-Once inside MySQL, check if the database exists:
-
-```sql
-SHOW DATABASES;
-```
-
-To use a specific database:
-
-```sql
-USE your_database_name;
-SHOW TABLES;
-```
-
----
-
-### **5. 🚪 Exit MySQL**
-
-To exit the MySQL shell, type:
-
-```sql
-EXIT;
-```
-
-![image](https://github.com/user-attachments/assets/f0878660-3184-4591-b7f2-ccda11a506dd)
-
----
-
-### **Troubleshooting** 🔧
-
-- If the container is not running, start it:
+- If the container is not running:
   ```bash
   docker start <CONTAINER_ID>
   ```
-- If you don't see the container in `docker ps`, check all containers:
+- Check all containers:
   ```bash
   docker ps -a
   ```
-- If MySQL is not installed in Docker, check the logs:
+- View container logs:
   ```bash
   docker logs <CONTAINER_ID>
   ```
 
-This ensures that MySQL is running correctly within the Docker container on WSL! 🚀
-
----
-
-## 💾 How to Create a MySQL Database, User, and Import a SQL File
-
-If you're setting up a MySQL database from scratch, here's how you can do it step-by-step. We'll create a database called `hono`, add a user, grant permissions, and then import a SQL file located at `/usr/sql/hono.sql`.
-
-### 1. 🔐 Log in to MySQL as root
-
-```bash
-mysql -u root -p
-```
-
-Enter your root password when prompted.
-
----
-
-### 2. 🏗️ Create the Database
-
-Once inside the MySQL shell:
-
-```sql
-CREATE DATABASE hono;
-```
-
----
-
-### 3. 👤 Create a MySQL User
-
-Still in the MySQL shell:
-
-```sql
-CREATE USER 'admin'@'%' IDENTIFIED BY 'Wagwan!2001';
-```
-
-You can replace `'%'` with `'localhost'` or `'192.169.....'` to be more specific.
-
----
-
-### 4. ✅ Grant Privileges
-
-Now give the user access to the `hono` database:
-
-```sql
-GRANT ALL PRIVILEGES ON hono.* TO 'admin'@'%';
-FLUSH PRIVILEGES;
-```
-
----
-
-### 5. 📥 Exit MySQL
-
-Type:
-
-```sql
-EXIT;
-```
-
----
-
-### 6. 📂 Import the SQL File
-
-Back in your terminal (outside MySQL), run:
-
-```bash
-mysql -u user -p hono < /usr/sql/hono.sql
-```
-
-You'll be prompted to enter the password for `user`. This command imports all tables, data, and structure defined in the `hono.sql` file into the `hono` database.
-
----
-
-That's it! Your MySQL database is now ready and loaded.
-
----
-
-### **Conclusion** 🎉
-
-Now you have **Docker** installed with **WSL 2** support. You can run Linux-based Docker containers efficiently on Windows! 🚀
+![image](https://github.com/user-attachments/assets/f0878660-3184-4591-b7f2-ccda11a506dd)

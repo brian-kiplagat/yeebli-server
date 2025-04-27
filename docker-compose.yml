@@ -35,9 +35,9 @@ services:
       - mysql_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-      MYSQL_DATABASE: db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: Wagwan!2001
+      MYSQL_DATABASE: hono
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
