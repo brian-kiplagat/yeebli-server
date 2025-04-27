@@ -136,12 +136,7 @@ export class EventRepository {
         .map((em) => em.membership),
     }));
 
-    const total = await db
-      .select({ count: eventSchema.id })
-      .from(eventSchema)
-      .where(whereConditions);
-
-    return { events: eventsWithRelations, total: total.length };
+    return { events: eventsWithRelations, total: eventsWithRelations.length };
   }
 
   public async findByUserId(userId: number, query?: EventQuery) {
@@ -197,12 +192,7 @@ export class EventRepository {
         .map((em) => em.membership),
     }));
 
-    const total = await db
-      .select({ count: eventSchema.id })
-      .from(eventSchema)
-      .where(whereConditions);
-
-    return { events: eventsWithRelations, total: total.length };
+    return { events: eventsWithRelations, total: eventsWithRelations.length };
   }
 
   public async update(id: number, event: Partial<Event>) {

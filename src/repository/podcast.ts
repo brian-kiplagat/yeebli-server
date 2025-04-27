@@ -111,12 +111,7 @@ export class PodcastRepository {
         .map((pm) => pm.membership),
     }));
 
-    const total = await db
-      .select({ count: podcastSchema.id })
-      .from(podcastSchema)
-      .where(where.length ? and(...where) : undefined);
-
-    return { podcasts: podcastsWithMemberships, total: total[0].count };
+    return { podcasts: podcastsWithMemberships };
   }
 
   async deletePodcast(id: number) {

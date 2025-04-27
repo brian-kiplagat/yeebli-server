@@ -177,7 +177,7 @@ export class PodcastService {
 
   async getAllPodcasts(query: PodcastQuery) {
     try {
-      const { podcasts, total } = await this.repository.findAllPodcasts(query);
+      const { podcasts } = await this.repository.findAllPodcasts(query);
 
       const podcastsWithUrls = await Promise.all(
         podcasts.map(async (podcast) => {
@@ -193,7 +193,7 @@ export class PodcastService {
         }),
       );
 
-      return { podcasts: podcastsWithUrls, total };
+      return { podcasts: podcastsWithUrls, total: podcastsWithUrls.length };
     } catch (error) {
       logger.error(error);
       throw error;
