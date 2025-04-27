@@ -1,4 +1,4 @@
-import { and, desc, eq, like } from 'drizzle-orm';
+import { and, desc, eq, inArray, like } from 'drizzle-orm';
 
 import { db } from '../lib/database.js';
 import type { NewPodcast, NewPodcastEpisode, Podcast, PodcastEpisode } from '../schema/schema.js';
@@ -92,12 +92,31 @@ export class PodcastRepository {
       .offset(offset)
       .orderBy(desc(podcastSchema.created_at));
 
+    // Get memberships for these podcasts
+    const podcastIds = podcasts.map((p) => p.podcast.id);
+    const podcastMemberships = await db
+      .select({
+        podcast_id: podcastMembershipSchema.podcast_id,
+        membership: memberships,
+      })
+      .from(podcastMembershipSchema)
+      .innerJoin(memberships, eq(podcastMembershipSchema.membership_id, memberships.id))
+      .where(inArray(podcastMembershipSchema.podcast_id, podcastIds));
+
+    // Map memberships to podcasts
+    const podcastsWithMemberships = podcasts.map((podcast) => ({
+      ...podcast,
+      memberships: podcastMemberships
+        .filter((pm) => pm.podcast_id === podcast.podcast.id)
+        .map((pm) => pm.membership),
+    }));
+
     const total = await db
       .select({ count: podcastSchema.id })
       .from(podcastSchema)
       .where(where.length ? and(...where) : undefined);
 
-    return { podcasts, total: total.length };
+    return { podcasts: podcastsWithMemberships, total: total[0].count };
   }
 
   async deletePodcast(id: number) {
