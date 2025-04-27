@@ -101,8 +101,12 @@ export class PodcastRepository {
   }
 
   async deletePodcast(id: number) {
-    await db.delete(podcastEpisodeSchema).where(eq(podcastEpisodeSchema.podcast_id, id));
-    await db.delete(podcastSchema).where(eq(podcastSchema.id, id));
+    //parralel delete
+    await Promise.all([
+      db.delete(podcastEpisodeSchema).where(eq(podcastEpisodeSchema.podcast_id, id)),
+      db.delete(podcastSchema).where(eq(podcastSchema.id, id)),
+      db.delete(podcastMembershipSchema).where(eq(podcastMembershipSchema.podcast_id, id)),
+    ]);
   }
 
   async addPodcastMembership(podcast_id: number, membership_id: number) {
