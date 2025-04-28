@@ -68,7 +68,7 @@ export class AssetController {
       const { page, limit, search, asset_type } = c.req.query();
       const query: AssetQuery = {
         page: page ? Number.parseInt(page) : 1,
-        limit: limit ? Number.parseInt(limit) : 10,
+        limit: limit ? Number.parseInt(limit) : 50,
         search,
         asset_type: asset_type as AssetQuery['asset_type'],
       };
