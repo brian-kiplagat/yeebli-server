@@ -426,7 +426,7 @@ export class LeadController {
       if (
         memberships.some((membership) => membership.membership && membership.membership.price > 0)
       ) {
-        redirectUrl = `https://${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
+        redirectUrl = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
       } else {
         redirectUrl = event.success_url || '';
       }
