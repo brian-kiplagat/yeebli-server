@@ -421,6 +421,7 @@ export class LeadController {
         {
           success: true,
           message: 'Registration successful',
+          redirectUrl: event.success_url,
           leadId: createdLead[0].id,
         },
         201,
