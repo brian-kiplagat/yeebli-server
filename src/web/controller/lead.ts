@@ -409,6 +409,7 @@ export class LeadController {
 
       const bodyText = `Thank you for your interest in ${event.event_name}! To secure your place at this exciting event, please click the link below:
         ${eventLink}`;
+
       sendTransactionalEmail(body.email, body.name, 1, {
         subject: `${event.event_name}`,
         title: `${event.event_name}`,
@@ -417,11 +418,24 @@ export class LeadController {
         buttonText: 'Secure your place',
         buttonLink: eventLink,
       });
+
+      //if the event has paid membership, redirect url is the membership gateway, else if it has a free membership, redirect url event.success_url
+
+      const memberships = await this.membershipService.getEventMemberships(event.id);
+      let redirectUrl = '';
+      if (
+        memberships.some((membership) => membership.membership && membership.membership.price > 0)
+      ) {
+        redirectUrl = `https://${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
+      } else {
+        redirectUrl = event.success_url || '';
+      }
+
       return c.json(
         {
           success: true,
           message: 'Registration successful',
-          redirectUrl: event.success_url,
+          redirectUrl: redirectUrl,
           leadId: createdLead[0].id,
         },
         201,
