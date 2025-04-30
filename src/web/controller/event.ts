@@ -78,7 +78,7 @@ export class EventController {
       if (!host_id) {
         return serveBadRequest(c, ERRORS.EVENT_HOST_ID_NOT_FOUND);
       }
-      const business = await this.businessService.getBusinessByUserId(host_id);
+      const business = await this.businessService.getBusinessDetailsByUserId(host_id);
       if (!event) {
         return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
       }

@@ -49,6 +49,21 @@ export class BusinessService {
     }
   }
 
+  public async getBusinessDetailsByUserId(userId: number) {
+    const business = await this.repository.findByUserId(userId);
+    if (!business?.logo_asset_id) return { ...business, logo: null };
+
+    // Get the asset and its URL
+    const asset = await this.assetService.getAsset(business.logo_asset_id);
+
+    if (!asset || !asset.asset_url) return { ...business, logo: null };
+
+    return {
+      ...business,
+      logo: asset.asset_url,
+    };
+  }
+
   public async getBusinessByUserId(userId: number) {
     try {
       const business = await this.repository.findByUserId(userId);
