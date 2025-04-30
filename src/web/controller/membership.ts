@@ -48,7 +48,14 @@ export class MembershipController {
       }
       // Regular users only see their own memberships
       const plans = await this.service.getMembershipsByUser(user.id, query);
-      return c.json(plans);
+      //sort by dates
+      const sortedPlans = plans.plans.sort((a, b) => {
+        const minDateA = Math.min(...(a.dates?.map((d) => parseInt(d.date)) || [0]));
+        const minDateB = Math.min(...(b.dates?.map((d) => parseInt(d.date)) || [0]));
+        return minDateA - minDateB;
+      });
+
+      return c.json({ plans: sortedPlans, total: plans.total });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
