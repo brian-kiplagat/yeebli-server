@@ -2,6 +2,7 @@ import type { Context } from 'hono';
 
 import env from '../../lib/env.js';
 import { logger } from '../../lib/logger.js';
+import { BusinessService } from '../../service/business.ts';
 import type { EventService } from '../../service/event.js';
 import { LeadService } from '../../service/lead.js';
 import { MembershipService } from '../../service/membership.ts';
@@ -14,17 +15,19 @@ export class EventController {
   private userService: UserService;
   private leadService: LeadService;
   private membershipService: MembershipService;
-
+  private businessService: BusinessService;
   constructor(
     service: EventService,
     userService: UserService,
     leadService: LeadService,
     membershipService: MembershipService,
+    businessService: BusinessService,
   ) {
     this.service = service;
     this.userService = userService;
     this.leadService = leadService;
     this.membershipService = membershipService;
+    this.businessService = businessService;
   }
 
   private async getUser(c: Context) {
@@ -70,7 +73,12 @@ export class EventController {
     try {
       const eventId = Number(c.req.param('id'));
       const event = await this.service.getEvent(eventId);
-
+      //get the business_id from the event host
+      const host_id = event?.host?.id;
+      if (!host_id) {
+        return serveBadRequest(c, ERRORS.EVENT_HOST_ID_NOT_FOUND);
+      }
+      const business = await this.businessService.getBusinessByUserId(host_id);
       if (!event) {
         return serveNotFound(c, ERRORS.EVENT_NOT_FOUND);
       }
@@ -78,7 +86,7 @@ export class EventController {
         return serveBadRequest(c, ERRORS.ASSET_NOT_FOUND);
       }
 
-      return c.json(event);
+      return c.json({ ...event, business });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

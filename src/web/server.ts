@@ -200,6 +200,7 @@ export class Server {
       userService,
       leadService,
       membershipService,
+      businessService,
     );
     const adminController = new AdminController(
       adminService,

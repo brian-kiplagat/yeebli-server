@@ -12,6 +12,7 @@ type EventWithAsset = Event & {
     name: string;
     email: string;
     profile_image: string | null;
+    id: number;
   } | null;
   leadCount?: number;
 

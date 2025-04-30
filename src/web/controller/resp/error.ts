@@ -37,6 +37,7 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  EVENT_HOST_ID_NOT_FOUND: 'We cannot find the host for this event, please check the host id',
   PODCAST_OR_COURSE_MEMBERSHIP_NOT_ALLOWED:
     'A `podcast` or `course` price point are not allowed in events. Choose another membership',
   HOST_ID_NOT_FOUND: 'We cannot find the host for this podcast, please check the host id',

@@ -34,6 +34,7 @@ export class EventRepository {
           name: userSchema.name,
           email: userSchema.email,
           profile_image: userSchema.profile_picture,
+          id: userSchema.id,
         },
       })
       .from(eventSchema)

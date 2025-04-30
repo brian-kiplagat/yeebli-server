@@ -37,25 +37,25 @@ export class MembershipController {
 
       // Admin users (master/owner) can see all memberships
       if (user.role === 'master' || user.role === 'owner') {
-        const plans = await this.service.getAllMemberships(query);
-        return c.json(plans);
+        const result = await this.service.getAllMemberships(query);
+        return c.json(result);
       }
       // Get hostId from context and if hostId exists (team access), get resources for that host
       const hostId = c.get('hostId');
       if (hostId) {
-        const plans = await this.service.getMembershipsByUser(hostId, query);
-        return c.json(plans);
+        const result = await this.service.getMembershipsByUser(hostId, query);
+        return c.json(result);
       }
       // Regular users only see their own memberships
-      const plans = await this.service.getMembershipsByUser(user.id, query);
+      const result = await this.service.getMembershipsByUser(user.id, query);
       //sort by dates
-      const sortedPlans = plans.plans.sort((a, b) => {
+      const sortedPlans = result.plans.sort((a, b) => {
         const minDateA = Math.min(...(a.dates?.map((d) => parseInt(d.date)) || [0]));
         const minDateB = Math.min(...(b.dates?.map((d) => parseInt(d.date)) || [0]));
         return minDateA - minDateB;
       });
 
-      return c.json({ plans: sortedPlans, total: plans.total });
+      return c.json({ plans: sortedPlans, total: result.total });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
