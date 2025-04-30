@@ -102,8 +102,10 @@ export class EventController {
       if (memberships.length !== membership_ids.length) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
-      //ensure none of the memberships.price_point is a `course`
-      const isCourse = memberships.some((m) => m.price_point === 'course');
+      //ensure none of the memberships.price_point is a `course` or `podcast`
+      const isCourse = memberships.some(
+        (m) => m.price_point === 'course' || m.price_point === 'podcast',
+      );
       if (isCourse) {
         return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
       }
@@ -159,7 +161,9 @@ export class EventController {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
       }
       //ensure none of the memberships.price_point is a `course`
-      const isCourse = memberships_records.some((m) => m.price_point === 'course');
+      const isCourse = memberships_records.some(
+        (m) => m.price_point === 'course' || m.price_point === 'podcast',
+      );
       if (isCourse) {
         return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
       }
