@@ -165,7 +165,7 @@ export class EventController {
         (m) => m.price_point === 'course' || m.price_point === 'podcast',
       );
       if (isCourse) {
-        return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
+        return serveBadRequest(c, ERRORS.PODCAST_OR_COURSE_MEMBERSHIP_NOT_ALLOWED);
       }
       await this.service.updateEvent(eventId, { ...rest, memberships });
 

@@ -37,6 +37,8 @@ const serveError = (c: Context, status: StatusCodes, message: string) => {
 };
 
 const ERRORS = {
+  PODCAST_OR_COURSE_MEMBERSHIP_NOT_ALLOWED:
+    'A `podcast` or `course` price point are not allowed in events. Choose another membership',
   HOST_ID_NOT_FOUND: 'We cannot find the host for this podcast, please check the host id',
   ONLY_PODCASTS_MEMBERSHIPS_ALLOWED:
     'Only podcasts memberships are allowed for creating podcasts. Choose membership with a `podcast` price point',
