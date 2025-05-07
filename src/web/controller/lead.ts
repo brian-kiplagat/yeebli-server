@@ -657,7 +657,14 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
       const body: TagBody = await c.req.json();
-      const tag = await this.service.createTag({ ...body, host_id: user.id });
+      const { lead_id } = body;
+      //get lead
+      const lead = await this.service.find(lead_id);
+      if (!lead) {
+        return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
+      }
+      //create tag
+      const tag = await this.service.createTag({ lead_id, tag: body.tag, host_id: user.id });
       return c.json(tag);
     } catch (error) {
       logger.error(error);
