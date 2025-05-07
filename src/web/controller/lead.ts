@@ -110,12 +110,12 @@ export class LeadController {
       if (!lead) {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
-
-      //get all payments for this lead
-      const payments = await this.paymentService.findByLeadId(lead.id);
-
-      // Get all events booked by this lead
-      const bookedEvents = await this.bookingService.findByUserIdandLeadId(user.id, lead.id);
+      //get in parallel all payments, all events, all tags booking by lead id
+      const [payments, bookedEvents, tags] = await Promise.all([
+        this.paymentService.findByLeadId(lead.id),
+        this.bookingService.findByUserIdandLeadId(user.id, lead.id),
+        this.service.findTagsByLeadId(lead.id),
+      ]);
 
       // Get the membership if it exists
       if (lead.membership_level) {
@@ -125,6 +125,7 @@ export class LeadController {
           events: bookedEvents,
           membership: membership,
           payments: payments,
+          tags: tags,
         });
       }
       //if there is date, get multiple dates
@@ -135,12 +136,14 @@ export class LeadController {
           bookings: bookedEvents,
           dates: dates,
           payments: payments,
+          tags: tags,
         });
       }
 
       return c.json({
         ...lead,
         bookings: bookedEvents,
+        tags: tags,
       });
     } catch (error) {
       logger.error(error);

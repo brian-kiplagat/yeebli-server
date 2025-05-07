@@ -45,6 +45,12 @@ export class LeadRepository {
     });
   }
 
+  public async findTagsByLeadId(leadId: number) {
+    return db.query.tagsSchema.findMany({
+      where: eq(tagsSchema.lead_id, leadId),
+    });
+  }
+
   public async createTag(tag: NewTag) {
     return db.insert(tagsSchema).values(tag).$returningId();
   }
