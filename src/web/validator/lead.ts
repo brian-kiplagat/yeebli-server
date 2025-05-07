@@ -26,6 +26,11 @@ const leadUpgradeSchema = z.object({
   membership_id: z.number().min(1, 'Membership ID is required'),
 });
 
+const tagSchema = z.object({
+  lead_id: z.number().min(1, 'Lead ID is required'),
+  tag: z.string().min(1, 'Tag is required'),
+});
+
 const updateLeadSchema = leadSchema.partial();
 
 // New validator for external form submissions
@@ -75,11 +80,22 @@ type LeadBody = z.infer<typeof leadSchema>;
 type ExternalFormBody = z.infer<typeof externalFormSchema>;
 type EventLinkBody = z.infer<typeof eventLinkSchema>;
 type PurchaseMembershipBody = z.infer<typeof purchaseMembershipSchema>;
+type TagBody = z.infer<typeof tagSchema>;
+
 export const eventLinkValidator = zValidator('json', eventLinkSchema);
 export const leadValidator = zValidator('json', leadSchema);
 export const updateLeadValidator = zValidator('json', updateLeadSchema);
 export const externalFormValidator = zValidator('form', externalFormSchema);
 export const leadUpgradeValidator = zValidator('json', leadUpgradeSchema);
 export const purchaseMembershipValidator = zValidator('json', purchaseMembershipSchema);
-export type { EventLinkBody, ExternalFormBody, LeadBody, LeadUpgradeBody, PurchaseMembershipBody };
+export const tagValidator = zValidator('json', tagSchema);
+
+export type {
+  EventLinkBody,
+  ExternalFormBody,
+  LeadBody,
+  LeadUpgradeBody,
+  PurchaseMembershipBody,
+  TagBody,
+};
 export { externalFormSchema };

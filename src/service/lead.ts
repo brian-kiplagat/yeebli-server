@@ -1,5 +1,5 @@
 import type { LeadQuery, LeadRepository } from '../repository/lead.ts';
-import type { Lead } from '../schema/schema.ts';
+import type { Lead, NewTag } from '../schema/schema.ts';
 import type { NewLead } from '../schema/schema.ts';
 import type { ContactService } from './contact.ts';
 import type { StripeService } from './stripe.ts';
@@ -38,6 +38,10 @@ export class LeadService {
     }
 
     return this.repository.create(lead);
+  }
+
+  public async createTag(tag: NewTag) {
+    return this.repository.createTag(tag);
   }
 
   public async find(id: number) {

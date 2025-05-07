@@ -374,6 +374,19 @@ export const podcastEpisodeSchema = mysqlTable('podcast_episodes', {
     .notNull(),
 });
 
+export const tagsSchema = mysqlTable('tags', {
+  id: serial('id').primaryKey(),
+  lead_id: int('lead_id')
+    .references(() => leadSchema.id)
+    .notNull(),
+  host_id: int('host_id')
+    .references(() => userSchema.id)
+    .notNull(),
+  tag: varchar('tag', { length: 255 }).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export const eventMembershipSchema = mysqlTable('event_memberships', {
   id: serial('id').primaryKey(),
   event_id: int('event_id')
@@ -402,6 +415,9 @@ export type Lead = typeof leadSchema.$inferSelect & {
   event?: Event | null;
   membership?: Membership | null;
 };
+
+export type Tag = typeof tagsSchema.$inferSelect;
+export type NewTag = typeof tagsSchema.$inferInsert;
 
 export type Membership = typeof memberships.$inferSelect & {
   dates?: (typeof membershipDates.$inferSelect)[];
@@ -455,6 +471,17 @@ export const userRelations = relations(userSchema, ({ one }) => ({
   business: one(businessSchema, {
     fields: [userSchema.id],
     references: [businessSchema.user_id],
+  }),
+}));
+
+export const tagRelations = relations(tagsSchema, ({ one }) => ({
+  lead: one(leadSchema, {
+    fields: [tagsSchema.lead_id],
+    references: [leadSchema.id],
+  }),
+  host: one(userSchema, {
+    fields: [tagsSchema.host_id],
+    references: [userSchema.id],
   }),
 }));
 

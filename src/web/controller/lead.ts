@@ -19,6 +19,7 @@ import {
   externalFormSchema,
   type LeadBody,
   PurchaseMembershipBody,
+  TagBody,
 } from '../validator/lead.ts';
 import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
 
@@ -643,6 +644,21 @@ export class LeadController {
       });
 
       return c.json(checkoutSession.session);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public createTag = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      const body: TagBody = await c.req.json();
+      const tag = await this.service.createTag({ ...body, host_id: user.id });
+      return c.json(tag);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

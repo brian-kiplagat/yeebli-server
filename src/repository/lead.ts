@@ -1,7 +1,15 @@
 import { and, desc, eq, like, or } from 'drizzle-orm';
 
 import { db } from '../lib/database.ts';
-import { eventSchema, type Lead, leadSchema, memberships, type NewLead } from '../schema/schema.js';
+import {
+  eventSchema,
+  type Lead,
+  leadSchema,
+  memberships,
+  type NewLead,
+  NewTag,
+  tagsSchema,
+} from '../schema/schema.js';
 
 export interface LeadQuery {
   page?: number;
@@ -35,6 +43,10 @@ export class LeadRepository {
         event: true,
       },
     });
+  }
+
+  public async createTag(tag: NewTag) {
+    return db.insert(tagsSchema).values(tag).$returningId();
   }
 
   public async findByEventId(eventId: number) {

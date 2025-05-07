@@ -74,6 +74,7 @@ import {
   externalFormValidator,
   leadValidator,
   purchaseMembershipValidator,
+  tagValidator,
   updateLeadValidator,
 } from './validator/lead.ts';
 import { membershipQueryValidator, membershipValidator } from './validator/membership.ts';
@@ -319,6 +320,7 @@ export class Server {
     lead.put('/:id', updateLeadValidator, leadCtrl.updateLead);
     lead.delete('/:id', leadCtrl.deleteLead);
     lead.post('/unique-leads', leadCtrl.getUniqueLeads);
+    lead.post('/:id/tag', tagValidator, leadCtrl.createTag);
 
     api.route('/lead', lead);
   }
