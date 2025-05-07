@@ -55,6 +55,14 @@ export class LeadRepository {
     return db.insert(tagsSchema).values(tag).$returningId();
   }
 
+  public async deleteTag(tagId: number) {
+    return db.delete(tagsSchema).where(eq(tagsSchema.id, tagId));
+  }
+
+  public async findTag(tagId: number) {
+    return db.query.tagsSchema.findFirst({ where: eq(tagsSchema.id, tagId) });
+  }
+
   public async findByEventId(eventId: number) {
     return db.query.leadSchema.findMany({
       where: eq(leadSchema.event_id, eventId),

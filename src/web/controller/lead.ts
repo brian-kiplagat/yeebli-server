@@ -674,4 +674,29 @@ export class LeadController {
       return serveInternalServerError(c, error);
     }
   };
+
+  public deleteTag = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+
+      const tagId = Number(c.req.param('id'));
+      const tag = await this.service.findTag(tagId);
+      if (!tag) {
+        return serveBadRequest(c, ERRORS.TAG_NOT_FOUND);
+      }
+      //only and master role or admin or the owner of the lead
+      if (user.role !== 'master' && user.role !== 'owner' && tag.host_id !== user.id) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
+      }
+
+      await this.service.deleteTag(tagId);
+      return c.json({ message: 'Tag deleted successfully' });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
 }

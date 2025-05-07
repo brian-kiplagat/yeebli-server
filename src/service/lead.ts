@@ -44,6 +44,14 @@ export class LeadService {
     return this.repository.createTag(tag);
   }
 
+  public async deleteTag(tagId: number) {
+    return this.repository.deleteTag(tagId);
+  }
+
+  public async findTag(tagId: number) {
+    return this.repository.findTag(tagId);
+  }
+
   public async findTagsByLeadId(leadId: number) {
     return this.repository.findTagsByLeadId(leadId);
   }
