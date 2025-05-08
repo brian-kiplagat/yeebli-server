@@ -120,7 +120,7 @@ export class EventController {
         description: 'Sample description',
         payment_type: 'one_off' as const,
         price_point: 'standalone' as const,
-        billing: null,
+        billing: 'per-day' as const,
         date: String(plan.date),
       }));
 
