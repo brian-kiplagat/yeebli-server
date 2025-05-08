@@ -116,7 +116,7 @@ export class EventController {
       const transformedPlans = membership_plans.map((plan) => ({
         name: plan.name,
         user_id: user.id,
-        price: plan.cost,
+        price: plan.isFree ? 0 : plan.cost,
         description: 'Sample description',
         payment_type: 'one_off' as const,
         price_point: 'standalone' as const,
