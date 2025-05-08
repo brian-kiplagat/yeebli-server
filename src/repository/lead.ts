@@ -72,6 +72,10 @@ export class LeadRepository {
     return db.query.tagsSchema.findFirst({ where: eq(tagsSchema.id, tagId) });
   }
 
+  public async getTags() {
+    return db.query.tagsSchema.findMany();
+  }
+
   public async findByEventId(eventId: number) {
     return db.query.leadSchema.findMany({
       where: eq(leadSchema.event_id, eventId),

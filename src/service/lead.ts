@@ -91,4 +91,8 @@ export class LeadService {
   public async delete(id: number) {
     return this.repository.delete(id);
   }
+
+  public async getTags() {
+    return this.repository.getTags();
+  }
 }

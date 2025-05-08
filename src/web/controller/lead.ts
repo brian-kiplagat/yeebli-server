@@ -701,4 +701,18 @@ export class LeadController {
       return serveInternalServerError(c, error);
     }
   };
+
+  public getTags = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      const tags = await this.service.getTags();
+      return c.json(tags);
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
 }
