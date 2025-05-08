@@ -167,23 +167,45 @@ export class EventController {
       }
 
       const body: UpdateEventBody = await c.req.json();
-      const { memberships, ...rest } = body;
-      if (!memberships) {
+      const { membership_plans, ...rest } = body;
+      //validate the membership_plans
+      if (!membership_plans || membership_plans.length < 1) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
       }
-      //ensure the membership_ids are valid
-      const memberships_records = await this.membershipService.getMultipleMemberships(memberships);
-      if (memberships_records.length !== memberships.length) {
-        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
+
+      // Separate new and existing memberships
+      const existingMembershipIds = membership_plans
+        .filter((plan) => plan.id && plan.id > 0)
+        .map((plan) => plan.id as number);
+
+      const newMemberships = membership_plans
+        .filter((plan) => !plan.id || plan.id === 0)
+        .map((plan) => ({
+          name: plan.name,
+          user_id: user.id,
+          price: plan.isFree ? 0 : plan.cost,
+          description: 'Sample description',
+          payment_type: 'one_off' as const,
+          price_point: 'standalone' as const,
+          billing: 'per-day' as const,
+          date: String(plan.date),
+        }));
+
+      // Create new memberships if any
+      let newMembershipIds: number[] = [];
+      if (newMemberships.length > 0) {
+        const createdMemberships = await this.membershipService.batchCreateMembership(
+          eventId,
+          newMemberships,
+        );
+        newMembershipIds = createdMemberships.map((m) => m.id);
       }
-      //ensure none of the memberships.price_point is a `course`
-      const isCourse = memberships_records.some(
-        (m) => m.price_point === 'course' || m.price_point === 'podcast',
-      );
-      if (isCourse) {
-        return serveBadRequest(c, ERRORS.PODCAST_OR_COURSE_MEMBERSHIP_NOT_ALLOWED);
-      }
-      await this.service.updateEvent(eventId, { ...rest, memberships });
+
+      // Combine existing and new membership IDs
+      const allMembershipIds = [...existingMembershipIds, ...newMembershipIds];
+
+      // Update the event with all membership IDs
+      await this.service.updateEvent(eventId, { ...rest, memberships: allMembershipIds });
 
       return c.json({ message: 'Event updated successfully' });
     } catch (error) {

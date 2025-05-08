@@ -9,13 +9,13 @@ const eventSchema = z.object({
   asset_id: z.number(),
   event_type: z.enum(['live_venue', 'prerecorded', 'live_video_call']),
   status: z.enum(['active', 'suspended', 'cancelled']),
-  memberships: z.array(z.number()),
   live_video_url: z.string().optional(),
   live_venue_address: z.string().optional(),
   success_url: z.string().optional(),
   membership_plans: z
     .array(
       z.object({
+        id: z.number().optional(),
         name: z.string(),
         date: z.number(),
         cost: z.number(),
