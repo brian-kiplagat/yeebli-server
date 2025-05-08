@@ -121,7 +121,12 @@ export class MembershipRepository {
   }
 
   public async createMembershipDate(membershipDate: NewMembershipDate) {
-    return db.insert(membershipDates).values(membershipDate).$returningId();
+    const result = await db.insert(membershipDates).values(membershipDate).$returningId();
+    return result[0].id;
+  }
+
+  public async batchCreateMembershipDates(dates: NewMembershipDate[]) {
+    return await db.insert(membershipDates).values(dates);
   }
 
   public async getMembershipDates(membershipId: number) {

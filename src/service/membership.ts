@@ -160,19 +160,23 @@ export class MembershipService {
     plans: MembershipPlanWithDate[],
   ): Promise<Membership[]> {
     try {
+      // Create all memberships in parallel
       const memberships = await Promise.all(
         plans.map(async (plan) => {
           const { date, ...membershipData } = plan;
           const id = await this.repository.create(membershipData);
-          //Create dates for the membership
-          await this.repository.createMembershipDate({
-            membership_id: id,
-            date: date,
-            user_id: plan.user_id,
-          });
-          return { ...membershipData, id } as Membership;
+          return { ...membershipData, id, date } as Membership & { date: string };
         }),
       );
+
+      // Batch insert all dates in a single operation
+      const dateRecords = memberships.map((m) => ({
+        membership_id: m.id,
+        date: m.date,
+        user_id: m.user_id,
+      }));
+      await this.repository.batchCreateMembershipDates(dateRecords);
+
       return memberships;
     } catch (error) {
       logger.error('Failed to batch create memberships:', error);
