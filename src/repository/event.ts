@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, like, or } from 'drizzle-orm';
 
 import { db } from '../lib/database.js';
-import type { Event, NewEvent } from '../schema/schema.js';
+import type { Event, Membership, NewEvent } from '../schema/schema.js';
 import {
   assetsSchema,
   bookings,
@@ -14,15 +14,20 @@ import {
 import { EventQuery } from '../web/validator/event.ts';
 
 export class EventRepository {
-  public async create(event: NewEvent, membership_ids: number[]) {
+  public async create(event: NewEvent) {
     const [eventId] = await db.insert(eventSchema).values(event).$returningId();
+
+    return eventId.id;
+  }
+
+  public async createMembershipPlans(eventId: number, membership_plans: Membership[]) {
     await db.insert(eventMembershipSchema).values(
-      membership_ids.map((id) => ({
-        event_id: eventId.id,
-        membership_id: id,
+      membership_plans.map((plan) => ({
+        event_id: eventId,
+        membership_id: plan.id,
       })),
     );
-    return eventId.id;
+    return membership_plans.map((plan) => plan.id);
   }
 
   public async find(id: number) {

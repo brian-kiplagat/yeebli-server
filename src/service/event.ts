@@ -67,11 +67,10 @@ export class EventService {
     this.leadService = leadService;
   }
 
-  public async createEvent(event: NewEvent, membership_ids: number[]) {
+  public async createEvent(event: NewEvent) {
     try {
       // Create the event
-      const newEventId = await this.repository.create(event, membership_ids);
-
+      const newEventId = await this.repository.create(event);
       return newEventId;
     } catch (error) {
       logger.error(error);

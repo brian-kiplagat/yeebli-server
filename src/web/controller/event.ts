@@ -101,29 +101,35 @@ export class EventController {
       }
       const body: CreateEventBody = await c.req.json();
 
-      const membership_ids = body.memberships;
-      if (membership_ids.length < 1) {
+      const { membership_plans } = body;
+      if (membership_plans.length < 1) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
       }
-      //ensure the membership_ids are valid
-      const memberships = await this.membershipService.getMultipleMemberships(membership_ids);
-      if (memberships.length !== membership_ids.length) {
-        return serveBadRequest(c, ERRORS.MEMBERSHIP_NOT_FOUND);
-      }
-      //ensure none of the memberships.price_point is a `course` or `podcast`
-      const isCourse = memberships.some(
-        (m) => m.price_point === 'course' || m.price_point === 'podcast',
+      //create event first
+      const eventId = await this.service.createEvent({
+        ...body,
+        host_id: user.id,
+      });
+
+      // Transform membership plans to match NewMembership type
+      const transformedPlans = membership_plans.map((plan) => ({
+        name: plan.name,
+        user_id: user.id,
+        price: plan.cost,
+        description: null,
+        payment_type: 'one_off' as const,
+        price_point: 'standalone' as const,
+        billing: null,
+      }));
+
+      //batch insert the membership plans
+      const createdMemberships = await this.membershipService.batchCreateMembership(
+        eventId,
+        transformedPlans,
       );
-      if (isCourse) {
-        return serveBadRequest(c, ERRORS.COURSE_MEMBERSHIP_NOT_ALLOWED);
-      }
-      const eventId = await this.service.createEvent(
-        {
-          ...body,
-          host_id: user.id,
-        },
-        membership_ids,
-      );
+
+      // Create event-membership connections
+      await this.membershipService.createMembershipPlans(eventId, createdMemberships);
 
       return c.json(
         {

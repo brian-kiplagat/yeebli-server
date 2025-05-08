@@ -13,6 +13,16 @@ const eventSchema = z.object({
   live_video_url: z.string().optional(),
   live_venue_address: z.string().optional(),
   success_url: z.string().optional(),
+  membership_plans: z
+    .array(
+      z.object({
+        name: z.string(),
+        date: z.number(),
+        cost: z.number(),
+        isFree: z.boolean(),
+      }),
+    )
+    .min(1),
 });
 
 const eventStreamSchema = z.object({

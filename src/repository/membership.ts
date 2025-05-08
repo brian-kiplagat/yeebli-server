@@ -148,4 +148,14 @@ export class MembershipRepository {
   public async getMultipleMembershipDates(dates: number[]) {
     return await db.select().from(membershipDates).where(inArray(membershipDates.id, dates));
   }
+
+  public async createMembershipPlans(eventId: number, memberships: Membership[]) {
+    await db.insert(eventMembershipSchema).values(
+      memberships.map((plan) => ({
+        event_id: eventId,
+        membership_id: plan.id,
+      })),
+    );
+    return memberships.map((plan) => plan.id);
+  }
 }

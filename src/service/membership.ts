@@ -150,4 +150,26 @@ export class MembershipService {
       throw error;
     }
   }
+
+  public async batchCreateMembership(
+    eventId: number,
+    plans: NewMembership[],
+  ): Promise<Membership[]> {
+    try {
+      const memberships = await Promise.all(
+        plans.map(async (plan) => {
+          const id = await this.repository.create(plan);
+          return { ...plan, id } as Membership;
+        }),
+      );
+      return memberships;
+    } catch (error) {
+      logger.error('Failed to batch create memberships:', error);
+      throw error;
+    }
+  }
+
+  public async createMembershipPlans(eventId: number, memberships: Membership[]) {
+    return await this.repository.createMembershipPlans(eventId, memberships);
+  }
 }
