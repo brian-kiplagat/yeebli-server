@@ -174,9 +174,14 @@ export class EventController {
       }
 
       // Separate new and existing memberships
-      const existingMembershipIds = membership_plans
+      const existingMemberships = membership_plans
         .filter((plan) => plan.id && plan.id > 0)
-        .map((plan) => plan.id as number);
+        .map((plan) => ({
+          id: plan.id as number,
+          name: plan.name,
+          price: plan.isFree ? 0 : plan.cost,
+          description: 'Sample description',
+        }));
 
       const newMemberships = membership_plans
         .filter((plan) => !plan.id || plan.id === 0)
@@ -191,6 +196,19 @@ export class EventController {
           date: String(plan.date),
         }));
 
+      // Update existing memberships
+      if (existingMemberships.length > 0) {
+        await Promise.all(
+          existingMemberships.map((membership) =>
+            this.membershipService.updateMembership(membership.id, {
+              name: membership.name,
+              price: membership.price,
+              description: membership.description,
+            }),
+          ),
+        );
+      }
+
       // Create new memberships if any
       let newMembershipIds: number[] = [];
       if (newMemberships.length > 0) {
@@ -202,7 +220,7 @@ export class EventController {
       }
 
       // Combine existing and new membership IDs
-      const allMembershipIds = [...existingMembershipIds, ...newMembershipIds];
+      const allMembershipIds = [...existingMemberships.map((m) => m.id), ...newMembershipIds];
 
       // Update the event with all membership IDs
       await this.service.updateEvent(eventId, { ...rest, memberships: allMembershipIds });
