@@ -712,14 +712,7 @@ export class LeadController {
       }
       const tagId = Number(c.req.param('id'));
       const leadId = Number(c.req.param('lead_id'));
-      const tag = await this.service.findTag(tagId);
-      if (!tag) {
-        return serveBadRequest(c, ERRORS.TAG_NOT_FOUND);
-      }
-      //only and master role or admin or the owner of the lead
-      if (user.role !== 'master' && user.role !== 'owner' && tag.host_id !== user.id) {
-        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
-      }
+
       await this.service.deleteTagAssignment(tagId, leadId);
       return c.json({ message: 'Tag unassigned successfully' });
     } catch (error) {
