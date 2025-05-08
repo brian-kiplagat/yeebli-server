@@ -181,6 +181,7 @@ export class EventController {
           name: plan.name,
           price: plan.isFree ? 0 : plan.cost,
           description: 'Sample description',
+          date: String(plan.date),
         }));
 
       const newMemberships = membership_plans
@@ -196,16 +197,26 @@ export class EventController {
           date: String(plan.date),
         }));
 
-      // Update existing memberships
+      // Update existing memberships and their dates
       if (existingMemberships.length > 0) {
         await Promise.all(
-          existingMemberships.map((membership) =>
-            this.membershipService.updateMembership(membership.id, {
+          existingMemberships.map(async (membership) => {
+            // Update membership details
+            await this.membershipService.updateMembership(membership.id, {
               name: membership.name,
               price: membership.price,
               description: membership.description,
-            }),
-          ),
+            });
+
+            // Get the date ID for this membership
+            const dates = await this.membershipService.getMembershipDates(membership.id);
+            if (dates.length > 0) {
+              // Update the existing date
+              await this.membershipService.updateMembershipDate(dates[0].id, {
+                date: membership.date,
+              });
+            }
+          }),
         );
       }
 

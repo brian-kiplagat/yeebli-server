@@ -138,6 +138,15 @@ export class MembershipService {
     }
   }
 
+  public async updateMembershipDate(dateId: number, update: { date: string }) {
+    try {
+      await this.repository.updateMembershipDate(dateId, update);
+    } catch (error) {
+      logger.error('Failed to update membership date:', error);
+      throw error;
+    }
+  }
+
   public async getEventMemberships(eventId: number) {
     return await this.repository.getEventMemberships(eventId);
   }

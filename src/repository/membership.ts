@@ -140,6 +140,10 @@ export class MembershipRepository {
     return await db.delete(membershipDates).where(eq(membershipDates.id, dateId));
   }
 
+  public async updateMembershipDate(dateId: number, update: { date: string }) {
+    return await db.update(membershipDates).set(update).where(eq(membershipDates.id, dateId));
+  }
+
   public async getEventMemberships(eventId: number) {
     return await db
       .select({
