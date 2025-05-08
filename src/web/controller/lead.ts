@@ -19,6 +19,7 @@ import {
   externalFormSchema,
   type LeadBody,
   PurchaseMembershipBody,
+  TagAssignmentBody,
   TagBody,
 } from '../validator/lead.ts';
 import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.js';
@@ -721,6 +722,30 @@ export class LeadController {
       }
       await this.service.deleteTagAssignment(tagId, leadId);
       return c.json({ message: 'Tag unassigned successfully' });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public assignTag = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      const body: TagAssignmentBody = await c.req.json();
+      const { lead_id, tag_id } = body;
+      const lead = await this.service.find(lead_id);
+      if (!lead) {
+        return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
+      }
+      const tag = await this.service.findTag(tag_id);
+      if (!tag) {
+        return serveBadRequest(c, ERRORS.TAG_NOT_FOUND);
+      }
+      await this.service.createTagAssignment({ tag_id: tag_id, lead_id: lead_id });
+      return c.json({ message: 'Tag assigned successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

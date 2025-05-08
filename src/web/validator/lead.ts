@@ -75,15 +75,22 @@ const purchaseMembershipSchema = z.object({
   dates: z.array(z.number()).min(1, 'At least one date is required'),
 });
 
+const tagAssignmentSchema = z.object({
+  lead_id: z.number().min(1, 'Lead ID is required'),
+  tag_id: z.number().min(1, 'Tag ID is required'),
+});
+
 type LeadUpgradeBody = z.infer<typeof leadUpgradeSchema>;
 type LeadBody = z.infer<typeof leadSchema>;
 type ExternalFormBody = z.infer<typeof externalFormSchema>;
 type EventLinkBody = z.infer<typeof eventLinkSchema>;
 type PurchaseMembershipBody = z.infer<typeof purchaseMembershipSchema>;
 type TagBody = z.infer<typeof tagSchema>;
+type TagAssignmentBody = z.infer<typeof tagAssignmentSchema>;
 
 export const eventLinkValidator = zValidator('json', eventLinkSchema);
 export const leadValidator = zValidator('json', leadSchema);
+export const tagAssignmentValidator = zValidator('json', tagAssignmentSchema);
 export const updateLeadValidator = zValidator('json', updateLeadSchema);
 export const externalFormValidator = zValidator('form', externalFormSchema);
 export const leadUpgradeValidator = zValidator('json', leadUpgradeSchema);
@@ -96,6 +103,7 @@ export type {
   LeadBody,
   LeadUpgradeBody,
   PurchaseMembershipBody,
+  TagAssignmentBody,
   TagBody,
 };
 export { externalFormSchema };

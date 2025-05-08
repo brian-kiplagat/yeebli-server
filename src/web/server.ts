@@ -74,6 +74,7 @@ import {
   externalFormValidator,
   leadValidator,
   purchaseMembershipValidator,
+  tagAssignmentValidator,
   tagValidator,
   updateLeadValidator,
 } from './validator/lead.ts';
@@ -324,6 +325,7 @@ export class Server {
     lead.delete('/tag/:id', leadCtrl.deleteTag);
     lead.get('/tags/host', leadCtrl.getTags);
     lead.delete('/tag/:id/lead/:lead_id', leadCtrl.unassignTag);
+    lead.post('/tag/assign', tagAssignmentValidator, leadCtrl.assignTag);
 
     api.route('/lead', lead);
   }
