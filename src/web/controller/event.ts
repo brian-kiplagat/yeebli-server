@@ -105,6 +105,7 @@ export class EventController {
       if (membership_plans.length < 1) {
         return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
       }
+
       //create event first
       const eventId = await this.service.createEvent({
         ...body,
@@ -116,10 +117,11 @@ export class EventController {
         name: plan.name,
         user_id: user.id,
         price: plan.cost,
-        description: null,
+        description: 'Sample description',
         payment_type: 'one_off' as const,
         price_point: 'standalone' as const,
         billing: null,
+        date: String(plan.date),
       }));
 
       //batch insert the membership plans

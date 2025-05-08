@@ -8,6 +8,10 @@ type MembershipQuery = {
   search?: string;
 };
 
+type MembershipPlanWithDate = NewMembership & {
+  date: string;
+};
+
 export class MembershipService {
   private repository: MembershipRepository;
 
@@ -153,13 +157,20 @@ export class MembershipService {
 
   public async batchCreateMembership(
     eventId: number,
-    plans: NewMembership[],
+    plans: MembershipPlanWithDate[],
   ): Promise<Membership[]> {
     try {
       const memberships = await Promise.all(
         plans.map(async (plan) => {
-          const id = await this.repository.create(plan);
-          return { ...plan, id } as Membership;
+          const { date, ...membershipData } = plan;
+          const id = await this.repository.create(membershipData);
+          //Create dates for the membership
+          await this.repository.createMembershipDate({
+            membership_id: id,
+            date: date,
+            user_id: plan.user_id,
+          });
+          return { ...membershipData, id } as Membership;
         }),
       );
       return memberships;
