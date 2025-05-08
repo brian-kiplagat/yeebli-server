@@ -376,13 +376,22 @@ export const podcastEpisodeSchema = mysqlTable('podcast_episodes', {
 
 export const tagsSchema = mysqlTable('tags', {
   id: serial('id').primaryKey(),
-  lead_id: int('lead_id')
-    .references(() => leadSchema.id)
-    .notNull(),
   host_id: int('host_id')
     .references(() => userSchema.id)
     .notNull(),
   tag: varchar('tag', { length: 255 }).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const tagAssignmentSchema = mysqlTable('tag_assignment', {
+  id: serial('id').primaryKey(),
+  tag_id: int('tag_id')
+    .references(() => tagsSchema.id)
+    .notNull(),
+  lead_id: int('lead_id')
+    .references(() => leadSchema.id)
+    .notNull(),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
@@ -418,7 +427,8 @@ export type Lead = typeof leadSchema.$inferSelect & {
 
 export type Tag = typeof tagsSchema.$inferSelect;
 export type NewTag = typeof tagsSchema.$inferInsert;
-
+export type TagAssignment = typeof tagAssignmentSchema.$inferSelect;
+export type NewTagAssignment = typeof tagAssignmentSchema.$inferInsert;
 export type Membership = typeof memberships.$inferSelect & {
   dates?: (typeof membershipDates.$inferSelect)[];
 };
@@ -466,6 +476,7 @@ export type PodcastEpisode = typeof podcastEpisodeSchema.$inferSelect & {
 export type NewPodcastEpisode = typeof podcastEpisodeSchema.$inferInsert;
 export type PodcastMembership = typeof podcastMembershipSchema.$inferSelect;
 export type NewPodcastMembership = typeof podcastMembershipSchema.$inferInsert;
+
 // Define relations
 export const userRelations = relations(userSchema, ({ one }) => ({
   business: one(businessSchema, {
@@ -475,13 +486,20 @@ export const userRelations = relations(userSchema, ({ one }) => ({
 }));
 
 export const tagRelations = relations(tagsSchema, ({ one }) => ({
-  lead: one(leadSchema, {
-    fields: [tagsSchema.lead_id],
-    references: [leadSchema.id],
-  }),
   host: one(userSchema, {
     fields: [tagsSchema.host_id],
     references: [userSchema.id],
+  }),
+}));
+
+export const tagAssignmentRelations = relations(tagAssignmentSchema, ({ one }) => ({
+  tag: one(tagsSchema, {
+    fields: [tagAssignmentSchema.tag_id],
+    references: [tagsSchema.id],
+  }),
+  lead: one(leadSchema, {
+    fields: [tagAssignmentSchema.lead_id],
+    references: [leadSchema.id],
   }),
 }));
 

@@ -8,6 +8,8 @@ import {
   memberships,
   type NewLead,
   NewTag,
+  NewTagAssignment,
+  tagAssignmentSchema,
   tagsSchema,
 } from '../schema/schema.js';
 
@@ -46,9 +48,16 @@ export class LeadRepository {
   }
 
   public async findTagsByLeadId(leadId: number) {
-    return db.query.tagsSchema.findMany({
-      where: eq(tagsSchema.lead_id, leadId),
+    return db.query.tagAssignmentSchema.findMany({
+      where: eq(tagAssignmentSchema.lead_id, leadId),
+      with: {
+        tag: true,
+      },
     });
+  }
+
+  public async createTagAssignment(tagAssignment: NewTagAssignment) {
+    return db.insert(tagAssignmentSchema).values(tagAssignment).$returningId();
   }
 
   public async createTag(tag: NewTag) {
