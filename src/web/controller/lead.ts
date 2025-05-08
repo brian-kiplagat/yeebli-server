@@ -668,7 +668,8 @@ export class LeadController {
       }
       //create tag
       const tag = await this.service.createTag({ tag: body.tag, host_id: user.id });
-      //create tag assignment
+
+      //immediately assign tag to lead
       await this.service.createTagAssignment({ tag_id: tag[0].id, lead_id: lead.id });
       return c.json(tag);
     } catch (error) {
@@ -696,6 +697,30 @@ export class LeadController {
 
       await this.service.deleteTag(tagId);
       return c.json({ message: 'Tag deleted successfully' });
+    } catch (error) {
+      logger.error(error);
+      return serveInternalServerError(c, error);
+    }
+  };
+
+  public unassignTag = async (c: Context) => {
+    try {
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
+      }
+      const tagId = Number(c.req.param('id'));
+      const leadId = Number(c.req.param('lead_id'));
+      const tag = await this.service.findTag(tagId);
+      if (!tag) {
+        return serveBadRequest(c, ERRORS.TAG_NOT_FOUND);
+      }
+      //only and master role or admin or the owner of the lead
+      if (user.role !== 'master' && user.role !== 'owner' && tag.host_id !== user.id) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
+      }
+      await this.service.deleteTagAssignment(tagId, leadId);
+      return c.json({ message: 'Tag unassigned successfully' });
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);

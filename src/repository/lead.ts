@@ -65,7 +65,17 @@ export class LeadRepository {
   }
 
   public async deleteTag(tagId: number) {
-    return db.delete(tagsSchema).where(eq(tagsSchema.id, tagId));
+    const [tagAssignment, tag] = await Promise.all([
+      db.delete(tagAssignmentSchema).where(eq(tagAssignmentSchema.tag_id, tagId)),
+      db.delete(tagsSchema).where(eq(tagsSchema.id, tagId)),
+    ]);
+    return { tagAssignment, tag };
+  }
+
+  public async deleteTagAssignment(tagId: number, leadId: number) {
+    return db
+      .delete(tagAssignmentSchema)
+      .where(and(eq(tagAssignmentSchema.tag_id, tagId), eq(tagAssignmentSchema.lead_id, leadId)));
   }
 
   public async findTag(tagId: number) {
