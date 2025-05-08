@@ -322,7 +322,7 @@ export class Server {
     lead.post('/unique-leads', leadCtrl.getUniqueLeads);
     lead.post('/tag', tagValidator, leadCtrl.createTag);
     lead.delete('/tag/:id', leadCtrl.deleteTag);
-    lead.get('/tags', leadCtrl.getTags);
+    lead.get('/tags/host', leadCtrl.getTags);
 
     api.route('/lead', lead);
   }
