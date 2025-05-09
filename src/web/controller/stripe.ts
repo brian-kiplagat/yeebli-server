@@ -15,6 +15,7 @@ import { sendTransactionalEmail } from '../../task/sendWelcomeEmail.ts';
 import { formatDateToLocale } from '../../util/string.ts';
 import { ERRORS, MAIL_CONTENT, serveInternalServerError } from './resp/error.ts';
 import { serveBadRequest } from './resp/error.ts';
+
 export class StripeController {
   private stripeService: StripeService;
   private userService: UserService;
@@ -24,6 +25,7 @@ export class StripeController {
   private eventService: EventService;
   private membershipService: MembershipService;
   private bookingService: BookingService;
+
   constructor(
     stripeService: StripeService,
     userService: UserService,
@@ -44,6 +46,12 @@ export class StripeController {
     this.bookingService = bookingService;
   }
 
+  /**
+   * Creates a Stripe Connect account for a user
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing account creation status and onboarding URL
+   * @throws {Error} When account creation fails
+   */
   public createConnectAccount = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -85,6 +93,12 @@ export class StripeController {
     }
   };
 
+  /**
+   * Retrieves the status of a user's Stripe account
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing account status details
+   * @throws {Error} When status retrieval fails
+   */
   public getAccountStatus = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -111,6 +125,12 @@ export class StripeController {
     }
   };
 
+  /**
+   * Retrieves saved card details for a user
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing card details
+   * @throws {Error} When card details retrieval fails
+   */
   public getCardDetails = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -129,12 +149,25 @@ export class StripeController {
       return c.json({ error: 'Failed to get account status' }, 500);
     }
   };
+
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private getUser = async (c: Context) => {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   };
 
+  /**
+   * Initiates OAuth flow for Stripe Connect
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing OAuth URL
+   * @throws {Error} When OAuth initiation fails
+   */
   public initiateOAuth = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -159,6 +192,12 @@ export class StripeController {
     }
   };
 
+  /**
+   * Handles OAuth callback from Stripe Connect
+   * @param {Context} c - The Hono context containing OAuth code and state
+   * @returns {Promise<Response>} Response containing connection status
+   * @throws {Error} When OAuth callback handling fails
+   */
   public handleOAuthCallback = async (c: Context) => {
     try {
       const { code, state } = c.req.query();
@@ -193,6 +232,12 @@ export class StripeController {
     }
   };
 
+  /**
+   * Handles incoming webhooks from Stripe
+   * @param {Context} c - The Hono context containing webhook data
+   * @returns {Promise<Response>} Response indicating webhook processing status
+   * @throws {Error} When webhook processing fails
+   */
   public handleWebhook = async (c: Context) => {
     try {
       const signature = c.req.header('stripe-signature');
@@ -235,6 +280,13 @@ export class StripeController {
     }
   };
 
+  /**
+   * Handles account update events from Stripe
+   * @private
+   * @param {any} account - The updated account object from Stripe
+   * @returns {Promise<void>}
+   * @throws {Error} When account update handling fails
+   */
   private handleAccountUpdate = async (account: any) => {
     try {
       const { userId } = account.metadata;
@@ -259,6 +311,13 @@ export class StripeController {
     }
   };
 
+  /**
+   * Handles subscription update events from Stripe
+   * @private
+   * @param {any} subscription - The subscription object from Stripe
+   * @returns {Promise<void>}
+   * @throws {Error} When subscription update handling fails
+   */
   private handleSubscriptionUpdate = async (subscription: any) => {
     try {
       const { userId } = subscription.metadata;
@@ -323,6 +382,13 @@ export class StripeController {
     }
   };
 
+  /**
+   * Handles trial ending notifications from Stripe
+   * @private
+   * @param {any} subscription - The subscription object from Stripe
+   * @returns {Promise<void>}
+   * @throws {Error} When trial ending handling fails
+   */
   private handleTrialEnding = async (subscription: any) => {
     try {
       const { userId } = subscription.metadata;
@@ -341,6 +407,13 @@ export class StripeController {
     }
   };
 
+  /**
+   * Handles completed checkout session events from Stripe
+   * @private
+   * @param {any} session - The checkout session object from Stripe
+   * @returns {Promise<void>}
+   * @throws {Error} When checkout completion handling fails
+   */
   private handleCheckoutCompleted = async (session: any) => {
     try {
       //check for metadata type lead_upgrade
@@ -451,6 +524,12 @@ export class StripeController {
     }
   };
 
+  /**
+   * Retrieves product information from Stripe
+   * @param {Context} c - The Hono context containing product ID
+   * @returns {Promise<Response>} Response containing product details
+   * @throws {Error} When product retrieval fails
+   */
   public getProduct = async (c: Context) => {
     try {
       const user = await this.getUser(c);

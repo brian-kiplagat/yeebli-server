@@ -22,12 +22,24 @@ export class PodcastController {
     this.membershipService = membershipService;
   }
 
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private async getUser(c: Context) {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
 
+  /**
+   * Retrieves all podcasts based on user role and permissions
+   * @param {Context} c - The Hono context containing pagination and search parameters
+   * @returns {Promise<Response>} Response containing list of podcasts
+   * @throws {Error} When fetching podcasts fails
+   */
   public getPodcasts = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -63,6 +75,12 @@ export class PodcastController {
     }
   };
 
+  /**
+   * Retrieves detailed information about a specific podcast
+   * @param {Context} c - The Hono context containing podcast ID
+   * @returns {Promise<Response>} Response containing podcast details and episode assets
+   * @throws {Error} When fetching podcast details fails
+   */
   public getPodcast = async (c: Context) => {
     try {
       const podcastId = Number(c.req.param('id'));
@@ -82,6 +100,12 @@ export class PodcastController {
     }
   };
 
+  /**
+   * Creates a new podcast with episodes and membership requirements
+   * @param {Context} c - The Hono context containing podcast details
+   * @returns {Promise<Response>} Response containing created podcast information
+   * @throws {Error} When podcast creation fails
+   */
   public createPodcast = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -133,6 +157,12 @@ export class PodcastController {
     }
   };
 
+  /**
+   * Updates an existing podcast's details and episodes
+   * @param {Context} c - The Hono context containing updated podcast information
+   * @returns {Promise<Response>} Response indicating update status
+   * @throws {Error} When podcast update fails
+   */
   public updatePodcast = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -193,6 +223,12 @@ export class PodcastController {
     }
   };
 
+  /**
+   * Deletes a podcast and its associated episodes
+   * @param {Context} c - The Hono context containing podcast ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When podcast deletion fails
+   */
   public deletePodcast = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -220,6 +256,12 @@ export class PodcastController {
     }
   };
 
+  /**
+   * Adds a new episode to an existing podcast
+   * @param {Context} c - The Hono context containing episode details
+   * @returns {Promise<Response>} Response containing created episode information
+   * @throws {Error} When episode creation fails
+   */
   public addEpisode = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -252,6 +294,12 @@ export class PodcastController {
     }
   };
 
+  /**
+   * Retrieves all episodes for a specific podcast
+   * @param {Context} c - The Hono context containing podcast ID
+   * @returns {Promise<Response>} Response containing list of episodes
+   * @throws {Error} When fetching episodes fails
+   */
   public getEpisodes = async (c: Context) => {
     try {
       const podcastId = Number(c.req.param('podcastId'));
@@ -269,6 +317,12 @@ export class PodcastController {
     }
   };
 
+  /**
+   * Updates an existing episode's details
+   * @param {Context} c - The Hono context containing updated episode information
+   * @returns {Promise<Response>} Response indicating update status
+   * @throws {Error} When episode update fails
+   */
   public updateEpisode = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -298,6 +352,12 @@ export class PodcastController {
     }
   };
 
+  /**
+   * Deletes an episode from a podcast
+   * @param {Context} c - The Hono context containing episode ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When episode deletion fails
+   */
   public deleteEpisode = async (c: Context) => {
     try {
       const user = await this.getUser(c);

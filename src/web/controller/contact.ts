@@ -23,10 +23,12 @@ import {
 } from './resp/error.js';
 import { serveData } from './resp/resp.js';
 import { serializeContact } from './serializer/contact.js';
+
 export class ContactController {
   private contactService: ContactService;
   private stripeService: StripeService;
   private paymentService: PaymentService;
+
   constructor(
     contactService: ContactService,
     stripeService: StripeService,
@@ -37,12 +39,24 @@ export class ContactController {
     this.paymentService = paymentService;
   }
 
+  /**
+   * Retrieves contact information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<Contact|null>} The contact object if found, null otherwise
+   */
   private getContact = async (c: Context) => {
     const { email } = c.get('jwtPayload');
     const contact = await this.contactService.findByEmail(email);
     return contact;
   };
 
+  /**
+   * Authenticates a contact with email and password
+   * @param {Context} c - The Hono context containing login credentials
+   * @returns {Promise<Response>} Response containing JWT token and contact data
+   * @throws {Error} When authentication fails
+   */
   public login = async (c: Context) => {
     try {
       const body: LoginBody = await c.req.json();
@@ -81,6 +95,12 @@ export class ContactController {
     }
   };
 
+  /**
+   * Sends a verification token to contact's email
+   * @param {Context} c - The Hono context containing email information
+   * @returns {Promise<Response>} Response indicating token sending status
+   * @throws {Error} When token generation or sending fails
+   */
   public sendToken = async (c: Context) => {
     try {
       const body: EmailVerificationBody = await c.req.json();
@@ -95,6 +115,12 @@ export class ContactController {
     }
   };
 
+  /**
+   * Verifies the registration token sent to contact's email
+   * @param {Context} c - The Hono context containing token and contact ID
+   * @returns {Promise<Response>} Response indicating verification status
+   * @throws {Error} When token verification fails
+   */
   public verifyRegistrationToken = async (c: Context) => {
     try {
       const body: RegisterTokenBody = await c.req.json();
@@ -112,6 +138,12 @@ export class ContactController {
     }
   };
 
+  /**
+   * Initiates password reset process by sending reset token
+   * @param {Context} c - The Hono context containing email information
+   * @returns {Promise<Response>} Response indicating reset token status
+   * @throws {Error} When reset token generation or sending fails
+   */
   public requestResetPassword = async (c: Context) => {
     try {
       const body: RequestResetPasswordBody = await c.req.json();
@@ -126,6 +158,12 @@ export class ContactController {
     }
   };
 
+  /**
+   * Resets contact's password using token sent via email
+   * @param {Context} c - The Hono context containing new password and token
+   * @returns {Promise<Response>} Response indicating password reset status
+   * @throws {Error} When password reset fails
+   */
   public resetPassword = async (c: Context) => {
     try {
       const body: ResetPasswordBody = await c.req.json();
@@ -143,6 +181,12 @@ export class ContactController {
     }
   };
 
+  /**
+   * Resets contact's password while logged in
+   * @param {Context} c - The Hono context containing old and new passwords
+   * @returns {Promise<Response>} Response indicating password reset status
+   * @throws {Error} When password reset fails
+   */
   public resetPasswordInApp = async (c: Context) => {
     try {
       const contact = await this.getContact(c);
@@ -166,6 +210,12 @@ export class ContactController {
     }
   };
 
+  /**
+   * Retrieves current contact's profile information and payment history
+   * @param {Context} c - The Hono context containing contact information
+   * @returns {Promise<Response>} Response containing contact profile and payments
+   * @throws {Error} When profile retrieval fails
+   */
   public me = async (c: Context) => {
     try {
       const contact = await this.getContact(c);
@@ -182,6 +232,12 @@ export class ContactController {
     }
   };
 
+  /**
+   * Retrieves contact's saved payment methods from Stripe
+   * @param {Context} c - The Hono context containing contact information
+   * @returns {Promise<Response>} Response containing payment methods
+   * @throws {Error} When payment methods retrieval fails
+   */
   public paymentMethods = async (c: Context) => {
     try {
       const contact = await this.getContact(c);
@@ -203,6 +259,12 @@ export class ContactController {
     }
   };
 
+  /**
+   * Updates contact's profile details
+   * @param {Context} c - The Hono context containing updated contact information
+   * @returns {Promise<Response>} Response containing updated contact data
+   * @throws {Error} When profile update fails
+   */
   public updateContactDetails = async (c: Context) => {
     try {
       const contact = await this.getContact(c);

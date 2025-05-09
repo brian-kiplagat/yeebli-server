@@ -57,12 +57,24 @@ export class LeadController {
     this.paymentService = paymentService;
   }
 
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private async getUser(c: Context) {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
 
+  /**
+   * Retrieves all leads for the authenticated user or team
+   * @param {Context} c - The Hono context containing pagination and search parameters
+   * @returns {Promise<Response>} Response containing list of leads
+   * @throws {Error} When fetching leads fails
+   */
   public getLeads = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -99,6 +111,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Retrieves detailed information about a specific lead
+   * @param {Context} c - The Hono context containing lead ID
+   * @returns {Promise<Response>} Response containing lead details, events, memberships, and payments
+   * @throws {Error} When fetching lead details fails
+   */
   public getLead = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -152,6 +170,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Creates a new lead in the system
+   * @param {Context} c - The Hono context containing lead information
+   * @returns {Promise<Response>} Response containing created lead details
+   * @throws {Error} When lead creation fails
+   */
   public createLead = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -206,6 +230,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Validates an event link token for lead access
+   * @param {Context} c - The Hono context containing event ID and token
+   * @returns {Promise<Response>} Response containing validation result
+   * @throws {Error} When validation fails
+   */
   public validateEventLink = async (c: Context) => {
     try {
       const body: EventLinkBody = await c.req.json();
@@ -282,6 +312,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Validates ticket payment for an event
+   * @param {Context} c - The Hono context containing payment details
+   * @returns {Promise<Response>} Response containing payment validation result
+   * @throws {Error} When payment validation fails
+   */
   public validateTicketPayment = async (c: Context) => {
     try {
       const body: EventLinkBody = await c.req.json();
@@ -323,6 +359,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Updates lead information
+   * @param {Context} c - The Hono context containing updated lead details
+   * @returns {Promise<Response>} Response containing updated lead information
+   * @throws {Error} When lead update fails
+   */
   public updateLead = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -349,6 +391,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Deletes a lead from the system
+   * @param {Context} c - The Hono context containing lead ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When lead deletion fails
+   */
   public deleteLead = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -374,6 +422,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Handles external form submissions for lead generation
+   * @param {Context} c - The Hono context containing form data
+   * @returns {Promise<Response>} Response containing created lead details
+   * @throws {Error} When form processing fails
+   */
   public handleExternalForm = async (c: Context) => {
     try {
       const formData = await c.req.parseBody();
@@ -451,6 +505,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Retrieves unique leads based on specified criteria
+   * @param {Context} c - The Hono context containing filter parameters
+   * @returns {Promise<Response>} Response containing unique leads
+   * @throws {Error} When fetching unique leads fails
+   */
   public getUniqueLeads = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -482,6 +542,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Processes membership purchase for a lead
+   * @param {Context} c - The Hono context containing purchase details
+   * @returns {Promise<Response>} Response containing purchase confirmation
+   * @throws {Error} When membership purchase fails
+   */
   public purchaseMembership = async (c: Context) => {
     try {
       const body: PurchaseMembershipBody = await c.req.json();
@@ -654,6 +720,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Creates a new tag for leads
+   * @param {Context} c - The Hono context containing tag details
+   * @returns {Promise<Response>} Response containing created tag
+   * @throws {Error} When tag creation fails
+   */
   public createTag = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -679,6 +751,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Deletes a tag from the system
+   * @param {Context} c - The Hono context containing tag ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When tag deletion fails
+   */
   public deleteTag = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -704,6 +782,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Removes a tag assignment from a lead
+   * @param {Context} c - The Hono context containing tag and lead IDs
+   * @returns {Promise<Response>} Response indicating unassignment status
+   * @throws {Error} When tag unassignment fails
+   */
   public unassignTag = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -721,6 +805,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Assigns a tag to a lead
+   * @param {Context} c - The Hono context containing tag and lead IDs
+   * @returns {Promise<Response>} Response indicating assignment status
+   * @throws {Error} When tag assignment fails
+   */
   public assignTag = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -745,6 +835,12 @@ export class LeadController {
     }
   };
 
+  /**
+   * Retrieves all available tags
+   * @param {Context} c - The Hono context
+   * @returns {Promise<Response>} Response containing list of tags
+   * @throws {Error} When fetching tags fails
+   */
   public getTags = async (c: Context) => {
     try {
       const user = await this.getUser(c);

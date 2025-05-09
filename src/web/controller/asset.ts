@@ -27,12 +27,24 @@ export class AssetController {
     this.leadService = leadService;
   }
 
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private async getUser(c: Context) {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
 
+  /**
+   * Creates a new asset in the system
+   * @param {Context} c - The Hono context containing asset details
+   * @returns {Promise<Response>} Response containing created asset information
+   * @throws {Error} When asset creation fails
+   */
   public createAsset = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -58,6 +70,12 @@ export class AssetController {
     }
   };
 
+  /**
+   * Retrieves all assets based on user role and permissions
+   * @param {Context} c - The Hono context containing pagination, search, and filter parameters
+   * @returns {Promise<Response>} Response containing list of assets
+   * @throws {Error} When fetching assets fails
+   */
   public getAssets = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -94,6 +112,12 @@ export class AssetController {
     }
   };
 
+  /**
+   * Retrieves detailed information about a specific asset
+   * @param {Context} c - The Hono context containing asset ID
+   * @returns {Promise<Response>} Response containing asset details
+   * @throws {Error} When fetching asset details fails
+   */
   public getAsset = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -115,6 +139,12 @@ export class AssetController {
     }
   };
 
+  /**
+   * Deletes an asset if not linked to active events with leads
+   * @param {Context} c - The Hono context containing asset ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When asset deletion fails
+   */
   public deleteAsset = async (c: Context) => {
     try {
       const assetId = Number(c.req.param('id'));
@@ -147,6 +177,12 @@ export class AssetController {
     }
   };
 
+  /**
+   * Renames an existing asset while preserving file extension
+   * @param {Context} c - The Hono context containing new asset name
+   * @returns {Promise<Response>} Response indicating rename status
+   * @throws {Error} When asset rename fails
+   */
   public renameAsset = async (c: Context) => {
     try {
       const user = await this.getUser(c);

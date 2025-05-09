@@ -13,12 +13,25 @@ export class BookingController {
     this.bookingService = bookingService;
     this.userService = userService;
   }
+
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private getUser = async (c: Context) => {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   };
 
+  /**
+   * Creates a new booking for an event
+   * @param {Context} c - The Hono context containing booking details
+   * @returns {Promise<Response>} Response containing created booking information
+   * @throws {Error} When booking creation fails
+   */
   public createBooking = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -46,6 +59,12 @@ export class BookingController {
     }
   };
 
+  /**
+   * Retrieves all bookings for a specific lead
+   * @param {Context} c - The Hono context containing lead ID
+   * @returns {Promise<Response>} Response containing list of bookings
+   * @throws {Error} When fetching bookings fails
+   */
   public getBookingsByLead = async (c: Context) => {
     try {
       const lead_id = c.req.param('lead_id');

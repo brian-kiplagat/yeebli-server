@@ -17,6 +17,12 @@ export class S3Controller {
     this.service = service;
   }
 
+  /**
+   * Generates a pre-signed URL for direct file upload to S3
+   * @param {Context} c - The Hono context containing file name and content type
+   * @returns {Promise<Response>} Response containing the pre-signed URL
+   * @throws {Error} When URL generation fails or validation fails
+   */
   public generatePresignedUrl = async (c: Context) => {
     try {
       const body = await c.req.json();

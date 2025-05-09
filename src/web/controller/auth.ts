@@ -28,6 +28,7 @@ import type {
 import { ERRORS, MAIL_CONTENT, serveBadRequest, serveInternalServerError } from './resp/error.js';
 import { serveData } from './resp/resp.js';
 import { serializeUser } from './serializer/user.js';
+
 export class AuthController {
   private service: UserService;
   private businessService: BusinessService;
@@ -49,6 +50,12 @@ export class AuthController {
     this.userRepository = userRepository;
   }
 
+  /**
+   * Authenticates a user with email and password
+   * @param {Context} c - The Hono context containing login credentials
+   * @returns {Promise<Response>} Response containing JWT token and user data
+   * @throws {Error} When authentication fails
+   */
   public login = async (c: Context) => {
     try {
       const body: LoginBody = await c.req.json();
@@ -84,6 +91,12 @@ export class AuthController {
     }
   };
 
+  /**
+   * Registers a new user in the system
+   * @param {Context} c - The Hono context containing registration data
+   * @returns {Promise<Response>} Response containing JWT token and user data
+   * @throws {Error} When registration fails or user already exists
+   */
   public register = async (c: Context) => {
     const body: RegistrationBody = await c.req.json();
     try {
@@ -107,6 +120,12 @@ export class AuthController {
     return serveData(c, { token, user: serializedUser });
   };
 
+  /**
+   * Sends a verification token to user's email
+   * @param {Context} c - The Hono context containing email information
+   * @returns {Promise<Response>} Response indicating success or failure of token sending
+   * @throws {Error} When token generation or email sending fails
+   */
   public sendToken = async (c: Context) => {
     try {
       const body: EmailVerificationBody = await c.req.json();
@@ -144,6 +163,12 @@ export class AuthController {
     }
   };
 
+  /**
+   * Verifies the registration token sent to user's email
+   * @param {Context} c - The Hono context containing token and user ID
+   * @returns {Promise<Response>} Response indicating verification status
+   * @throws {Error} When token verification fails
+   */
   public verifyRegistrationToken = async (c: Context) => {
     try {
       const body: RegisterTokenBody = await c.req.json();
@@ -179,6 +204,12 @@ export class AuthController {
     }
   };
 
+  /**
+   * Initiates password reset process by sending reset token
+   * @param {Context} c - The Hono context containing email information
+   * @returns {Promise<Response>} Response indicating reset link sent status
+   * @throws {Error} When reset token generation or email sending fails
+   */
   public requestResetPassword = async (c: Context) => {
     try {
       const body: RequestResetPasswordBody = await c.req.json();
@@ -206,11 +237,24 @@ export class AuthController {
     }
   };
 
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private getUser = async (c: Context) => {
     const { email } = c.get('jwtPayload');
     const user = await this.service.findByEmail(email);
     return user;
   };
+
+  /**
+   * Resets user's password using token sent via email
+   * @param {Context} c - The Hono context containing new password and token
+   * @returns {Promise<Response>} Response indicating password reset status
+   * @throws {Error} When password reset fails
+   */
   public resetPassword = async (c: Context) => {
     try {
       const body: ResetPasswordBody = await c.req.json();
@@ -242,6 +286,12 @@ export class AuthController {
     }
   };
 
+  /**
+   * Resets user's password while logged in
+   * @param {Context} c - The Hono context containing new password
+   * @returns {Promise<Response>} Response indicating password reset status
+   * @throws {Error} When password reset fails
+   */
   public resetPasswordInApp = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -273,6 +323,12 @@ export class AuthController {
     }
   };
 
+  /**
+   * Retrieves current user's profile information
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing user profile data
+   * @throws {Error} When profile retrieval fails
+   */
   public me = async (c: Context) => {
     const payload: JWTPayload = c.get('jwtPayload');
     const user = await this.service.findByEmail(payload.email as string);
@@ -284,6 +340,12 @@ export class AuthController {
     return serveData(c, { user: serializedUser });
   };
 
+  /**
+   * Updates user's profile details
+   * @param {Context} c - The Hono context containing updated user information
+   * @returns {Promise<Response>} Response containing updated user data
+   * @throws {Error} When profile update fails
+   */
   public updateUserDetails = async (c: Context) => {
     try {
       const user = await this.getUser(c);

@@ -23,12 +23,24 @@ export class SubscriptionController {
     this.userService = userService;
   }
 
+  /**
+   * Retrieves the user from the JWT payload in the context
+   * @private
+   * @param {Context} c - The Hono context containing the JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private async getUser(c: Context) {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
 
+  /**
+   * Creates a new subscription for a user
+   * @param {Context} c - The Hono context containing the request data
+   * @returns {Promise<Response>} Response containing the checkout session URL or error
+   * @throws {Error} When subscription creation fails
+   */
   public subscribe = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -52,6 +64,12 @@ export class SubscriptionController {
     }
   };
 
+  /**
+   * Cancels an existing subscription for a user
+   * @param {Context} c - The Hono context containing the user information
+   * @returns {Promise<Response>} Response indicating success or error
+   * @throws {Error} When subscription cancellation fails
+   */
   public cancelSubscription = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -75,6 +93,12 @@ export class SubscriptionController {
     }
   };
 
+  /**
+   * Retrieves all subscriptions for a user
+   * @param {Context} c - The Hono context containing the user information
+   * @returns {Promise<Response>} Response containing the list of subscriptions or error
+   * @throws {Error} When fetching subscriptions fails
+   */
   public getSubscriptions = async (c: Context) => {
     try {
       const user = await this.getUser(c);

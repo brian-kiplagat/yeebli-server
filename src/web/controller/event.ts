@@ -16,6 +16,7 @@ export class EventController {
   private leadService: LeadService;
   private membershipService: MembershipService;
   private businessService: BusinessService;
+
   constructor(
     service: EventService,
     userService: UserService,
@@ -30,12 +31,24 @@ export class EventController {
     this.businessService = businessService;
   }
 
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private async getUser(c: Context) {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
 
+  /**
+   * Retrieves all events based on user role and permissions
+   * @param {Context} c - The Hono context containing pagination and search parameters
+   * @returns {Promise<Response>} Response containing list of events
+   * @throws {Error} When fetching events fails
+   */
   public getEvents = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -69,6 +82,12 @@ export class EventController {
     }
   };
 
+  /**
+   * Retrieves detailed information about a specific event
+   * @param {Context} c - The Hono context containing event ID
+   * @returns {Promise<Response>} Response containing event details and business information
+   * @throws {Error} When fetching event details fails
+   */
   public getEvent = async (c: Context) => {
     try {
       const eventId = Number(c.req.param('id'));
@@ -93,6 +112,12 @@ export class EventController {
     }
   };
 
+  /**
+   * Creates a new event with associated membership plans
+   * @param {Context} c - The Hono context containing event and membership details
+   * @returns {Promise<Response>} Response containing created event information
+   * @throws {Error} When event creation fails
+   */
   public createEvent = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -147,6 +172,12 @@ export class EventController {
     }
   };
 
+  /**
+   * Updates an existing event and its membership plans
+   * @param {Context} c - The Hono context containing updated event details
+   * @returns {Promise<Response>} Response indicating update status
+   * @throws {Error} When event update fails
+   */
   public updateEvent = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -243,6 +274,12 @@ export class EventController {
     }
   };
 
+  /**
+   * Cancels an existing event
+   * @param {Context} c - The Hono context containing event ID
+   * @returns {Promise<Response>} Response indicating cancellation status
+   * @throws {Error} When event cancellation fails
+   */
   public cancelEvent = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -287,6 +324,12 @@ export class EventController {
     }
   };
 
+  /**
+   * Deletes an event from the system
+   * @param {Context} c - The Hono context containing event ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When event deletion fails
+   */
   public deleteEvent = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -318,6 +361,12 @@ export class EventController {
     }
   };
 
+  /**
+   * Retrieves all membership plans associated with an event
+   * @param {Context} c - The Hono context containing event ID
+   * @returns {Promise<Response>} Response containing list of memberships
+   * @throws {Error} When fetching memberships fails
+   */
   public getEventMemberships = async (c: Context) => {
     try {
       const eventId = Number(c.req.param('id'));
@@ -335,6 +384,12 @@ export class EventController {
     }
   };
 
+  /**
+   * Streams a pre-recorded event to users
+   * @param {Context} c - The Hono context containing streaming details
+   * @returns {Promise<Response>} Response containing streaming information
+   * @throws {Error} When streaming setup fails
+   */
   public streamPrerecordedEvent = async (c: Context) => {
     try {
       const body: EventStreamBody = await c.req.json();

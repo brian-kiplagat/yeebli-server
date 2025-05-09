@@ -23,12 +23,22 @@ export class TeamController {
     this.businessService = businessService;
   }
 
+  /**
+   * Get a user from the context
+   * @param c
+   * @returns A user or null if the user is not found
+   */
   private async getUser(c: Context): Promise<User | null> {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user ?? null;
   }
 
+  /**
+   * Create a team
+   * @param c
+   * @returns A message indicating that the team has been created
+   */
   public createTeam = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -51,6 +61,11 @@ export class TeamController {
     }
   };
 
+  /**
+   * Invite a member to a team
+   * @param c
+   * @returns A message indicating that the invitation has been sent
+   */
   public inviteMember = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -108,6 +123,11 @@ export class TeamController {
     }
   };
 
+  /**
+   * Get all invitations for a team
+   * @param c
+   * @returns An array of invitations for a team
+   */
   public getTeamInvitations = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -130,6 +150,11 @@ export class TeamController {
     }
   };
 
+  /**
+   * Get all invitations for a user
+   * @param c
+   * @returns An array of invitations for a user
+   */
   public getMyInvitations = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -158,6 +183,11 @@ export class TeamController {
     }
   };
 
+  /**
+   * Accept an invitation
+   * @param c
+   * @returns A message indicating that the invitation has been accepted
+   */
   public acceptInvitation = async (c: Context) => {
     try {
       const invitationId = Number(c.req.param('id'));
@@ -190,6 +220,11 @@ export class TeamController {
     }
   };
 
+  /**
+   * Reject an invitation
+   * @param c
+   * @returns A message indicating that the invitation has been rejected
+   */
   public rejectInvitation = async (c: Context) => {
     try {
       const invitationId = Number(c.req.param('id'));
@@ -212,6 +247,12 @@ export class TeamController {
     }
   };
 
+  /**
+   * Get all team members for the user's team
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing list of team members
+   * @throws {Error} When fetching team members fails
+   */
   public getMyTeamMembers = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -224,6 +265,7 @@ export class TeamController {
         limit: limit ? Number.parseInt(limit) : undefined,
         search,
       };
+
       // Get the team where user is host
       const teamMember = await this.service.getTeamByHostId(user.id);
       if (!teamMember) {
@@ -255,6 +297,12 @@ export class TeamController {
     }
   };
 
+  /**
+   * Get all teams that the user is a member of
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing list of teams
+   * @throws {Error} When fetching teams fails
+   */
   public getMyTeams = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -268,7 +316,7 @@ export class TeamController {
       const teamDetails = await Promise.all(
         teamMembers.map(async (member) => {
           const teamInfo = await this.service.getTeamById(member.team_id);
-          //get the business related to the host
+          //get the host of the team
           const host_id = teamInfo?.members.find((m) => m.role === 'host')?.user_id;
           if (!host_id) {
             return {
@@ -279,7 +327,7 @@ export class TeamController {
               updated_at: member.updated_at,
             };
           }
-
+          //get the business related to the host
           const business = await this.businessService.getBusinessDetailsByUserId(host_id);
           return {
             team_id: member.team_id,
@@ -299,6 +347,12 @@ export class TeamController {
     }
   };
 
+  /**
+   * Revoke access for a team member
+   * @param {Context} c - The Hono context containing revocation details
+   * @returns {Promise<Response>} Response indicating revocation status
+   * @throws {Error} When revoking access fails
+   */
   public revokeAccess = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -343,6 +397,12 @@ export class TeamController {
     }
   };
 
+  /**
+   * Delete a pending team invitation
+   * @param {Context} c - The Hono context containing invitation ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When deleting invitation fails
+   */
   public deleteInvitation = async (c: Context) => {
     try {
       const user = await this.getUser(c);

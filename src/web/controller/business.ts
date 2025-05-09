@@ -15,12 +15,24 @@ export class BusinessController {
     this.userService = userService;
   }
 
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private async getUser(c: Context) {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
 
+  /**
+   * Retrieves the business information for the current user
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing business details
+   * @throws {Error} When fetching business details fails
+   */
   public getMyBusiness = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -36,6 +48,12 @@ export class BusinessController {
     }
   };
 
+  /**
+   * Creates or updates business information including logo
+   * @param {Context} c - The Hono context containing business details
+   * @returns {Promise<Response>} Response containing updated business information
+   * @throws {Error} When business update fails or logo upload fails
+   */
   public upsertBusiness = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -73,6 +91,12 @@ export class BusinessController {
     }
   };
 
+  /**
+   * Retrieves all businesses (admin only)
+   * @param {Context} c - The Hono context containing pagination and search parameters
+   * @returns {Promise<Response>} Response containing list of businesses
+   * @throws {Error} When fetching businesses fails or user lacks permission
+   */
   public getAllBusinesses = async (c: Context) => {
     try {
       const user = await this.getUser(c);

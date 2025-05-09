@@ -18,12 +18,24 @@ export class CallbackController {
     this.eventService = eventService;
   }
 
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private getUser = async (c: Context) => {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   };
 
+  /**
+   * Creates a new callback request for an event
+   * @param {Context} c - The Hono context containing callback details
+   * @returns {Promise<Response>} Response containing created callback information
+   * @throws {Error} When callback creation fails or validation fails
+   */
   public createCallback = async (c: Context) => {
     try {
       const body: CallbackBody = await c.req.json();
@@ -67,6 +79,12 @@ export class CallbackController {
     }
   };
 
+  /**
+   * Retrieves detailed information about a specific callback
+   * @param {Context} c - The Hono context containing callback ID
+   * @returns {Promise<Response>} Response containing callback details
+   * @throws {Error} When fetching callback details fails
+   */
   public getCallback = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -88,6 +106,12 @@ export class CallbackController {
     }
   };
 
+  /**
+   * Retrieves all callbacks for a specific lead
+   * @param {Context} c - The Hono context containing lead ID
+   * @returns {Promise<Response>} Response containing list of callbacks
+   * @throws {Error} When fetching callbacks fails
+   */
   public getCallbacksByLeadId = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -104,6 +128,12 @@ export class CallbackController {
     }
   };
 
+  /**
+   * Retrieves all uncalled callbacks for the current user
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing list of uncalled callbacks
+   * @throws {Error} When fetching callbacks fails
+   */
   public getUncalledCallbacks = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -119,6 +149,12 @@ export class CallbackController {
     }
   };
 
+  /**
+   * Retrieves all scheduled callbacks
+   * @param {Context} c - The Hono context containing user information
+   * @returns {Promise<Response>} Response containing list of scheduled callbacks
+   * @throws {Error} When fetching callbacks fails
+   */
   public getScheduledCallbacks = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -134,6 +170,12 @@ export class CallbackController {
     }
   };
 
+  /**
+   * Updates an existing callback's details
+   * @param {Context} c - The Hono context containing updated callback information
+   * @returns {Promise<Response>} Response indicating update status
+   * @throws {Error} When callback update fails
+   */
   public updateCallback = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -159,6 +201,12 @@ export class CallbackController {
     }
   };
 
+  /**
+   * Deletes a callback from the system
+   * @param {Context} c - The Hono context containing callback ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When callback deletion fails
+   */
   public deleteCallback = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -176,6 +224,12 @@ export class CallbackController {
     }
   };
 
+  /**
+   * Marks a callback as completed/called
+   * @param {Context} c - The Hono context containing callback ID
+   * @returns {Promise<Response>} Response indicating status update
+   * @throws {Error} When status update fails
+   */
   public markCallbackAsCalled = async (c: Context) => {
     try {
       const user = await this.getUser(c);

@@ -15,12 +15,24 @@ export class MembershipController {
     this.userService = userService;
   }
 
+  /**
+   * Retrieves user information from JWT payload
+   * @private
+   * @param {Context} c - The Hono context containing JWT payload
+   * @returns {Promise<User|null>} The user object if found, null otherwise
+   */
   private async getUser(c: Context) {
     const { email } = c.get('jwtPayload');
     const user = await this.userService.findByEmail(email);
     return user;
   }
 
+  /**
+   * Retrieves all memberships based on user role and permissions
+   * @param {Context} c - The Hono context containing pagination and search parameters
+   * @returns {Promise<Response>} Response containing list of memberships
+   * @throws {Error} When fetching memberships fails
+   */
   public getMemberships = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -62,6 +74,12 @@ export class MembershipController {
     }
   };
 
+  /**
+   * Retrieves detailed information about a specific membership
+   * @param {Context} c - The Hono context containing membership ID
+   * @returns {Promise<Response>} Response containing membership details
+   * @throws {Error} When fetching membership details fails
+   */
   public getMembership = async (c: Context) => {
     try {
       const planId = Number(c.req.param('id'));
@@ -78,6 +96,12 @@ export class MembershipController {
     }
   };
 
+  /**
+   * Creates a new membership plan
+   * @param {Context} c - The Hono context containing membership details
+   * @returns {Promise<Response>} Response containing created membership information
+   * @throws {Error} When membership creation fails
+   */
   public createMembership = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -111,6 +135,12 @@ export class MembershipController {
     }
   };
 
+  /**
+   * Updates an existing membership plan
+   * @param {Context} c - The Hono context containing updated membership details
+   * @returns {Promise<Response>} Response indicating update status
+   * @throws {Error} When membership update fails
+   */
   public updateMembership = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -146,6 +176,12 @@ export class MembershipController {
     }
   };
 
+  /**
+   * Deletes a membership plan if not linked to active events
+   * @param {Context} c - The Hono context containing membership ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When membership deletion fails
+   */
   public deleteMembership = async (c: Context) => {
     try {
       const user = await this.getUser(c);
@@ -198,6 +234,12 @@ export class MembershipController {
     }
   };
 
+  /**
+   * Retrieves all dates associated with a membership plan
+   * @param {Context} c - The Hono context containing membership ID
+   * @returns {Promise<Response>} Response containing list of dates
+   * @throws {Error} When fetching dates fails
+   */
   public getEventDates = async (c: Context) => {
     try {
       const membershipId = Number(c.req.param('id'));
@@ -209,6 +251,12 @@ export class MembershipController {
     }
   };
 
+  /**
+   * Deletes a specific date from a membership plan
+   * @param {Context} c - The Hono context containing date ID
+   * @returns {Promise<Response>} Response indicating deletion status
+   * @throws {Error} When date deletion fails
+   */
   public deleteMembershipDate = async (c: Context) => {
     try {
       const dateId = Number(c.req.param('dateId'));

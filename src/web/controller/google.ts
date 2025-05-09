@@ -7,6 +7,7 @@ import type { GoogleService } from '../../service/google.js';
 import type { S3Service } from '../../service/s3.ts';
 import { ERRORS, serveBadRequest, serveNotFound } from './resp/error.ts';
 import { serializeUser } from './serializer/user.js';
+
 export class GoogleController {
   private googleService: GoogleService;
   private s3Service: S3Service;
@@ -18,6 +19,12 @@ export class GoogleController {
     this.userRepository = userRepository;
   }
 
+  /**
+   * Initiates Google OAuth authentication flow
+   * @param {Context} c - The Hono context
+   * @returns {Promise<Response>} Response containing Google auth URL
+   * @throws {Error} When auth URL generation fails
+   */
   public initiateAuth = async (c: Context) => {
     try {
       const authUrl = await this.googleService.getAuthUrl();
@@ -31,6 +38,12 @@ export class GoogleController {
     }
   };
 
+  /**
+   * Handles Google OAuth callback and creates/updates user
+   * @param {Context} c - The Hono context containing authorization code
+   * @returns {Promise<Response>} Response containing JWT token and user data
+   * @throws {Error} When OAuth callback processing fails
+   */
   public handleCallback = async (c: Context) => {
     try {
       const code = c.req.query('code');
