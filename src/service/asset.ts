@@ -7,6 +7,9 @@ import { assetsSchema } from '../schema/schema.js';
 import type { AssetQuery } from '../web/validator/asset.js';
 import type { S3Service } from './s3.js';
 
+/**
+ * Service class for managing digital assets (images, videos, audio, documents)
+ */
 export class AssetService {
   private repository: AssetRepository;
   private s3Service: S3Service;
@@ -16,6 +19,17 @@ export class AssetService {
     this.s3Service = s3Service;
   }
 
+  /**
+   * Creates a new asset and uploads it to S3 if buffer is provided
+   * @param {number} userId - ID of the user creating the asset
+   * @param {string} fileName - Name of the file
+   * @param {string} contentType - MIME type of the file
+   * @param {'image'|'video'|'audio'|'document'|'profile_picture'} assetType - Type of asset
+   * @param {number} fileSize - Size of the file in bytes
+   * @param {number} duration - Duration in seconds (for audio/video)
+   * @param {Buffer} [buffer] - Optional file buffer for direct upload
+   * @returns {Promise<{presignedUrl: string, asset: Asset}>} Created asset and upload URL
+   */
   async createAsset(
     userId: number,
     fileName: string,
@@ -60,6 +74,12 @@ export class AssetService {
     };
   }
 
+  /**
+   * Retrieves all assets for a specific user with presigned URLs
+   * @param {number} userId - ID of the user
+   * @param {AssetQuery} [query] - Query parameters for filtering assets
+   * @returns {Promise<{assets: Asset[], total: number}>} List of assets and total count
+   */
   async getAssetsByUser(userId: number, query?: AssetQuery) {
     const { assets, total } = await this.repository.findByUserId(userId, query);
 
@@ -84,6 +104,11 @@ export class AssetService {
     return { assets: assetsWithUrls, total };
   }
 
+  /**
+   * Retrieves a single asset by ID with presigned URL
+   * @param {number} id - ID of the asset
+   * @returns {Promise<Asset|undefined>} Asset if found, undefined otherwise
+   */
   async getAsset(id: number) {
     const asset = await this.repository.find(id);
     if (!asset || !asset.asset_url) return undefined;
@@ -100,6 +125,11 @@ export class AssetService {
     };
   }
 
+  /**
+   * Deletes an asset from both S3 and database
+   * @param {number} id - ID of the asset to delete
+   * @returns {Promise<void>}
+   */
   async deleteAsset(id: number) {
     const asset = await this.repository.find(id);
     if (!asset || !asset.asset_url) return;
@@ -111,6 +141,12 @@ export class AssetService {
     await this.repository.delete(id);
   }
 
+  /**
+   * Renames an existing asset
+   * @param {number} id - ID of the asset
+   * @param {string} newFileName - New name for the asset
+   * @returns {Promise<void>}
+   */
   async renameAsset(id: number, newFileName: string) {
     const asset = await this.repository.find(id);
     if (!asset) return;
@@ -121,10 +157,20 @@ export class AssetService {
     });
   }
 
+  /**
+   * Updates asset properties
+   * @param {number} id - ID of the asset
+   * @param {Partial<Asset>} update - Properties to update
+   * @returns {Promise<void>}
+   */
   async updateAsset(id: number, update: Partial<Asset>) {
     await this.repository.update(id, update);
   }
 
+  /**
+   * Finds all unprocessed video assets
+   * @returns {Promise<Asset[]>} List of unprocessed video assets
+   */
   async findUnprocessedVideos() {
     const { assets } = await this.repository.findByQuery({
       asset_type: 'video',
@@ -134,6 +180,11 @@ export class AssetService {
     return assets.filter((asset) => asset.asset_url); // Only return assets that have been uploaded
   }
 
+  /**
+   * Retrieves all assets with pagination and filtering
+   * @param {AssetQuery} [query] - Query parameters for filtering assets
+   * @returns {Promise<{assets: Asset[], total: number}>} List of assets and total count
+   */
   async getAllAssets(query?: AssetQuery) {
     const { page = 1, limit = 10, search, asset_type } = query || {};
     const offset = (page - 1) * limit;
@@ -180,6 +231,12 @@ export class AssetService {
     return { assets: assetsWithUrls, total: total.length };
   }
 
+  /**
+   * Determines content type for an asset
+   * @private
+   * @param {Asset} asset - The asset to determine content type for
+   * @returns {string} The content type
+   */
   private getContentType(asset: Asset): string {
     if (asset.content_type) {
       return asset.content_type;

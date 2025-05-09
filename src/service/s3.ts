@@ -10,10 +10,17 @@ import type { Readable } from 'stream';
 
 import env from '../lib/env.js';
 
+/**
+ * Service class for managing AWS S3 operations including file uploads, downloads, and URL generation
+ */
 export class S3Service {
   private client: S3Client;
   private bucket: string;
 
+  /**
+   * Creates an instance of S3Service
+   * Initializes AWS S3 client with credentials from environment variables
+   */
   constructor() {
     this.client = new S3Client({
       region: env.AWS_REGION,
@@ -25,6 +32,12 @@ export class S3Service {
     this.bucket = env.S3_BUCKET_NAME;
   }
 
+  /**
+   * Generates a presigned URL for uploading a file to S3
+   * @param {string} key - The S3 object key (file path)
+   * @param {string} contentType - MIME type of the file
+   * @returns {Promise<{presignedUrl: string, url: string}>} Presigned URL for upload and final S3 URL
+   */
   async generatePresignedUrl(key: string, contentType: string) {
     const command = new PutObjectCommand({
       Bucket: this.bucket,
@@ -42,6 +55,13 @@ export class S3Service {
     };
   }
 
+  /**
+   * Generates a presigned URL for downloading/viewing a file from S3
+   * @param {string} key - The S3 object key (file path)
+   * @param {string} contentType - MIME type of the file
+   * @param {number} [expiresIn=3600] - URL expiration time in seconds
+   * @returns {Promise<string>} Presigned URL for downloading/viewing
+   */
   async generateGetUrl(key: string, contentType: string, expiresIn = 3600) {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
@@ -54,6 +74,11 @@ export class S3Service {
     });
   }
 
+  /**
+   * Deletes an object from S3
+   * @param {string} key - The S3 object key (file path) to delete
+   * @returns {Promise<void>}
+   */
   async deleteObject(key: string) {
     const command = new DeleteObjectCommand({
       Bucket: this.bucket,
@@ -63,6 +88,12 @@ export class S3Service {
     await this.client.send(command);
   }
 
+  /**
+   * Copies an object within the same S3 bucket
+   * @param {string} sourceKey - The source object key
+   * @param {string} destinationKey - The destination object key
+   * @returns {Promise<void>}
+   */
   async copyObject(sourceKey: string, destinationKey: string) {
     const encodedSourceKey = encodeURIComponent(sourceKey);
     const command = new CopyObjectCommand({
@@ -74,6 +105,13 @@ export class S3Service {
     await this.client.send(command);
   }
 
+  /**
+   * Uploads a file directly to S3
+   * @param {string} key - The S3 object key (file path)
+   * @param {string|Buffer|Readable} content - The file content to upload
+   * @param {string} contentType - MIME type of the file
+   * @returns {Promise<string>} The URL of the uploaded file
+   */
   async uploadFile(key: string, content: string | Buffer | Readable, contentType: string) {
     const command = new PutObjectCommand({
       Bucket: this.bucket,

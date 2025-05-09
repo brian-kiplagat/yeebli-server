@@ -4,11 +4,18 @@ import env from '../lib/env.js';
 import { logger } from '../lib/logger.js';
 import type { Lead } from '../schema/schema.ts';
 
+/**
+ * Service class for managing Stripe payment operations, including subscriptions, OAuth, and payment processing
+ */
 export class StripeService {
   private stripe: Stripe;
   private readonly clientId: string;
   private readonly redirectUri: string;
 
+  /**
+   * Creates an instance of StripeService
+   * Initializes Stripe client with appropriate API keys based on environment
+   */
   constructor() {
     this.stripe = new Stripe(
       env.NODE_ENV === 'production' ? env.STRIPE_LIVE_SECRET_KEY : env.STRIPE_TEST_SECRET_KEY,
@@ -35,6 +42,12 @@ export class StripeService {
     return `https://connect.stripe.com/oauth/authorize?${params.toString()}`;
   }
 
+  /**
+   * Handles OAuth callback from Stripe
+   * @param {string} code - Authorization code from Stripe
+   * @returns {Promise<Stripe.OAuthToken>} OAuth token response
+   * @throws {Error} When OAuth token retrieval fails
+   */
   public async handleOAuthCallback(code: string): Promise<Stripe.OAuthToken> {
     try {
       return await this.stripe.oauth.token({
@@ -48,6 +61,16 @@ export class StripeService {
   }
 
   // Subscription Methods
+  /**
+   * Creates a new Stripe subscription
+   * @param {Object} params - Subscription parameters
+   * @param {string} params.customer - Stripe customer ID
+   * @param {Array<{price: string}>} params.items - Array of price items
+   * @param {number} [params.trial_period_days] - Optional trial period in days
+   * @param {Record<string, string>} [params.metadata] - Optional metadata
+   * @returns {Promise<Stripe.Subscription>} Created subscription
+   * @throws {Error} When subscription creation fails
+   */
   public async createSubscription(params: {
     customer: string;
     items: Array<{ price: string }>;
@@ -62,6 +85,12 @@ export class StripeService {
     }
   }
 
+  /**
+   * Cancels a Stripe subscription
+   * @param {string} subscriptionId - ID of the subscription to cancel
+   * @returns {Promise<Stripe.Subscription>} Cancelled subscription
+   * @throws {Error} When subscription cancellation fails
+   */
   public async cancelSubscription(subscriptionId: string) {
     try {
       return await this.stripe.subscriptions.cancel(subscriptionId);
@@ -88,6 +117,12 @@ export class StripeService {
     }
   }
 
+  /**
+   * Retrieves a Stripe subscription
+   * @param {string} subscriptionId - ID of the subscription
+   * @returns {Promise<Stripe.Subscription>} The subscription
+   * @throws {Error} When subscription retrieval fails
+   */
   public async getSubscription(subscriptionId: string) {
     try {
       return await this.stripe.subscriptions.retrieve(subscriptionId);
@@ -110,6 +145,13 @@ export class StripeService {
     }
   }
 
+  /**
+   * Constructs a webhook event from Stripe payload
+   * @param {string} payload - Raw webhook payload
+   * @param {string} signature - Stripe signature header
+   * @returns {Stripe.Event} Constructed webhook event
+   * @throws {Error} When event construction fails
+   */
   public constructWebhookEvent(payload: string, signature: string) {
     try {
       return this.stripe.webhooks.constructEvent(
@@ -150,6 +192,13 @@ export class StripeService {
     }
   }
 
+  /**
+   * Creates a new Stripe Connect account
+   * @param {number} userId - ID of the user
+   * @param {string} email - Email for the Connect account
+   * @returns {Promise<Stripe.Account>} Created Connect account
+   * @throws {Error} When account creation fails
+   */
   public async createConnectAccount(userId: number, email: string) {
     try {
       return await this.stripe.accounts.create({
@@ -170,6 +219,13 @@ export class StripeService {
     }
   }
 
+  /**
+   * Creates a Stripe account link for Connect onboarding
+   * @param {string} accountId - Stripe Connect account ID
+   * @param {string} baseUrl - Base URL for redirect URIs
+   * @returns {Promise<Stripe.AccountLink>} Created account link
+   * @throws {Error} When account link creation fails
+   */
   public async createAccountLink(accountId: string, baseUrl: string) {
     try {
       return await this.stripe.accountLinks.create({
@@ -184,6 +240,12 @@ export class StripeService {
     }
   }
 
+  /**
+   * Retrieves a Stripe Connect account status
+   * @param {string} accountId - Stripe Connect account ID
+   * @returns {Promise<Stripe.Account>} The Connect account
+   * @throws {Error} When account retrieval fails
+   */
   public async getAccountStatus(accountId: string) {
     try {
       return await this.stripe.accounts.retrieve(accountId);
@@ -216,6 +278,24 @@ export class StripeService {
     }
   }
 
+  /**
+   * Creates a checkout session for lead upgrade
+   * @param {Lead} lead - The lead being upgraded
+   * @param {string} customerId - Stripe customer ID
+   * @param {Object} params - Checkout session parameters
+   * @param {'payment'|'subscription'} params.mode - Payment mode
+   * @param {string} params.success_url - Success redirect URL
+   * @param {string} params.cancel_url - Cancel redirect URL
+   * @param {string} params.hostStripeAccountId - Host's Stripe account ID
+   * @param {number} params.price - Price amount
+   * @param {string} params.eventName - Name of the event
+   * @param {string} params.membershipName - Name of the membership
+   * @param {string} params.membershipId - ID of the membership
+   * @param {string} params.eventId - ID of the event
+   * @param {number[]} params.dates - Array of date IDs
+   * @returns {Promise<{session: Stripe.Checkout.Session, paymentIntentId: string|undefined}>} Created session and payment intent
+   * @throws {Error} When checkout session creation fails
+   */
   public async createLeadUpgradeCheckoutSession(
     lead: Lead,
     customerId: string,
@@ -283,6 +363,13 @@ export class StripeService {
     }
   }
 
+  /**
+   * Creates a new Stripe customer
+   * @param {string} email - Customer's email address
+   * @param {Record<string, string>} [metadata] - Optional metadata
+   * @returns {Promise<Stripe.Customer>} Created customer
+   * @throws {Error} When customer creation fails
+   */
   public async createCustomer(email: string, metadata?: Record<string, string>) {
     try {
       return await this.stripe.customers.create({

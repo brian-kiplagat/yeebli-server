@@ -6,6 +6,9 @@ import { EventQuery } from '../web/validator/event.ts';
 import type { LeadService } from './lead.ts';
 import type { S3Service } from './s3.js';
 
+/**
+ * Type representing an event with its associated asset and host information
+ */
 type EventWithAsset = Event & {
   asset?: (Asset & { presignedUrl: string }) | null;
   host?: {
@@ -36,6 +39,9 @@ type EventWithAsset = Event & {
   }>;
 };
 
+/**
+ * Type representing an event with its related entities
+ */
 type EventWithRelations = {
   event: Event;
   asset: Asset | null;
@@ -56,6 +62,9 @@ type EventWithRelations = {
   } | null;
 };
 
+/**
+ * Service class for managing events, including creation, retrieval, updates, and related operations
+ */
 export class EventService {
   private repository: EventRepository;
   private s3Service: S3Service;
@@ -67,6 +76,12 @@ export class EventService {
     this.leadService = leadService;
   }
 
+  /**
+   * Creates a new event
+   * @param {NewEvent} event - The event details to create
+   * @returns {Promise<number>} ID of the created event
+   * @throws {Error} When event creation fails
+   */
   public async createEvent(event: NewEvent) {
     try {
       // Create the event
@@ -78,6 +93,11 @@ export class EventService {
     }
   }
 
+  /**
+   * Retrieves an event by ID with associated asset and host information
+   * @param {number} id - ID of the event
+   * @returns {Promise<EventWithAsset|undefined>} The event with its relations if found
+   */
   public async getEvent(id: number): Promise<EventWithAsset | undefined> {
     const result = await this.repository.find(id);
     if (!result) return undefined;
@@ -115,17 +135,33 @@ export class EventService {
     };
   }
 
+  /**
+   * Retrieves only the event data without relations
+   * @param {number} id - ID of the event
+   * @returns {Promise<Event>} The event data
+   */
   public async getEventOnly(id: number) {
     const result = await this.repository.find(id);
     return result.event;
   }
 
+  /**
+   * Retrieves all events with optional filtering
+   * @param {EventQuery} [query] - Query parameters for filtering events
+   * @returns {Promise<{events: EventWithRelations[], total: number}>} List of events and total count
+   */
   public async getAllEvents(
     query?: EventQuery,
   ): Promise<{ events: EventWithRelations[]; total: number }> {
     return await this.repository.findAll(query);
   }
 
+  /**
+   * Retrieves events for a specific user
+   * @param {number} userId - ID of the user
+   * @param {EventQuery} [query] - Query parameters for filtering events
+   * @returns {Promise<{events: EventWithRelations[], total: number}>} List of events and total count
+   */
   public async getEventsByUser(
     userId: number,
     query?: EventQuery,
@@ -133,6 +169,13 @@ export class EventService {
     return await this.repository.findByUserId(userId, query);
   }
 
+  /**
+   * Updates an existing event
+   * @param {number} id - ID of the event to update
+   * @param {Object} event - Updated event data
+   * @param {number[]} [event.memberships] - Array of membership IDs
+   * @returns {Promise<void>}
+   */
   public async updateEvent(
     id: number,
     event: Omit<Partial<Event>, 'memberships'> & { memberships?: number[] },
@@ -162,6 +205,12 @@ export class EventService {
     await this.repository.update(id, rest);
   }
 
+  /**
+   * Updates the status of an event
+   * @param {number} id - ID of the event
+   * @param {'cancelled'|'active'|'suspended'} status - New status for the event
+   * @returns {Promise<void>}
+   */
   public async cancelEvent(
     id: number,
     status: 'cancelled' | 'active' | 'suspended',
@@ -169,15 +218,32 @@ export class EventService {
     await this.repository.cancel(id, status);
   }
 
+  /**
+   * Deletes an event
+   * @param {number} id - ID of the event to delete
+   * @returns {Promise<void>}
+   */
   public async deleteEvent(id: number): Promise<void> {
     await this.repository.delete(id);
   }
 
+  /**
+   * Extracts the key from an S3 URL
+   * @private
+   * @param {string} url - S3 URL
+   * @returns {string} The extracted key
+   */
   private getKeyFromUrl(url: string): string {
     const urlParts = url.split('.amazonaws.com/');
     return urlParts[1] || '';
   }
 
+  /**
+   * Determines the content type based on asset type
+   * @private
+   * @param {string} assetType - Type of the asset
+   * @returns {string} The corresponding content type
+   */
   private getContentType(assetType: string): string {
     switch (assetType) {
       case 'image':
@@ -193,10 +259,21 @@ export class EventService {
     }
   }
 
+  /**
+   * Finds an event by its associated asset ID
+   * @param {number} assetId - ID of the asset
+   * @returns {Promise<Event>} The event associated with the asset
+   */
   public async findByAssetId(assetId: number) {
     return this.repository.findByAssetId(assetId);
   }
 
+  /**
+   * Retrieves memberships associated with an event
+   * @param {number} eventId - ID of the event
+   * @returns {Promise<Array>} List of memberships for the event
+   * @throws {Error} When membership retrieval fails
+   */
   public async getMembershipsByEventId(eventId: number) {
     try {
       return await this.repository.findMembershipsByEventId(eventId);
@@ -206,6 +283,12 @@ export class EventService {
     }
   }
 
+  /**
+   * Retrieves a specific event date
+   * @param {number} dateId - ID of the event date
+   * @returns {Promise<Object>} The event date information
+   * @throws {Error} When event date retrieval fails
+   */
   public async getEventDate(dateId: number) {
     try {
       return await this.repository.findEventDate(dateId);
@@ -215,6 +298,18 @@ export class EventService {
     }
   }
 
+  /**
+   * Sends information to all attendees of an event
+   * @param {Event} event - The event
+   * @param {Object} data - Email data to send
+   * @param {string} data.subject - Email subject
+   * @param {string} data.title - Email title
+   * @param {string} data.subtitle - Email subtitle
+   * @param {string} data.body - Email body
+   * @param {string} data.buttonText - Text for email button
+   * @param {string} data.buttonLink - Link for email button
+   * @returns {Promise<void>}
+   */
   public async informAttendees(
     event: Event,
     data: {

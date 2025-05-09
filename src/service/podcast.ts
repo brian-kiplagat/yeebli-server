@@ -4,15 +4,31 @@ import type { NewPodcast, NewPodcastEpisode, Podcast, PodcastEpisode } from '../
 import { getContentTypeFromAssetType, getKeyFromUrl } from '../util/string.ts';
 import type { S3Service } from './s3.js';
 
+/**
+ * Service class for managing podcasts, including episodes, assets, and memberships
+ */
 export class PodcastService {
   private repository: PodcastRepository;
   private s3Service: S3Service;
 
+  /**
+   * Creates an instance of PodcastService
+   * @param {PodcastRepository} repository - Repository for podcast operations
+   * @param {S3Service} s3Service - Service for S3 storage operations
+   */
   constructor(repository: PodcastRepository, s3Service: S3Service) {
     this.repository = repository;
     this.s3Service = s3Service;
   }
 
+  /**
+   * Creates a new podcast with episodes and memberships
+   * @param {NewPodcast} podcast - The podcast information to create
+   * @param {number[]} [assets] - Array of asset IDs for episodes
+   * @param {number[]} membership_ids - Array of membership IDs to associate
+   * @returns {Promise<number>} ID of the created podcast
+   * @throws {Error} When podcast creation fails
+   */
   async createPodcast(podcast: NewPodcast, assets: number[] | undefined, membership_ids: number[]) {
     try {
       const podcastId = await this.repository.createPodcast(podcast);
@@ -44,6 +60,15 @@ export class PodcastService {
     }
   }
 
+  /**
+   * Updates a podcast's information, episodes, and memberships
+   * @param {number} id - ID of the podcast to update
+   * @param {Partial<Podcast> & { assets?: number[]; memberships?: number[] }} update - Updated podcast data
+   * @param {PodcastEpisode[]} episodes - Current episodes of the podcast
+   * @param {number} host_id - ID of the podcast host
+   * @returns {Promise<void>}
+   * @throws {Error} When podcast update fails
+   */
   async updatePodcast(
     id: number,
     update: Partial<Podcast> & { assets?: number[]; memberships?: number[] },
@@ -133,6 +158,12 @@ export class PodcastService {
     }
   }
 
+  /**
+   * Retrieves a podcast with its episodes and presigned URLs
+   * @param {number} id - ID of the podcast
+   * @returns {Promise<Object|undefined>} The podcast with episodes and URLs if found
+   * @throws {Error} When podcast retrieval fails
+   */
   async getPodcast(id: number) {
     try {
       const podcast = await this.repository.findPodcast(id);
@@ -175,6 +206,12 @@ export class PodcastService {
     }
   }
 
+  /**
+   * Retrieves all podcasts with optional filtering
+   * @param {PodcastQuery} query - Query parameters for filtering podcasts
+   * @returns {Promise<{podcasts: Array, total: number}>} List of podcasts and total count
+   * @throws {Error} When podcast retrieval fails
+   */
   async getAllPodcasts(query: PodcastQuery) {
     try {
       const { podcasts } = await this.repository.findAllPodcasts(query);
@@ -200,6 +237,12 @@ export class PodcastService {
     }
   }
 
+  /**
+   * Deletes a podcast
+   * @param {number} id - ID of the podcast to delete
+   * @returns {Promise<void>}
+   * @throws {Error} When podcast deletion fails
+   */
   async deletePodcast(id: number) {
     try {
       await this.repository.deletePodcast(id);
@@ -209,6 +252,12 @@ export class PodcastService {
     }
   }
 
+  /**
+   * Adds a new episode to a podcast
+   * @param {NewPodcastEpisode} episode - The episode information to add
+   * @returns {Promise<number>} ID of the created episode
+   * @throws {Error} When episode creation fails
+   */
   async addEpisode(episode: NewPodcastEpisode) {
     try {
       return await this.repository.addEpisode(episode);
@@ -218,6 +267,13 @@ export class PodcastService {
     }
   }
 
+  /**
+   * Updates an episode's information
+   * @param {number} id - ID of the episode to update
+   * @param {Partial<PodcastEpisode>} update - Updated episode information
+   * @returns {Promise<void>}
+   * @throws {Error} When episode update fails
+   */
   async updateEpisode(id: number, update: Partial<PodcastEpisode>) {
     try {
       await this.repository.updateEpisode(id, update);
@@ -227,6 +283,12 @@ export class PodcastService {
     }
   }
 
+  /**
+   * Retrieves an episode with its presigned audio URL
+   * @param {number} id - ID of the episode
+   * @returns {Promise<Object|undefined>} The episode with audio URL if found
+   * @throws {Error} When episode retrieval fails
+   */
   async getEpisode(id: number) {
     try {
       const episode = await this.repository.findEpisode(id);
@@ -248,31 +310,12 @@ export class PodcastService {
     }
   }
 
-  async getEpisodesByPodcast(podcast_id: number) {
-    try {
-      const episodes = await this.repository.findEpisodesByPodcast(podcast_id);
-
-      const episodesWithUrls = await Promise.all(
-        episodes.map(async (episode) => {
-          let audioPresignedUrl = null;
-          if (episode.audio?.asset_url) {
-            audioPresignedUrl = await this.s3Service.generateGetUrl(
-              getKeyFromUrl(episode.audio.asset_url),
-              getContentTypeFromAssetType('audio'),
-              86400,
-            );
-          }
-          return { ...episode, audioPresignedUrl };
-        }),
-      );
-
-      return episodesWithUrls;
-    } catch (error) {
-      logger.error(error);
-      throw error;
-    }
-  }
-
+  /**
+   * Deletes an episode
+   * @param {number} id - ID of the episode to delete
+   * @returns {Promise<void>}
+   * @throws {Error} When episode deletion fails
+   */
   async deleteEpisode(id: number) {
     try {
       await this.repository.deleteEpisode(id);

@@ -4,6 +4,9 @@ import type { ContactRepository } from '../repository/contact.ts';
 import type { Contact, NewContact } from '../schema/schema.js';
 import { sendTransactionalEmail } from '../task/sendWelcomeEmail.ts';
 
+/**
+ * Service class for managing contacts, including user registration, authentication, and profile management
+ */
 export class ContactService {
   private repository: ContactRepository;
 
@@ -11,14 +14,33 @@ export class ContactService {
     this.repository = repository;
   }
 
+  /**
+   * Finds a contact by their email address
+   * @param {string} email - Email address to search for
+   * @returns {Promise<Contact|undefined>} The contact if found
+   */
   public async findByEmail(email: string) {
     return this.repository.findByEmail(email);
   }
 
+  /**
+   * Finds a contact by their ID
+   * @param {number} id - ID of the contact to find
+   * @returns {Promise<Contact|undefined>} The contact if found
+   */
   public async findById(id: number) {
     return this.repository.findById(id);
   }
 
+  /**
+   * Creates a new contact from lead information
+   * @param {string} name - Contact's name
+   * @param {string} email - Contact's email
+   * @param {string} phone - Contact's phone number
+   * @param {string} token - Token for password generation
+   * @param {string} stripeCustomerId - Stripe customer ID
+   * @returns {Promise<Contact>} The created contact
+   */
   public async createFromLead(
     name: string,
     email: string,
@@ -39,10 +61,26 @@ export class ContactService {
     return this.repository.create(contact);
   }
 
+  /**
+   * Updates an existing contact's information
+   * @param {number} id - ID of the contact to update
+   * @param {Partial<Contact>} contact - Updated contact information
+   * @returns {Promise<Contact>} The updated contact
+   */
   public async update(id: number, contact: Partial<Contact>) {
     return this.repository.update(id, contact);
   }
 
+  /**
+   * Registers a new user contact
+   * @param {Object} data - Registration data
+   * @param {string} data.name - User's name
+   * @param {string} data.email - User's email
+   * @param {string} data.password - User's password
+   * @param {string} data.phone - User's phone number
+   * @returns {Promise<Contact>} The registered contact
+   * @throws {Error} When email is already registered or contact creation fails
+   */
   public async register(data: { name: string; email: string; password: string; phone: string }) {
     const existingContact = await this.findByEmail(data.email);
     if (existingContact) {
@@ -77,6 +115,12 @@ export class ContactService {
     return createdContact;
   }
 
+  /**
+   * Sends a verification token to the user's email
+   * @param {string} email - Email address to send token to
+   * @returns {Promise<{message: string}>} Success message
+   * @throws {Error} When email is not found
+   */
   public async sendToken(email: string) {
     const contact = await this.findByEmail(email);
     if (!contact) {
@@ -98,6 +142,13 @@ export class ContactService {
     return { message: 'Verification email sent' };
   }
 
+  /**
+   * Verifies a registration token for a contact
+   * @param {number} id - ID of the contact
+   * @param {string} token - Verification token
+   * @returns {Promise<{message: string}>} Success message
+   * @throws {Error} When contact is not found or token is invalid
+   */
   public async verifyRegistrationToken(id: number, token: string) {
     const contact = await this.findById(id);
     if (!contact) {
@@ -112,6 +163,12 @@ export class ContactService {
     return { message: 'Email verified successfully' };
   }
 
+  /**
+   * Initiates a password reset request
+   * @param {string} email - Email address for password reset
+   * @returns {Promise<{message: string}>} Success message
+   * @throws {Error} When email is not found
+   */
   public async requestResetPassword(email: string) {
     const contact = await this.findByEmail(email);
     if (!contact) {
@@ -133,6 +190,14 @@ export class ContactService {
     return { message: 'Reset password link sent successfully' };
   }
 
+  /**
+   * Resets a contact's password using a reset token
+   * @param {string} email - Contact's email
+   * @param {string} token - Reset token
+   * @param {string} newPassword - New password
+   * @returns {Promise<{message: string}>} Success message
+   * @throws {Error} When email is not found or token is invalid
+   */
   public async resetPassword(email: string, token: string, newPassword: string) {
     const contact = await this.findByEmail(email);
     if (!contact) {
@@ -152,6 +217,14 @@ export class ContactService {
     return { message: 'Password reset successfully' };
   }
 
+  /**
+   * Resets a contact's password within the application (when already logged in)
+   * @param {number} contactId - ID of the contact
+   * @param {string} oldPassword - Current password
+   * @param {string} newPassword - New password
+   * @returns {Promise<{message: string}>} Success message
+   * @throws {Error} When contact is not found or current password is invalid
+   */
   public async resetPasswordInApp(contactId: number, oldPassword: string, newPassword: string) {
     const contact = await this.findById(contactId);
     if (!contact) {
@@ -169,6 +242,12 @@ export class ContactService {
     return { message: 'Password updated successfully' };
   }
 
+  /**
+   * Retrieves a contact by their ID
+   * @param {number} id - ID of the contact
+   * @returns {Promise<Contact>} The contact
+   * @throws {Error} When contact is not found
+   */
   public async getContactById(id: number) {
     const contact = await this.findById(id);
     if (!contact) {
@@ -177,6 +256,13 @@ export class ContactService {
     return contact;
   }
 
+  /**
+   * Updates contact details
+   * @param {number} id - ID of the contact
+   * @param {Partial<Contact>} data - Updated contact data
+   * @returns {Promise<Contact>} The updated contact
+   * @throws {Error} When contact is not found
+   */
   public async updateContactDetails(id: number, data: Partial<Contact>) {
     const contact = await this.findById(id);
     if (!contact) {

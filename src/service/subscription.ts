@@ -6,11 +6,20 @@ import { sendTransactionalEmail } from '../task/sendWelcomeEmail.ts';
 import type { StripeService } from './stripe.ts';
 import type { UserService } from './user.ts';
 
+/**
+ * Service class for managing user subscriptions, including creation, cancellation, and retrieval
+ */
 export class SubscriptionService {
   private subscriptionRepo: SubscriptionRepository;
   private stripeService: StripeService;
   private userService: UserService;
 
+  /**
+   * Creates an instance of SubscriptionService
+   * @param {SubscriptionRepository} subscriptionRepo - Repository for subscription operations
+   * @param {StripeService} stripeService - Service for Stripe operations
+   * @param {UserService} userService - Service for user operations
+   */
   constructor(
     subscriptionRepo: SubscriptionRepository,
     stripeService: StripeService,
@@ -21,6 +30,16 @@ export class SubscriptionService {
     this.userService = userService;
   }
 
+  /**
+   * Creates a new subscription for a user
+   * @param {User} user - The user subscribing
+   * @param {string} priceId - Stripe price ID
+   * @param {string} productId - Stripe product ID
+   * @param {string} successUrl - URL to redirect on success
+   * @param {string} cancelUrl - URL to redirect on cancellation
+   * @returns {Promise<Stripe.Checkout.Session>} Created checkout session
+   * @throws {Error} When user has no Stripe customer ID or subscription creation fails
+   */
   public async createSubscription(
     user: User,
     priceId: string,
@@ -82,6 +101,15 @@ export class SubscriptionService {
     }
   }
 
+  /**
+   * Cancels a user's subscription
+   * @param {number} userId - ID of the user
+   * @param {string} email - User's email
+   * @param {string} name - User's name
+   * @param {string} subscriptionId - Stripe subscription ID
+   * @returns {Promise<Stripe.Subscription>} Cancelled subscription
+   * @throws {Error} When subscription cancellation fails
+   */
   public async cancelSubscription(
     userId: number,
     email: string,
@@ -111,6 +139,12 @@ export class SubscriptionService {
     }
   }
 
+  /**
+   * Retrieves all subscriptions for a user
+   * @param {number} userId - ID of the user
+   * @returns {Promise<Array>} List of user's subscriptions
+   * @throws {Error} When subscription retrieval fails
+   */
   public async getSubscriptions(userId: number) {
     try {
       return await this.subscriptionRepo.findSubscriptionsByUserId(userId);

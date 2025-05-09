@@ -6,6 +6,9 @@ import type { AssetService } from './asset.js';
 import type { S3Service } from './s3.js';
 import type { TeamService } from './team.ts';
 
+/**
+ * Service class for managing business profiles and related operations
+ */
 export class BusinessService {
   private repository: BusinessRepository;
   private s3Service: S3Service;
@@ -24,6 +27,15 @@ export class BusinessService {
     this.teamService = teamService;
   }
 
+  /**
+   * Handles the upload of a business logo
+   * @private
+   * @param {number} userId - ID of the user
+   * @param {string} logoBase64 - Base64 encoded logo image
+   * @param {string} fileName - Name of the logo file
+   * @returns {Promise<{assetId: number}>} Created asset ID
+   * @throws {Error} When logo upload fails
+   */
   private async handleLogoUpload(userId: number, logoBase64: string, fileName: string) {
     try {
       // Remove the data:image/xyz;base64, prefix
@@ -49,6 +61,11 @@ export class BusinessService {
     }
   }
 
+  /**
+   * Retrieves business details including logo for a specific user
+   * @param {number} userId - ID of the user
+   * @returns {Promise<Business>} Business details with resolved logo URL
+   */
   public async getBusinessDetailsByUserId(userId: number) {
     const business = await this.repository.findByUserId(userId);
     if (!business?.logo_asset_id) return { ...business, logo: null };
@@ -64,6 +81,12 @@ export class BusinessService {
     };
   }
 
+  /**
+   * Retrieves business information with team details for a specific user
+   * @param {number} userId - ID of the user
+   * @returns {Promise<Business>} Business details with team information
+   * @throws {Error} When business retrieval fails
+   */
   public async getBusinessByUserId(userId: number) {
     try {
       const business = await this.repository.findByUserId(userId);
@@ -89,6 +112,12 @@ export class BusinessService {
     }
   }
 
+  /**
+   * Retrieves all businesses with optional filtering
+   * @param {BusinessQuery} [query] - Query parameters for filtering businesses
+   * @returns {Promise<{businesses: Business[], total: number}>} List of businesses and total count
+   * @throws {Error} When business retrieval fails
+   */
   public async getAllBusinesses(query?: BusinessQuery) {
     try {
       return await this.repository.findAll(query);
@@ -98,6 +127,13 @@ export class BusinessService {
     }
   }
 
+  /**
+   * Creates or updates a business profile
+   * @param {number} userId - ID of the user
+   * @param {BusinessBody} business - Business details to create/update
+   * @returns {Promise<Business>} Updated business information
+   * @throws {Error} When business creation/update fails
+   */
   public async upsertBusiness(userId: number, business: BusinessBody) {
     try {
       const existingBusiness = await this.repository.findByUserId(userId);
@@ -142,6 +178,12 @@ export class BusinessService {
     }
   }
 
+  /**
+   * Retrieves business logo information
+   * @param {number} businessId - ID of the business
+   * @returns {Promise<{logo: string|null, presignedLogoUrl: string|null}>} Logo URLs
+   * @throws {Error} When logo retrieval fails
+   */
   public async getBusinessLogo(businessId: number) {
     try {
       const business = await this.repository.findById(businessId);
@@ -164,6 +206,14 @@ export class BusinessService {
     }
   }
 
+  /**
+   * Updates business logo with a new image
+   * @param {number} businessId - ID of the business
+   * @param {string} imageBase64 - Base64 encoded logo image
+   * @param {string} fileName - Name of the logo file
+   * @returns {Promise<{success: boolean, message: string, business: Business}>} Updated business information
+   * @throws {Error} When logo update fails
+   */
   public updateBusinessLogo = async (businessId: number, imageBase64: string, fileName: string) => {
     try {
       // Convert base64 to buffer

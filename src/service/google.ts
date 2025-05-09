@@ -5,11 +5,19 @@ import { logger } from '../lib/logger.js';
 import type { StripeService } from './stripe.js';
 import type { UserService } from './user.js';
 
+/**
+ * Service class for handling Google OAuth2 authentication and user management
+ */
 export class GoogleService {
   private client: OAuth2Client;
   private userService: UserService;
   private stripeService: StripeService;
 
+  /**
+   * Creates an instance of GoogleService
+   * @param {UserService} userService - Service for managing users
+   * @param {StripeService} stripeService - Service for managing Stripe integrations
+   */
   constructor(userService: UserService, stripeService: StripeService) {
     this.client = new OAuth2Client({
       clientId: env.GOOGLE_CLIENT_ID,
@@ -20,6 +28,10 @@ export class GoogleService {
     this.stripeService = stripeService;
   }
 
+  /**
+   * Generates the Google OAuth2 authentication URL
+   * @returns {Promise<string>} The authentication URL
+   */
   async getAuthUrl() {
     return this.client.generateAuthUrl({
       access_type: 'offline',
@@ -31,6 +43,12 @@ export class GoogleService {
     });
   }
 
+  /**
+   * Handles the OAuth2 callback from Google
+   * @param {string} code - The authorization code from Google
+   * @returns {Promise<Object>} The user object
+   * @throws {Error} When email is not provided by Google or authentication fails
+   */
   async handleCallback(code: string) {
     try {
       const { tokens } = await this.client.getToken(code);
