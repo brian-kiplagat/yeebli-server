@@ -100,7 +100,7 @@ export class EventService {
    */
   public async getEvent(id: number): Promise<EventWithAsset | undefined> {
     const result = await this.repository.find(id);
-    if (!result) return undefined;
+    if (!result || !result.event) return undefined;
 
     const { event, asset, host, memberships } = result;
 
