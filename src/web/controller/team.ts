@@ -2,6 +2,7 @@ import type { Context } from 'hono';
 
 import { logger } from '../../lib/logger.ts';
 import type { TeamMember, User } from '../../schema/schema.ts';
+import { BusinessService } from '../../service/business.ts';
 import type { TeamService } from '../../service/team.ts';
 import type { UserService } from '../../service/user.ts';
 import {
@@ -11,14 +12,15 @@ import {
 } from '../validator/team.ts';
 import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.ts';
 import { serveData } from './resp/resp.ts';
-
 export class TeamController {
   private service: TeamService;
   private userService: UserService;
+  private businessService: BusinessService;
 
-  constructor(service: TeamService, userService: UserService) {
+  constructor(service: TeamService, userService: UserService, businessService: BusinessService) {
     this.service = service;
     this.userService = userService;
+    this.businessService = businessService;
   }
 
   private async getUser(c: Context): Promise<User | null> {
@@ -266,12 +268,26 @@ export class TeamController {
       const teamDetails = await Promise.all(
         teamMembers.map(async (member) => {
           const teamInfo = await this.service.getTeamById(member.team_id);
+          //get the business related to the host
+          const host_id = teamInfo?.members.find((m) => m.role === 'host')?.user_id;
+          if (!host_id) {
+            return {
+              team_id: member.team_id,
+              team_name: teamInfo?.name || 'Unknown Team',
+              role: member.role,
+              created_at: member.created_at,
+              updated_at: member.updated_at,
+            };
+          }
+
+          const business = await this.businessService.getBusinessDetailsByUserId(host_id);
           return {
             team_id: member.team_id,
             team_name: teamInfo?.name || 'Unknown Team',
             role: member.role,
             created_at: member.created_at,
             updated_at: member.updated_at,
+            business,
           };
         }),
       );

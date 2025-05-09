@@ -241,7 +241,7 @@ export class Server {
 
     // Add team service and controller
 
-    const teamController = new TeamController(teamService, userService);
+    const teamController = new TeamController(teamService, userService, businessService);
     const contactController = new ContactController(contactService, stripeService, paymentService);
 
     // Add Google service and controller
