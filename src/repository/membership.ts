@@ -155,7 +155,21 @@ export class MembershipRepository {
   }
 
   public async getMultipleMembershipDates(dates: number[]) {
-    return await db.select().from(membershipDates).where(inArray(membershipDates.id, dates));
+    return await db
+      .select({
+        id: membershipDates.id,
+        date: membershipDates.date,
+        created_at: membershipDates.created_at,
+        updated_at: membershipDates.updated_at,
+        user_id: membershipDates.user_id,
+        membership_id: membershipDates.membership_id,
+        event_id: eventMembershipSchema.event_id,
+        event_name: eventSchema.event_name,
+      })
+      .from(membershipDates)
+      .innerJoin(memberships, eq(membershipDates.membership_id, memberships.id))
+      .innerJoin(eventMembershipSchema, eq(memberships.id, eventMembershipSchema.membership_id))
+      .where(inArray(membershipDates.id, dates));
   }
 
   public async createMembershipPlans(eventId: number, memberships: Membership[]) {
