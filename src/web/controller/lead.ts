@@ -136,6 +136,19 @@ export class LeadController {
         this.service.findTagsByLeadId(lead.id),
       ]);
 
+      let dates: {
+        date: string;
+        id: number;
+        created_at: Date | null;
+        updated_at: Date | null;
+        user_id: number;
+        membership_id: number;
+      }[] = [];
+
+      if (lead.dates) {
+        dates = await this.membershipService.getMultipleMembershipDates(lead.dates);
+      }
+
       // Get the membership if it exists
       if (lead.membership_level) {
         const membership = await this.membershipService.getMembership(lead.membership_level);
@@ -143,16 +156,6 @@ export class LeadController {
           ...lead,
           bookings: bookedEvents,
           membership: membership,
-          payments: payments,
-          tags: tags,
-        });
-      }
-      //if there is date, get multiple dates
-      if (lead.dates) {
-        const dates = await this.membershipService.getMultipleMembershipDates(lead.dates);
-        return c.json({
-          ...lead,
-          bookings: bookedEvents,
           dates: dates,
           payments: payments,
           tags: tags,
@@ -161,6 +164,9 @@ export class LeadController {
 
       return c.json({
         ...lead,
+        membership: null,
+        dates: dates,
+        payments: payments,
         bookings: bookedEvents,
         tags: tags,
       });
