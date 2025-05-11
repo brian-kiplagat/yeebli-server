@@ -192,4 +192,14 @@ export class LeadService {
   public async getTags() {
     return this.repository.getTags();
   }
+
+  /**
+   * Finds a lead by email and event ID
+   * @param {string} email - Email of the lead
+   * @param {number} eventId - ID of the event
+   * @returns {Promise<Lead|undefined>} The lead if found
+   */
+  public async findByEmailAndEventId(email: string, eventId: number) {
+    return this.repository.findByEmailAndEventId(email, eventId);
+  }
 }

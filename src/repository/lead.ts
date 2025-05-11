@@ -98,6 +98,12 @@ export class LeadRepository {
     });
   }
 
+  public async findByEmailAndEventId(email: string, eventId: number) {
+    return db.query.leadSchema.findFirst({
+      where: and(eq(leadSchema.email, email), eq(leadSchema.event_id, eventId)),
+    });
+  }
+
   public async findAll(query?: LeadQuery) {
     const { page = 1, limit = 100, search } = query || {};
     const offset = (page - 1) * limit;

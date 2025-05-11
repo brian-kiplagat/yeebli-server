@@ -209,6 +209,11 @@ export class LeadController {
         if (!event) {
           return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
         }
+        //check if the lead already exists for this event
+        const existingLead = await this.service.findByEmailAndEventId(body.email, body.event_id);
+        if (existingLead) {
+          return serveBadRequest(c, 'This email is already registered for this event');
+        }
         await this.bookingService.create({
           event_id: body.event_id,
           lead_id: lead[0].id,
