@@ -48,7 +48,6 @@ const sendTransactionalEmail = async (
     return result;
   } catch (error) {
     logger.error(`Failed to send email to ${email}:`, error);
-    throw error;
   }
 };
 
