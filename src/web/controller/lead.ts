@@ -648,6 +648,24 @@ export class LeadController {
             buttonText: buttonText,
             buttonLink: buttonLink,
           });
+          //create free payment
+          await this.paymentService.createPayment({
+            contact_id: 0,
+            lead_id: lead.id,
+            event_id: Number(lead.event_id),
+            membership_id: membership.id,
+            checkout_session_id: null,
+            stripe_customer_id: '',
+            amount: String(membership.price),
+            currency: 'gbp',
+            status: 'pending',
+            payment_type: 'one_off',
+            metadata: {
+              eventName: event.event_name,
+              membershipName: membership.name,
+              dates: '',
+            },
+          });
         }
         return c.json({
           success: true,
