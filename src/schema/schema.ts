@@ -174,6 +174,7 @@ export const eventSchema = mysqlTable('events', {
   success_url: text('success_url'),
   instructions: text('instructions'),
   landing_page_url: text('landing_page_url'),
+  calendar_url: text('calendar_url'),
   live_venue_address: text('live_venue_address'),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
   host_id: int('host_id')

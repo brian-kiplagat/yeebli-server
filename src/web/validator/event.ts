@@ -10,6 +10,7 @@ const eventSchema = z.object({
   event_type: z.enum(['live_venue', 'prerecorded', 'live_video_call']),
   status: z.enum(['active', 'suspended', 'cancelled']),
   live_video_url: z.string().optional(),
+  calendar_url: z.string().optional(),
   live_venue_address: z.string().optional(),
   success_url: z.string().optional(),
   membership_plans: z

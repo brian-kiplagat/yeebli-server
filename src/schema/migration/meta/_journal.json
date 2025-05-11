@@ -533,6 +533,13 @@
       "when": 1746727137903,
       "tag": "0076_jazzy_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "5",
+      "when": 1746952546810,
+      "tag": "0077_wooden_captain_flint",
+      "breakpoints": true
     }
   ]
 }
