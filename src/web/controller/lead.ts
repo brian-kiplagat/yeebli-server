@@ -192,28 +192,35 @@ export class LeadController {
       }
 
       const body: LeadBody = await c.req.json();
+      let lead;
+
       //token is a random 6 digit number
       const token = Math.floor(100000 + Math.random() * 900000).toString();
-      const lead = await this.service.create({
-        ...body,
-        host_id: user.id,
-        token,
-        membership_level: null,
-      });
-      if (!lead) {
-        return serveBadRequest(c, 'Ops we cant find that lead');
-      }
+
       //if there was a event id, create a booking for this event
       if (body.event_id) {
+        //check if the lead already exists for this event
+        const existingLead = await this.service.findByEmailAndEventId(body.email, body.event_id);
+        if (existingLead) {
+          return serveBadRequest(
+            c,
+            'This email is already registered for this event. You cannot register duplicate email for the same event.',
+          );
+        }
         const event = await this.eventService.getEvent(body.event_id);
         if (!event) {
           return serveBadRequest(c, ERRORS.EVENT_NOT_FOUND);
         }
-        //check if the lead already exists for this event
-        const existingLead = await this.service.findByEmailAndEventId(body.email, body.event_id);
-        if (existingLead) {
-          return serveBadRequest(c, 'This email is already registered for this event');
+        lead = await this.service.create({
+          ...body,
+          host_id: user.id,
+          token,
+          membership_level: null,
+        });
+        if (!lead) {
+          return serveBadRequest(c, 'Ops we cant find that lead');
         }
+
         await this.bookingService.create({
           event_id: body.event_id,
           lead_id: lead[0].id,
@@ -235,6 +242,12 @@ export class LeadController {
           buttonLink: eventLink,
         });
       }
+      lead = await this.service.create({
+        ...body,
+        host_id: user.id,
+        token,
+        membership_level: null,
+      });
 
       return c.json(lead, 201);
     } catch (error) {
