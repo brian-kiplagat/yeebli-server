@@ -33,7 +33,7 @@ export class CourseController {
     return user;
   }
 
-  public async getAllCourses(c: Context) {
+  public getAllCourses = async (c: Context) => {
     try {
       const query = c.req.query() as CourseQuery;
       const { courses, total } = await this.courseService.getAllCourses(query);
@@ -42,9 +42,9 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async getCourse(c: Context) {
+  public getCourse = async (c: Context) => {
     try {
       const id = parseInt(c.req.param('id'));
       const course = await this.courseService.getCourse(id);
@@ -56,9 +56,9 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async createCourse(c: Context) {
+  public createCourse = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
@@ -113,9 +113,9 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async updateCourse(c: Context) {
+  public updateCourse = async (c: Context) => {
     try {
       const user = await this.getUser(c);
       if (!user) {
@@ -142,9 +142,9 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async archiveCourse(c: Context) {
+  public archiveCourse = async (c: Context) => {
     try {
       const id = parseInt(c.req.param('id'));
       const { status } = (await c.req.json()) as { status: 'draft' | 'published' | 'archived' };
@@ -165,9 +165,9 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async deleteCourse(c: Context) {
+  public deleteCourse = async (c: Context) => {
     try {
       const id = parseInt(c.req.param('id'));
       const userId = c.get('user')?.id;
@@ -187,9 +187,9 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async getCourseMemberships(c: Context) {
+  public getCourseMemberships = async (c: Context) => {
     try {
       const id = parseInt(c.req.param('id'));
       const memberships = await this.courseService.getCourseMemberships(id);
@@ -198,9 +198,9 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async updateCourseMemberships(c: Context) {
+  public updateCourseMemberships = async (c: Context) => {
     try {
       const id = parseInt(c.req.param('id'));
       const { membershipIds } = (await c.req.json()) as { membershipIds: number[] };
@@ -221,9 +221,9 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async deleteCourseMemberships(c: Context) {
+  public deleteCourseMemberships = async (c: Context) => {
     try {
       const id = parseInt(c.req.param('id'));
       const { membershipIds } = (await c.req.json()) as { membershipIds?: number[] };
@@ -244,24 +244,24 @@ export class CourseController {
       logger.error(error);
       return serveInternalServerError(c, error);
     }
-  }
+  };
 
-  public async getModules(c: Context) {
+  public getModules = async (c: Context) => {
     const courseId = parseInt(c.req.param('id'));
     const modules = await this.courseService.getModulesByCourseId(courseId);
     return c.json(modules);
-  }
+  };
 
-  public async getModule(c: Context) {
+  public getModule = async (c: Context) => {
     const moduleId = parseInt(c.req.param('moduleId'));
     const module = await this.courseService.getModuleById(moduleId);
     if (!module) {
       return c.json({ error: 'Module not found' }, 404);
     }
     return c.json(module);
-  }
+  };
 
-  public async createModule(c: Context) {
+  public createModule = async (c: Context) => {
     const user = await this.getUser(c);
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
@@ -283,9 +283,9 @@ export class CourseController {
       course_id: courseId,
     });
     return c.json({ id: moduleId }, 201);
-  }
+  };
 
-  public async updateModule(c: Context) {
+  public updateModule = async (c: Context) => {
     const user = await this.getUser(c);
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
@@ -305,9 +305,9 @@ export class CourseController {
     const updates = await c.req.json();
     const updatedModule = await this.courseService.updateModule(moduleId, updates);
     return c.json(updatedModule);
-  }
+  };
 
-  public async deleteModule(c: Context) {
+  public deleteModule = async (c: Context) => {
     const user = await this.getUser(c);
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
@@ -326,18 +326,18 @@ export class CourseController {
 
     await this.courseService.deleteModule(moduleId);
     return c.json({ success: true });
-  }
+  };
 
-  public async getLesson(c: Context) {
+  public getLesson = async (c: Context) => {
     const lessonId = parseInt(c.req.param('lessonId'));
     const lesson = await this.courseService.getLessonById(lessonId);
     if (!lesson) {
       return c.json({ error: 'Lesson not found' }, 404);
     }
     return c.json(lesson);
-  }
+  };
 
-  public async createLesson(c: Context) {
+  public createLesson = async (c: Context) => {
     const user = await this.getUser(c);
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
@@ -360,9 +360,9 @@ export class CourseController {
       module_id: moduleId,
     });
     return c.json({ id: lessonId }, 201);
-  }
+  };
 
-  public async updateLesson(c: Context) {
+  public updateLesson = async (c: Context) => {
     const user = await this.getUser(c);
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
@@ -387,9 +387,9 @@ export class CourseController {
     const updates = await c.req.json();
     const updatedLesson = await this.courseService.updateLesson(lessonId, updates);
     return c.json(updatedLesson);
-  }
+  };
 
-  public async deleteLesson(c: Context) {
+  public deleteLesson = async (c: Context) => {
     const user = await this.getUser(c);
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
@@ -413,9 +413,9 @@ export class CourseController {
 
     await this.courseService.deleteLesson(lessonId);
     return c.json({ success: true });
-  }
+  };
 
-  public async updateProgress(c: Context) {
+  public updateProgress = async (c: Context) => {
     const user = await this.getUser(c);
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
@@ -427,9 +427,9 @@ export class CourseController {
       user_id: user.id,
     });
     return c.json({ id: progressId });
-  }
+  };
 
-  public async getProgress(c: Context) {
+  public getProgress = async (c: Context) => {
     const user = await this.getUser(c);
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
@@ -437,5 +437,5 @@ export class CourseController {
 
     const progress = await this.courseService.getProgressByUserId(user.id);
     return c.json(progress);
-  }
+  };
 }
