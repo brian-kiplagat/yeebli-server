@@ -457,7 +457,7 @@ export const courseLessonSchema = mysqlTable('course_lessons', {
   description: text('description'),
   content: text('content'),
   video_asset_id: int('video_asset_id').references(() => assetsSchema.id),
-  duration: int('duration'),
+  lesson_duration: int('lesson_duration'),
   order: int('order').notNull(),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),

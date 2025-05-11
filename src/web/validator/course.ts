@@ -14,7 +14,7 @@ const courseSchema = z.object({
     description: z.string().optional(),
     content: z.string().optional(),
     video_asset_id: z.number().int().optional(),
-    duration: z.number().int().optional(),
+    lesson_duration: z.number().int().optional(),
   }),
   module: z.object({
     title: z.string().min(1),
