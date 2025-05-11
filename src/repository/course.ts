@@ -1,16 +1,16 @@
-import { and, desc, eq, inArray, like, or, asc } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, like, or } from 'drizzle-orm';
 
 import { db } from '../lib/database.js';
 import type { Course, Membership, NewCourse } from '../schema/schema.js';
 import {
   assetsSchema,
+  courseLessonSchema,
   courseMembershipSchema,
+  courseModuleSchema,
+  courseProgressSchema,
   courseSchema,
   memberships,
   userSchema,
-  courseModuleSchema,
-  courseLessonSchema,
-  courseProgressSchema,
 } from '../schema/schema.js';
 import { CourseQuery } from '../web/validator/course.ts';
 
@@ -302,10 +302,9 @@ export class CourseRepository {
         .set(progress)
         .where(eq(courseProgressSchema.id, existing.id));
       return existing.id;
-    } else {
-      const result = await db.insert(courseProgressSchema).values(progress);
-      return result.insertId;
     }
+    const result = await db.insert(courseProgressSchema).values(progress);
+    return result.insertId;
   }
 
   async findProgressByUserId(userId: number) {
