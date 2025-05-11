@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "69387546-7d53-43a0-a4c3-38bb4744fa61",
-  "prevId": "17e37592-c672-40f9-a7c9-59db9d122bb0",
+  "id": "979a8824-4fc4-4ccf-94a5-9e490b727ce4",
+  "prevId": "69387546-7d53-43a0-a4c3-38bb4744fa61",
   "tables": {
     "assets": {
       "name": "assets",
@@ -1002,8 +1002,8 @@
           "autoincrement": false,
           "default": "'draft'"
         },
-        "cover_image_asset_id": {
-          "name": "cover_image_asset_id",
+        "trailer_asset_id": {
+          "name": "trailer_asset_id",
           "type": "int",
           "primaryKey": false,
           "notNull": false,
@@ -1050,11 +1050,11 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "courses_cover_image_asset_id_assets_id_fk": {
-          "name": "courses_cover_image_asset_id_assets_id_fk",
+        "courses_trailer_asset_id_assets_id_fk": {
+          "name": "courses_trailer_asset_id_assets_id_fk",
           "tableFrom": "courses",
           "tableTo": "assets",
-          "columnsFrom": ["cover_image_asset_id"],
+          "columnsFrom": ["trailer_asset_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -2786,7 +2786,7 @@
     "schemas": {},
     "tables": {},
     "columns": {
-      "\"course_lessons\".\"duration\"": "\"course_lessons\".\"lesson_duration\""
+      "\"courses\".\"cover_image_asset_id\"": "\"courses\".\"trailer_asset_id\""
     }
   },
   "internal": {

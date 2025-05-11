@@ -426,7 +426,7 @@ export const courseSchema = mysqlTable('courses', {
   course_description: text('course_description'),
   course_type: mysqlEnum('course_type', ['self_paced', 'instructor_led']).default('self_paced'),
   status: mysqlEnum('status', ['draft', 'published', 'archived']).default('draft'),
-  cover_image_asset_id: int('cover_image_asset_id').references(() => assetsSchema.id),
+  trailer_asset_id: int('trailer_asset_id').references(() => assetsSchema.id),
   host_id: int('host_id')
     .references(() => userSchema.id)
     .notNull(),
@@ -766,8 +766,8 @@ export const podcastEpisodeRelations = relations(podcastEpisodeSchema, ({ one })
 }));
 
 export const courseRelations = relations(courseSchema, ({ one, many }) => ({
-  cover: one(assetsSchema, {
-    fields: [courseSchema.cover_image_asset_id],
+  trailer: one(assetsSchema, {
+    fields: [courseSchema.trailer_asset_id],
     references: [assetsSchema.id],
   }),
   host: one(userSchema, {

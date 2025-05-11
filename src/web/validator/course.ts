@@ -6,7 +6,7 @@ const courseSchema = z.object({
   course_description: z.string(),
   instructions: z.string().optional(),
   landing_page_url: z.string().optional(),
-  cover_image_asset_id: z.number(),
+  trailer_asset_id: z.number(),
   course_type: z.enum(['self_paced', 'instructor_led']),
   status: z.enum(['draft', 'published', 'archived']),
   lessons: z.object({
