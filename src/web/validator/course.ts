@@ -54,3 +54,33 @@ export type UpdateCourseBody = z.infer<typeof updateCourseSchema>;
 export type ArchiveCourseBody = z.infer<typeof archiveCourseSchema>;
 export type CreateCourseBody = z.infer<typeof courseSchema>;
 export type CourseStreamBody = z.infer<typeof courseStreamSchema>;
+
+export const moduleSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  order: z.number().int().min(0),
+});
+
+export const lessonSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  content: z.string().optional(),
+  video_asset_id: z.number().int().optional(),
+  duration: z.number().int().optional(),
+  order: z.number().int().min(0),
+});
+
+export const progressSchema = z.object({
+  lesson_id: z.number().int(),
+  status: z.enum(['not_started', 'in_progress', 'completed']),
+  progress_percentage: z.number().int().min(0).max(100),
+  last_position: z.number().int().min(0),
+});
+
+export const moduleValidator = zValidator('json', moduleSchema);
+export const lessonValidator = zValidator('json', lessonSchema);
+export const progressValidator = zValidator('json', progressSchema);
+
+export type Module = z.infer<typeof moduleSchema>;
+export type Lesson = z.infer<typeof lessonSchema>;
+export type Progress = z.infer<typeof progressSchema>;

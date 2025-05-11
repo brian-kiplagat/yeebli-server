@@ -13,6 +13,7 @@ import { BookingRepository } from '../repository/booking.ts';
 import { BusinessRepository } from '../repository/business.js';
 import { CallbackRepository } from '../repository/callback.ts';
 import { ContactRepository } from '../repository/contact.ts';
+import { CourseRepository } from '../repository/course.ts';
 import { EventRepository } from '../repository/event.ts';
 import { LeadRepository } from '../repository/lead.js';
 import { MembershipRepository } from '../repository/membership.ts';
@@ -27,6 +28,7 @@ import { BookingService } from '../service/booking.ts';
 import { BusinessService } from '../service/business.js';
 import { CallbackService } from '../service/callback.ts';
 import { ContactService } from '../service/contact.ts';
+import { CourseService } from '../service/course.ts';
 import { EventService } from '../service/event.ts';
 import { GoogleService } from '../service/google.js';
 import { LeadService } from '../service/lead.js';
@@ -67,6 +69,9 @@ import {
   archiveCourseValidator,
   courseQueryValidator,
   courseValidator,
+  lessonValidator,
+  moduleValidator,
+  progressValidator,
   updateCourseValidator,
 } from './validator/course.ts';
 import {
@@ -156,6 +161,7 @@ export class Server {
     const paymentRepo = new PaymentRepository();
     const callbackRepo = new CallbackRepository();
     const podcastRepo = new PodcastRepository();
+    const courseRepo = new CourseRepository();
     // Setup services
     const contactService = new ContactService(contactRepo);
     const s3Service = new S3Service();
@@ -169,7 +175,7 @@ export class Server {
     const membershipService = new MembershipService(membershipRepo);
     const bookingService = new BookingService(bookingRepo);
     const assetService = new AssetService(assetRepo, s3Service);
-
+    const courseService = new CourseService(courseRepo);
     const userService = new UserService(userRepo, stripeService, membershipService);
     const subscriptionService = new SubscriptionService(
       subscriptionRepo,
@@ -258,7 +264,7 @@ export class Server {
     // Setup controllers
     const callbackController = new CallbackController(callbackService, userService, eventService);
     const podcastController = new PodcastController(podcastService, userService, membershipService);
-    const courseController = new CourseController();
+    const courseController = new CourseController(courseService, userService);
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
     this.registerLeadRoutes(api, leadController, teamService);
@@ -588,6 +594,9 @@ export class Server {
     // Unauthenticated routes
     course.get('/:id', courseCtrl.getCourse);
     course.get('/:id/memberships', courseCtrl.getCourseMemberships);
+    course.get('/:id/modules', courseCtrl.getModules);
+    course.get('/:id/modules/:moduleId', courseCtrl.getModule);
+    course.get('/:id/modules/:moduleId/lessons/:lessonId', courseCtrl.getLesson);
 
     // Apply auth middleware for authenticated routes
     course.use(authCheck);
@@ -601,6 +610,24 @@ export class Server {
     course.post('/archive', archiveCourseValidator, courseCtrl.archiveCourse);
     course.post('/:id/memberships', courseCtrl.updateCourseMemberships);
     course.delete('/:id/memberships', courseCtrl.deleteCourseMemberships);
+
+    // Module routes
+    course.post('/:id/modules', moduleValidator, courseCtrl.createModule);
+    course.put('/:id/modules/:moduleId', moduleValidator, courseCtrl.updateModule);
+    course.delete('/:id/modules/:moduleId', courseCtrl.deleteModule);
+
+    // Lesson routes
+    course.post('/:id/modules/:moduleId/lessons', lessonValidator, courseCtrl.createLesson);
+    course.put(
+      '/:id/modules/:moduleId/lessons/:lessonId',
+      lessonValidator,
+      courseCtrl.updateLesson,
+    );
+    course.delete('/:id/modules/:moduleId/lessons/:lessonId', courseCtrl.deleteLesson);
+
+    // Progress routes
+    course.post('/progress', progressValidator, courseCtrl.updateProgress);
+    course.get('/progress', courseCtrl.getProgress);
 
     api.route('/course', course);
   }

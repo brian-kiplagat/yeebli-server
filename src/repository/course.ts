@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, like, or } from 'drizzle-orm';
+import { and, desc, eq, inArray, like, or, asc } from 'drizzle-orm';
 
 import { db } from '../lib/database.js';
 import type { Course, Membership, NewCourse } from '../schema/schema.js';
@@ -8,6 +8,9 @@ import {
   courseSchema,
   memberships,
   userSchema,
+  courseModuleSchema,
+  courseLessonSchema,
+  courseProgressSchema,
 } from '../schema/schema.js';
 import { CourseQuery } from '../web/validator/course.ts';
 
@@ -218,5 +221,103 @@ export class CourseRepository {
         membership_id: id,
       })),
     );
+  }
+
+  async findModulesByCourseId(courseId: number) {
+    return await db.query.courseModuleSchema.findMany({
+      where: eq(courseModuleSchema.course_id, courseId),
+      orderBy: asc(courseModuleSchema.order),
+      with: {
+        lessons: {
+          orderBy: asc(courseLessonSchema.order),
+        },
+      },
+    });
+  }
+
+  async findModuleById(id: number) {
+    return await db.query.courseModuleSchema.findFirst({
+      where: eq(courseModuleSchema.id, id),
+      with: {
+        lessons: {
+          orderBy: asc(courseLessonSchema.order),
+        },
+      },
+    });
+  }
+
+  async createModule(module: NewCourseModule) {
+    const result = await db.insert(courseModuleSchema).values(module);
+    return result.insertId;
+  }
+
+  async updateModule(id: number, module: Partial<CourseModule>) {
+    await db.update(courseModuleSchema).set(module).where(eq(courseModuleSchema.id, id));
+  }
+
+  async deleteModule(id: number) {
+    await db.delete(courseModuleSchema).where(eq(courseModuleSchema.id, id));
+  }
+
+  async findLessonById(id: number) {
+    return await db.query.courseLessonSchema.findFirst({
+      where: eq(courseLessonSchema.id, id),
+      with: {
+        video: true,
+      },
+    });
+  }
+
+  async createLesson(lesson: NewCourseLesson) {
+    const result = await db.insert(courseLessonSchema).values(lesson);
+    return result.insertId;
+  }
+
+  async updateLesson(id: number, lesson: Partial<CourseLesson>) {
+    await db.update(courseLessonSchema).set(lesson).where(eq(courseLessonSchema.id, id));
+  }
+
+  async deleteLesson(id: number) {
+    await db.delete(courseLessonSchema).where(eq(courseLessonSchema.id, id));
+  }
+
+  async findProgressByUserIdAndLessonId(userId: number, lessonId: number) {
+    return await db.query.courseProgressSchema.findFirst({
+      where: and(
+        eq(courseProgressSchema.user_id, userId),
+        eq(courseProgressSchema.lesson_id, lessonId),
+      ),
+    });
+  }
+
+  async updateProgress(progress: NewCourseProgress) {
+    const existing = await this.findProgressByUserIdAndLessonId(
+      progress.user_id,
+      progress.lesson_id,
+    );
+
+    if (existing) {
+      await db
+        .update(courseProgressSchema)
+        .set(progress)
+        .where(eq(courseProgressSchema.id, existing.id));
+      return existing.id;
+    } else {
+      const result = await db.insert(courseProgressSchema).values(progress);
+      return result.insertId;
+    }
+  }
+
+  async findProgressByUserId(userId: number) {
+    return await db.query.courseProgressSchema.findMany({
+      where: eq(courseProgressSchema.user_id, userId),
+      with: {
+        lesson: {
+          with: {
+            module: true,
+          },
+        },
+      },
+    });
   }
 }

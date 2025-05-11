@@ -1,13 +1,23 @@
 import { logger } from '../lib/logger.js';
 import { CourseRepository } from '../repository/course.js';
-import type { Course, CourseWithAsset, CourseWithRelations, Membership } from '../schema/schema.js';
+import type {
+  Course,
+  CourseLesson,
+  CourseModule,
+  CourseWithAsset,
+  CourseWithRelations,
+  Membership,
+  NewCourseLesson,
+  NewCourseModule,
+  NewCourseProgress,
+} from '../schema/schema.js';
 import { CourseQuery } from '../web/validator/course.ts';
 
 export class CourseService {
   private courseRepository: CourseRepository;
 
-  constructor() {
-    this.courseRepository = new CourseRepository();
+  constructor(courseRepository: CourseRepository) {
+    this.courseRepository = courseRepository;
   }
 
   public async createCourse(course: Course) {
@@ -117,6 +127,107 @@ export class CourseService {
       await this.courseRepository.deleteCourseMemberships(courseId, membershipIds);
     } catch (error) {
       logger.error('Error deleting course memberships:', error);
+      throw error;
+    }
+  }
+
+  async getModulesByCourseId(courseId: number) {
+    try {
+      return await this.courseRepository.findModulesByCourseId(courseId);
+    } catch (error) {
+      logger.error('Error getting course modules:', error);
+      throw error;
+    }
+  }
+
+  async getModuleById(id: number) {
+    try {
+      return await this.courseRepository.findModuleById(id);
+    } catch (error) {
+      logger.error('Error getting course module:', error);
+      throw error;
+    }
+  }
+
+  async createModule(module: NewCourseModule) {
+    try {
+      return await this.courseRepository.createModule(module);
+    } catch (error) {
+      logger.error('Error creating course module:', error);
+      throw error;
+    }
+  }
+
+  async updateModule(id: number, module: Partial<CourseModule>) {
+    try {
+      await this.courseRepository.updateModule(id, module);
+      return await this.courseRepository.findModuleById(id);
+    } catch (error) {
+      logger.error('Error updating course module:', error);
+      throw error;
+    }
+  }
+
+  async deleteModule(id: number) {
+    try {
+      await this.courseRepository.deleteModule(id);
+    } catch (error) {
+      logger.error('Error deleting course module:', error);
+      throw error;
+    }
+  }
+
+  async getLessonById(id: number) {
+    try {
+      return await this.courseRepository.findLessonById(id);
+    } catch (error) {
+      logger.error('Error getting course lesson:', error);
+      throw error;
+    }
+  }
+
+  async createLesson(lesson: NewCourseLesson) {
+    try {
+      return await this.courseRepository.createLesson(lesson);
+    } catch (error) {
+      logger.error('Error creating course lesson:', error);
+      throw error;
+    }
+  }
+
+  async updateLesson(id: number, lesson: Partial<CourseLesson>) {
+    try {
+      await this.courseRepository.updateLesson(id, lesson);
+      return await this.courseRepository.findLessonById(id);
+    } catch (error) {
+      logger.error('Error updating course lesson:', error);
+      throw error;
+    }
+  }
+
+  async deleteLesson(id: number) {
+    try {
+      await this.courseRepository.deleteLesson(id);
+    } catch (error) {
+      logger.error('Error deleting course lesson:', error);
+      throw error;
+    }
+  }
+
+  async updateProgress(progress: NewCourseProgress) {
+    try {
+      return await this.courseRepository.updateProgress(progress);
+    } catch (error) {
+      logger.error('Error updating course progress:', error);
+      throw error;
+    }
+  }
+
+  async getProgressByUserId(userId: number) {
+    try {
+      return await this.courseRepository.findProgressByUserId(userId);
+    } catch (error) {
+      logger.error('Error getting course progress:', error);
       throw error;
     }
   }

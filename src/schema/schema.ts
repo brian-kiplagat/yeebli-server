@@ -436,6 +436,48 @@ export const courseSchema = mysqlTable('courses', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const courseModuleSchema = mysqlTable('course_modules', {
+  id: serial('id').primaryKey(),
+  course_id: int('course_id')
+    .references(() => courseSchema.id)
+    .notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  order: int('order').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const courseLessonSchema = mysqlTable('course_lessons', {
+  id: serial('id').primaryKey(),
+  module_id: int('module_id')
+    .references(() => courseModuleSchema.id)
+    .notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  content: text('content'),
+  video_asset_id: int('video_asset_id').references(() => assetsSchema.id),
+  duration: int('duration'),
+  order: int('order').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const courseProgressSchema = mysqlTable('course_progress', {
+  id: serial('id').primaryKey(),
+  user_id: int('user_id')
+    .references(() => userSchema.id)
+    .notNull(),
+  lesson_id: int('lesson_id')
+    .references(() => courseLessonSchema.id)
+    .notNull(),
+  status: mysqlEnum('status', ['not_started', 'in_progress', 'completed']).default('not_started'),
+  progress_percentage: int('progress_percentage').default(0),
+  last_position: int('last_position').default(0),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export const courseMembershipSchema = mysqlTable('course_memberships', {
   id: serial('id').primaryKey(),
   course_id: int('course_id')
@@ -540,6 +582,13 @@ export type CourseWithRelations = {
     billing: 'per-day' | 'package' | null;
   }>;
 };
+
+export type CourseModule = typeof courseModuleSchema.$inferSelect;
+export type NewCourseModule = typeof courseModuleSchema.$inferInsert;
+export type CourseLesson = typeof courseLessonSchema.$inferSelect;
+export type NewCourseLesson = typeof courseLessonSchema.$inferInsert;
+export type CourseProgress = typeof courseProgressSchema.$inferSelect;
+export type NewCourseProgress = typeof courseProgressSchema.$inferInsert;
 
 // Define relations
 export const userRelations = relations(userSchema, ({ one }) => ({
@@ -736,5 +785,35 @@ export const courseMembershipRelations = relations(courseMembershipSchema, ({ on
   membership: one(memberships, {
     fields: [courseMembershipSchema.membership_id],
     references: [memberships.id],
+  }),
+}));
+
+export const courseModuleRelations = relations(courseModuleSchema, ({ one, many }) => ({
+  course: one(courseSchema, {
+    fields: [courseModuleSchema.course_id],
+    references: [courseSchema.id],
+  }),
+  lessons: many(courseLessonSchema),
+}));
+
+export const courseLessonRelations = relations(courseLessonSchema, ({ one }) => ({
+  module: one(courseModuleSchema, {
+    fields: [courseLessonSchema.module_id],
+    references: [courseModuleSchema.id],
+  }),
+  video: one(assetsSchema, {
+    fields: [courseLessonSchema.video_asset_id],
+    references: [assetsSchema.id],
+  }),
+}));
+
+export const courseProgressRelations = relations(courseProgressSchema, ({ one }) => ({
+  user: one(userSchema, {
+    fields: [courseProgressSchema.user_id],
+    references: [userSchema.id],
+  }),
+  lesson: one(courseLessonSchema, {
+    fields: [courseProgressSchema.lesson_id],
+    references: [courseLessonSchema.id],
   }),
 }));
