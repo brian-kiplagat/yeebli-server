@@ -9,6 +9,17 @@ const courseSchema = z.object({
   cover_image_asset_id: z.number(),
   course_type: z.enum(['self_paced', 'instructor_led']),
   status: z.enum(['draft', 'published', 'archived']),
+  lessons: z.object({
+    title: z.string().min(1),
+    description: z.string().optional(),
+    content: z.string().optional(),
+    video_asset_id: z.number().int().optional(),
+    duration: z.number().int().optional(),
+  }),
+  module: z.object({
+    title: z.string().min(1),
+    description: z.string().optional(),
+  }),
   membership_plans: z
     .array(
       z.object({

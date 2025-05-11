@@ -93,8 +93,22 @@ export class CourseController {
       );
 
       // Create course-membership connections
-      await this.membershipService.createMembershipPlans(courseId, createdMemberships);
-      return c.json({ id: courseId }, 201);
+      await this.membershipService.createCourseMembershipPlans(courseId, createdMemberships);
+
+      //create the module
+      const moduleId = await this.courseService.createModule({
+        ...body.module,
+        course_id: courseId,
+        order: 1,
+      });
+
+      //create the lesson
+      const lessonId = await this.courseService.createLesson({
+        ...body.lessons,
+        module_id: moduleId,
+        order: 1,
+      });
+      return c.json({ id: courseId, moduleId, lessonId }, 201);
     } catch (error) {
       logger.error(error);
       return serveInternalServerError(c, error);
