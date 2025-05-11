@@ -157,7 +157,6 @@ export const leadSchema = mysqlTable('leads', {
   membership_level: int('membership_level')
     .references(() => membershipSchema.id)
     .default(1),
-  userId: int('user_id').references(() => userSchema.id),
 });
 
 export const eventSchema = mysqlTable('events', {

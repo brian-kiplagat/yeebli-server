@@ -196,7 +196,7 @@ export class LeadController {
       const token = Math.floor(100000 + Math.random() * 900000).toString();
       const lead = await this.service.create({
         ...body,
-        userId: user.id,
+        host_id: user.id,
         token,
         membership_level: null,
       });
@@ -391,7 +391,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
       //only and master role or admin or the owner of the lead can update the lead
-      if (user.role !== 'master' && user.role !== 'owner' && lead.userId !== user.id) {
+      if (user.role !== 'master' && user.role !== 'owner' && lead.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -423,7 +423,7 @@ export class LeadController {
         return serveBadRequest(c, ERRORS.LEAD_NOT_FOUND);
       }
       //only and master role or admin or the owner of the lead
-      if (user.role !== 'master' && user.role !== 'owner' && lead.userId !== user.id) {
+      if (user.role !== 'master' && user.role !== 'owner' && lead.host_id !== user.id) {
         return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
 
@@ -466,7 +466,6 @@ export class LeadController {
         membership_active: false,
         form_identifier: 'external_form',
         status_identifier: 'Form',
-        userId: body.host_id,
         token: token,
         source_url: c.req.header('Referer') || 'direct',
       };

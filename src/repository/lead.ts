@@ -138,14 +138,14 @@ export class LeadRepository {
 
     const whereConditions = search
       ? and(
-          eq(leadSchema.userId, userId),
+          eq(leadSchema.host_id, userId),
           or(
             like(leadSchema.name, `%${search}%`),
             like(leadSchema.email, `%${search}%`),
             like(leadSchema.phone, `%${search}%`),
           ),
         )
-      : eq(leadSchema.userId, userId);
+      : eq(leadSchema.host_id, userId);
 
     const leads = await db.query.leadSchema.findMany({
       where: whereConditions,
@@ -186,7 +186,6 @@ export class LeadRepository {
         lead_status: leadSchema.lead_status,
         source_url: leadSchema.source_url,
         membership_level: leadSchema.membership_level,
-        userId: leadSchema.userId,
         created_at: leadSchema.created_at,
         updated_at: leadSchema.updated_at,
         events: {
@@ -221,7 +220,7 @@ export class LeadRepository {
       .leftJoin(memberships, eq(leadSchema.membership_level, memberships.id))
       .where(
         and(
-          eq(leadSchema.userId, userId),
+          eq(leadSchema.host_id, userId),
           or(
             like(leadSchema.name, `%${search}%`),
             like(leadSchema.email, `%${search}%`),
@@ -283,7 +282,6 @@ export class LeadRepository {
         lead_status: leadSchema.lead_status,
         source_url: leadSchema.source_url,
         membership_level: leadSchema.membership_level,
-        userId: leadSchema.userId,
         created_at: leadSchema.created_at,
         updated_at: leadSchema.updated_at,
         events: {
