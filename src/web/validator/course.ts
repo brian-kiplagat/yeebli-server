@@ -17,6 +17,9 @@ const courseSchema = z.object({
         price: z.number(),
         isFree: z.boolean(),
         description: z.string().optional(),
+        payment_type: z.enum(['one_off', 'recurring']),
+        price_point: z.enum(['course', 'podcast', 'standalone']),
+        billing: z.enum(['per-day', 'package']),
       }),
     )
     .min(1),

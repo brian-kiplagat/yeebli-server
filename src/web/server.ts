@@ -264,7 +264,7 @@ export class Server {
     // Setup controllers
     const callbackController = new CallbackController(callbackService, userService, eventService);
     const podcastController = new PodcastController(podcastService, userService, membershipService);
-    const courseController = new CourseController(courseService, userService);
+    const courseController = new CourseController(courseService, userService, membershipService);
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
     this.registerLeadRoutes(api, leadController, teamService);
@@ -530,28 +530,13 @@ export class Server {
     const callback = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
-    // Create a new callback
     callback.post('/', callbackValidator, callbackCtrl.createCallback);
-
-    // Get a specific callback
     callback.get('/:id', authCheck, callbackCtrl.getCallback);
-
-    // Get callbacks by lead ID
     callback.get('/lead/:leadId', authCheck, callbackCtrl.getCallbacksByLeadId);
-
-    // Get all uncalled callbacks
     callback.get('/uncalled', authCheck, callbackCtrl.getUncalledCallbacks);
-
-    // Get all scheduled callbacks
     callback.get('/scheduled', authCheck, callbackCtrl.getScheduledCallbacks);
-
-    // Update a callback
     callback.put('/:id', authCheck, updateCallbackValidator, callbackCtrl.updateCallback);
-
-    // Delete a callback
     callback.delete('/:id', authCheck, callbackCtrl.deleteCallback);
-
-    // Mark a callback as called
     callback.post('/:id/called', authCheck, callbackCtrl.markCallbackAsCalled);
 
     api.route('/callback', callback);

@@ -3,6 +3,7 @@ import { and, asc, eq, inArray, like } from 'drizzle-orm';
 import { db } from '../lib/database.ts';
 import type { Membership, NewMembership, NewMembershipDate } from '../schema/schema.ts';
 import {
+  courseMembershipSchema,
   eventMembershipSchema,
   eventSchema,
   membershipDates,
@@ -177,6 +178,16 @@ export class MembershipRepository {
     await db.insert(eventMembershipSchema).values(
       memberships.map((plan) => ({
         event_id: eventId,
+        membership_id: plan.id,
+      })),
+    );
+    return memberships.map((plan) => plan.id);
+  }
+
+  public async createCourseMembershipPlans(courseId: number, memberships: Membership[]) {
+    await db.insert(courseMembershipSchema).values(
+      memberships.map((plan) => ({
+        course_id: courseId,
         membership_id: plan.id,
       })),
     );

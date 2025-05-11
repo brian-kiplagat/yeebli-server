@@ -1,7 +1,15 @@
 import { and, asc, desc, eq, inArray, like, or } from 'drizzle-orm';
 
 import { db } from '../lib/database.js';
-import type { Course, Membership, NewCourse } from '../schema/schema.js';
+import type {
+  Course,
+  CourseLesson,
+  CourseModule,
+  NewCourse,
+  NewCourseLesson,
+  NewCourseModule,
+  NewCourseProgress,
+} from '../schema/schema.js';
 import {
   assetsSchema,
   courseLessonSchema,
@@ -247,8 +255,8 @@ export class CourseRepository {
   }
 
   async createModule(module: NewCourseModule) {
-    const result = await db.insert(courseModuleSchema).values(module);
-    return result.insertId;
+    const result = await db.insert(courseModuleSchema).values(module).$returningId();
+    return result[0].id;
   }
 
   async updateModule(id: number, module: Partial<CourseModule>) {
@@ -269,8 +277,8 @@ export class CourseRepository {
   }
 
   async createLesson(lesson: NewCourseLesson) {
-    const result = await db.insert(courseLessonSchema).values(lesson);
-    return result.insertId;
+    const result = await db.insert(courseLessonSchema).values(lesson).$returningId();
+    return result[0].id;
   }
 
   async updateLesson(id: number, lesson: Partial<CourseLesson>) {
@@ -303,8 +311,8 @@ export class CourseRepository {
         .where(eq(courseProgressSchema.id, existing.id));
       return existing.id;
     }
-    const result = await db.insert(courseProgressSchema).values(progress);
-    return result.insertId;
+    const result = await db.insert(courseProgressSchema).values(progress).$returningId();
+    return result[0].id;
   }
 
   async findProgressByUserId(userId: number) {

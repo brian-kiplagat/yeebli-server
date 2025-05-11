@@ -1,19 +1,24 @@
 import { Context } from 'hono';
 
 import { logger } from '../../lib/logger.js';
-import type { Course } from '../../schema/schema.js';
 import { CourseService } from '../../service/course.js';
+import { MembershipService } from '../../service/membership.js';
 import { UserService } from '../../service/user.js';
-import { CourseQuery } from '../validator/course.ts';
-import { serveInternalServerError } from './resp/error.ts';
+import { CourseQuery, CreateCourseBody, UpdateCourseBody } from '../validator/course.ts';
+import { ERRORS, serveBadRequest, serveInternalServerError } from './resp/error.ts';
 
 export class CourseController {
   private courseService: CourseService;
   private userService: UserService;
-
-  constructor(courseService: CourseService, userService: UserService) {
+  private membershipService: MembershipService;
+  constructor(
+    courseService: CourseService,
+    userService: UserService,
+    membershipService: MembershipService,
+  ) {
     this.courseService = courseService;
     this.userService = userService;
+    this.membershipService = membershipService;
   }
 
   /**
@@ -55,13 +60,40 @@ export class CourseController {
 
   public async createCourse(c: Context) {
     try {
-      const course = (await c.req.json()) as Course;
-      const userId = c.get('user')?.id;
-      if (!userId) {
-        return c.json({ error: 'User not found' }, 404);
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
-      course.host_id = userId;
+      const body: CreateCourseBody = await c.req.json();
+      const course = {
+        ...body,
+        host_id: user.id,
+      };
+      const { membership_plans } = body;
+      if (membership_plans.length < 1) {
+        return serveBadRequest(c, ERRORS.MEMBERSHIP_REQUIRED);
+      }
+      ///Create the course first
       const courseId = await this.courseService.createCourse(course);
+      // Transform membership plans to match NewMembership type
+      const transformedPlans = membership_plans.map((plan) => ({
+        name: plan.name,
+        user_id: user.id,
+        price: plan.isFree ? 0 : plan.price,
+        description: 'Sample description',
+        payment_type: plan.payment_type,
+        price_point: plan.price_point,
+        billing: plan.billing,
+      }));
+
+      //batch insert the membership plans
+      const createdMemberships = await this.membershipService.batchCreateCourseMembership(
+        courseId,
+        transformedPlans,
+      );
+
+      // Create course-membership connections
+      await this.membershipService.createMembershipPlans(courseId, createdMemberships);
       return c.json({ id: courseId }, 201);
     } catch (error) {
       logger.error(error);
@@ -71,20 +103,26 @@ export class CourseController {
 
   public async updateCourse(c: Context) {
     try {
-      const id = parseInt(c.req.param('id'));
-      const course = (await c.req.json()) as Partial<Course>;
-      const userId = c.get('user')?.id;
-      if (!userId) {
-        return c.json({ error: 'User not found' }, 404);
+      const user = await this.getUser(c);
+      if (!user) {
+        return serveBadRequest(c, ERRORS.USER_NOT_FOUND);
       }
+      const id = parseInt(c.req.param('id'));
+      const body: UpdateCourseBody = await c.req.json();
+
       const existingCourse = await this.courseService.getCourse(id);
       if (!existingCourse) {
         return c.json({ error: 'Course not found' }, 404);
       }
-      if (existingCourse.course.host_id !== userId) {
-        return c.json({ error: 'Unauthorized' }, 403);
+      //only and master role or admin or the owner can update the event
+      if (
+        user.role !== 'master' &&
+        user.role !== 'owner' &&
+        existingCourse.course.host_id !== user.id
+      ) {
+        return serveBadRequest(c, ERRORS.NOT_ALLOWED);
       }
-      const updatedCourse = await this.courseService.updateCourse(id, course);
+      const updatedCourse = await this.courseService.updateCourse(id, body);
       return c.json(updatedCourse);
     } catch (error) {
       logger.error(error);

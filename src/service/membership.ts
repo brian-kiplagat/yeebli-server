@@ -290,6 +290,34 @@ export class MembershipService {
   }
 
   /**
+   * Creates multiple membership plans in batch
+   * @param {number} courseId - ID of the course
+   * @param {MembershipPlanWithDate[]} plans - Array of membership plans with dates
+   * @returns {Promise<Membership[]>} List of created memberships
+   * @throws {Error} When batch creation fails
+   */
+  public async batchCreateCourseMembership(
+    courseId: number,
+    plans: NewMembership[],
+  ): Promise<Membership[]> {
+    try {
+      // Create all memberships in parallel
+      const memberships = await Promise.all(
+        plans.map(async (plan) => {
+          const { ...membershipData } = plan;
+          const id = await this.repository.create(membershipData);
+          return { ...membershipData, id } as Membership;
+        }),
+      );
+
+      return memberships;
+    } catch (error) {
+      logger.error('Failed to batch create memberships:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Creates membership plans for an event
    * @param {number} eventId - ID of the event
    * @param {Membership[]} memberships - Array of memberships to create
@@ -297,5 +325,14 @@ export class MembershipService {
    */
   public async createMembershipPlans(eventId: number, memberships: Membership[]) {
     return await this.repository.createMembershipPlans(eventId, memberships);
+  }
+
+  /**
+   * Creates membership plans for a course
+   * @param {number} courseId - ID of the course
+   * @param {Membership[]} memberships - Array of memberships to create
+   */
+  public async createCourseMembershipPlans(courseId: number, memberships: Membership[]) {
+    return await this.repository.createCourseMembershipPlans(courseId, memberships);
   }
 }

@@ -7,6 +7,7 @@ import type {
   CourseWithAsset,
   CourseWithRelations,
   Membership,
+  NewCourse,
   NewCourseLesson,
   NewCourseModule,
   NewCourseProgress,
@@ -20,7 +21,7 @@ export class CourseService {
     this.courseRepository = courseRepository;
   }
 
-  public async createCourse(course: Course) {
+  public async createCourse(course: NewCourse) {
     try {
       const courseId = await this.courseRepository.create(course);
       return courseId;
