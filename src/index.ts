@@ -33,7 +33,10 @@ try {
 const server = new Server(app);
 server.configure();
 
-if (env.NODE_ENV === NODE_ENVIRONMENTS.development) {
+if (
+  env.NODE_ENV === NODE_ENVIRONMENTS.development ||
+  env.NODE_ENV === NODE_ENVIRONMENTS.production
+) {
   console.log('Available routes:');
   showRoutes(app);
 }

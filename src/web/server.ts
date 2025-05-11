@@ -47,6 +47,7 @@ import { BookingController } from './controller/booking.ts';
 import { BusinessController } from './controller/business.js';
 import { CallbackController } from './controller/callback.ts';
 import { ContactController } from './controller/contact.ts';
+import { CourseController } from './controller/course.js';
 import { EventController } from './controller/event.ts';
 import { GoogleController } from './controller/google.js';
 import { LeadController } from './controller/lead.ts';
@@ -62,6 +63,12 @@ import { adminCreateUserValidator } from './validator/admin.ts';
 import { assetQueryValidator } from './validator/asset.ts';
 import { businessQueryValidator, businessValidator } from './validator/business.js';
 import { callbackValidator, updateCallbackValidator } from './validator/callback.ts';
+import {
+  archiveCourseValidator,
+  courseQueryValidator,
+  courseValidator,
+  updateCourseValidator,
+} from './validator/course.ts';
 import {
   cancelEventValidator,
   eventStreamValidator,
@@ -251,7 +258,7 @@ export class Server {
     // Setup controllers
     const callbackController = new CallbackController(callbackService, userService, eventService);
     const podcastController = new PodcastController(podcastService, userService, membershipService);
-
+    const courseController = new CourseController();
     // Register routes
     this.registerUserRoutes(api, authController, googleController);
     this.registerLeadRoutes(api, leadController, teamService);
@@ -268,6 +275,7 @@ export class Server {
     this.registerContactRoutes(api, contactController);
     this.registerCallbackRoutes(api, callbackController);
     this.registerPodcastRoutes(api, podcastController, teamService);
+    this.registerCourseRoutes(api, courseController, teamService);
   }
 
   private registerUserRoutes(api: Hono, authCtrl: AuthController, googleCtrl: GoogleController) {
@@ -571,6 +579,30 @@ export class Server {
     podcast.delete('/episode/:episodeId', podcastCtrl.deleteEpisode);
 
     api.route('/podcast', podcast);
+  }
+
+  private registerCourseRoutes(api: Hono, courseCtrl: CourseController, teamService: TeamService) {
+    const course = new Hono();
+    const authCheck = jwt({ secret: env.SECRET_KEY });
+
+    // Unauthenticated routes
+    course.get('/:id', courseCtrl.getCourse);
+    course.get('/:id/memberships', courseCtrl.getCourseMemberships);
+
+    // Apply auth middleware for authenticated routes
+    course.use(authCheck);
+    course.use(teamAccess(teamService));
+
+    // Authenticated routes
+    course.get('/', courseQueryValidator, courseCtrl.getAllCourses);
+    course.post('/', courseValidator, courseCtrl.createCourse);
+    course.put('/:id', updateCourseValidator, courseCtrl.updateCourse);
+    course.delete('/:id', courseCtrl.deleteCourse);
+    course.post('/archive', archiveCourseValidator, courseCtrl.archiveCourse);
+    course.post('/:id/memberships', courseCtrl.updateCourseMemberships);
+    course.delete('/:id/memberships', courseCtrl.deleteCourseMemberships);
+
+    api.route('/course', course);
   }
 
   private registerWorker(userService: UserService) {

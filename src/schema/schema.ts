@@ -420,6 +420,34 @@ export const podcastMembershipSchema = mysqlTable('podcast_memberships', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const courseSchema = mysqlTable('courses', {
+  id: serial('id').primaryKey(),
+  course_name: varchar('course_name', { length: 255 }).notNull(),
+  course_description: text('course_description'),
+  course_type: mysqlEnum('course_type', ['self_paced', 'instructor_led']).default('self_paced'),
+  status: mysqlEnum('status', ['draft', 'published', 'archived']).default('draft'),
+  cover_image_asset_id: int('cover_image_asset_id').references(() => assetsSchema.id),
+  host_id: int('host_id')
+    .references(() => userSchema.id)
+    .notNull(),
+  instructions: text('instructions'),
+  landing_page_url: text('landing_page_url'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const courseMembershipSchema = mysqlTable('course_memberships', {
+  id: serial('id').primaryKey(),
+  course_id: int('course_id')
+    .references(() => courseSchema.id)
+    .notNull(),
+  membership_id: int('membership_id')
+    .references(() => memberships.id)
+    .notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export type Lead = typeof leadSchema.$inferSelect & {
   event?: Event | null;
   membership?: Membership | null;
@@ -476,6 +504,42 @@ export type PodcastEpisode = typeof podcastEpisodeSchema.$inferSelect & {
 export type NewPodcastEpisode = typeof podcastEpisodeSchema.$inferInsert;
 export type PodcastMembership = typeof podcastMembershipSchema.$inferSelect;
 export type NewPodcastMembership = typeof podcastMembershipSchema.$inferInsert;
+export type Course = typeof courseSchema.$inferSelect;
+export type NewCourse = typeof courseSchema.$inferInsert;
+export type CourseMembership = typeof courseMembershipSchema.$inferSelect;
+export type NewCourseMembership = typeof courseMembershipSchema.$inferInsert;
+
+export type CourseWithAsset = Course & {
+  cover?: Asset | null;
+  host?: {
+    name: string;
+    email: string;
+    profile_image: string | null;
+  } | null;
+};
+
+export type CourseWithRelations = {
+  course: Course;
+  cover: Asset | null;
+  host: {
+    name: string;
+    email: string;
+    profile_image: string | null;
+    id: number;
+  } | null;
+  memberships: Array<{
+    id: number;
+    name: string;
+    created_at: Date | null;
+    updated_at: Date | null;
+    user_id: number;
+    description: string | null;
+    price: number;
+    payment_type: 'one_off' | 'recurring' | null;
+    price_point: 'standalone' | 'course' | 'podcast' | null;
+    billing: 'per-day' | 'package' | null;
+  }>;
+};
 
 // Define relations
 export const userRelations = relations(userSchema, ({ one }) => ({
@@ -649,5 +713,28 @@ export const podcastEpisodeRelations = relations(podcastEpisodeSchema, ({ one })
   host: one(userSchema, {
     fields: [podcastEpisodeSchema.host_id],
     references: [userSchema.id],
+  }),
+}));
+
+export const courseRelations = relations(courseSchema, ({ one, many }) => ({
+  cover: one(assetsSchema, {
+    fields: [courseSchema.cover_image_asset_id],
+    references: [assetsSchema.id],
+  }),
+  host: one(userSchema, {
+    fields: [courseSchema.host_id],
+    references: [userSchema.id],
+  }),
+  memberships: many(courseMembershipSchema),
+}));
+
+export const courseMembershipRelations = relations(courseMembershipSchema, ({ one }) => ({
+  course: one(courseSchema, {
+    fields: [courseMembershipSchema.course_id],
+    references: [courseSchema.id],
+  }),
+  membership: one(memberships, {
+    fields: [courseMembershipSchema.membership_id],
+    references: [memberships.id],
   }),
 }));
