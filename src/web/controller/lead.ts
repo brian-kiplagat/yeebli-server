@@ -141,7 +141,7 @@ export class LeadController {
         const membership = await this.membershipService.getMembership(lead.membership_level);
         return c.json({
           ...lead,
-          events: bookedEvents,
+          bookings: bookedEvents,
           membership: membership,
           payments: payments,
           tags: tags,
