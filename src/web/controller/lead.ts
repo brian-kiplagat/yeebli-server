@@ -143,6 +143,8 @@ export class LeadController {
         updated_at: Date | null;
         user_id: number;
         membership_id: number;
+        event_id: number;
+        event_name: string;
       }[] = [];
 
       if (lead.dates) {

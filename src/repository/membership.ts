@@ -169,6 +169,7 @@ export class MembershipRepository {
       .from(membershipDates)
       .innerJoin(memberships, eq(membershipDates.membership_id, memberships.id))
       .innerJoin(eventMembershipSchema, eq(memberships.id, eventMembershipSchema.membership_id))
+      .innerJoin(eventSchema, eq(eventMembershipSchema.event_id, eventSchema.id))
       .where(inArray(membershipDates.id, dates));
   }
 
