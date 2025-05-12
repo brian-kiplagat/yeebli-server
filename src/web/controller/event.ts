@@ -143,7 +143,7 @@ export class EventController {
         user_id: user.id,
         price: plan.isFree ? 0 : plan.cost,
         description: 'Sample description',
-        payment_type: 'one_off' as const,
+        payment_type: plan.payment_type,
         price_point: 'standalone' as const,
         billing: 'per-day' as const,
         date: String(plan.date),
@@ -212,6 +212,7 @@ export class EventController {
           name: plan.name,
           price: plan.isFree ? 0 : plan.cost,
           description: 'Sample description',
+          payment_type: plan.payment_type,
           date: String(plan.date),
         }));
 
@@ -222,7 +223,7 @@ export class EventController {
           user_id: user.id,
           price: plan.isFree ? 0 : plan.cost,
           description: 'Sample description',
-          payment_type: 'one_off' as const,
+          payment_type: plan.payment_type,
           price_point: 'standalone' as const,
           billing: 'per-day' as const,
           date: String(plan.date),
@@ -237,6 +238,7 @@ export class EventController {
               name: membership.name,
               price: membership.price,
               description: membership.description,
+              payment_type: membership.payment_type,
             });
 
             // Get the date ID for this membership

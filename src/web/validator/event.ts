@@ -19,6 +19,7 @@ const eventSchema = z.object({
         id: z.number().optional(),
         name: z.string(),
         date: z.number(),
+        payment_type: z.enum(['one_off', 'recurring']),
         cost: z.number(),
         isFree: z.boolean(),
       }),
