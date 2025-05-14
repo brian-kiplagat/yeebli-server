@@ -39,10 +39,6 @@ export class CallbackController {
   public createCallback = async (c: Context) => {
     try {
       const body: CallbackBody = await c.req.json();
-      // Validate scheduled time for scheduled callbacks
-      if (body.callback_type === 'scheduled' && !body.scheduled_time) {
-        return serveBadRequest(c, ERRORS.SCHEDULED_TIME_REQUIRED);
-      }
 
       //a lead can only create one callback per event and callback type
       const existingCallback = await this.service.getCallbackByLeadIdAndEventIdAndCallbackType(
@@ -63,7 +59,6 @@ export class CallbackController {
       const callbackId = await this.service.createCallback({
         ...body,
         host_id: event.host_id,
-        scheduled_time: body.scheduled_time ? new Date(body.scheduled_time) : null,
       });
 
       return c.json(
@@ -185,13 +180,9 @@ export class CallbackController {
 
       const id = parseInt(c.req.param('id'));
       const body: UpdateCallbackBody = await c.req.json();
-      // Validate scheduled time for scheduled callbacks
-      if (body.callback_type === 'scheduled' && !body.scheduled_time) {
-        return serveBadRequest(c, ERRORS.SCHEDULED_TIME_REQUIRED);
-      }
+
       await this.service.updateCallback(id, {
         ...body,
-        scheduled_time: body.scheduled_time ? new Date(body.scheduled_time) : null,
       });
 
       return c.json({ message: 'Callback updated successfully' });

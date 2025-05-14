@@ -279,7 +279,7 @@ export class Server {
     this.registerMembershipRoutes(api, membershipController, teamService);
     this.registerTeamRoutes(api, teamController);
     this.registerContactRoutes(api, contactController);
-    this.registerCallbackRoutes(api, callbackController);
+    this.registerCallbackRoutes(api, callbackController, teamService);
     this.registerPodcastRoutes(api, podcastController, teamService);
     this.registerCourseRoutes(api, courseController, teamService);
   }
@@ -526,11 +526,20 @@ export class Server {
     api.route('/team', team);
   }
 
-  private registerCallbackRoutes(api: Hono, callbackCtrl: CallbackController) {
+  private registerCallbackRoutes(
+    api: Hono,
+    callbackCtrl: CallbackController,
+    teamService: TeamService,
+  ) {
     const callback = new Hono();
     const authCheck = jwt({ secret: env.SECRET_KEY });
 
     callback.post('/', callbackValidator, callbackCtrl.createCallback);
+
+    // Apply auth middleware for authenticated routes
+    callback.use(authCheck);
+    callback.use(teamAccess(teamService));
+
     callback.get('/:id', authCheck, callbackCtrl.getCallback);
     callback.get('/lead/:leadId', authCheck, callbackCtrl.getCallbacksByLeadId);
     callback.get('/uncalled', authCheck, callbackCtrl.getUncalledCallbacks);
