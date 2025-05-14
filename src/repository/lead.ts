@@ -2,6 +2,7 @@ import { and, desc, eq, like, or } from 'drizzle-orm';
 
 import { db } from '../lib/database.ts';
 import {
+  callbackSchema,
   eventSchema,
   type Lead,
   leadSchema,
@@ -214,10 +215,22 @@ export class LeadRepository {
           price: memberships.price,
           payment_type: memberships.payment_type,
         },
+        callback: {
+          id: callbackSchema.id,
+          callback_type: callbackSchema.callback_type,
+          status: callbackSchema.status,
+          notes: callbackSchema.notes,
+          event_id: callbackSchema.event_id,
+          host_id: callbackSchema.host_id,
+          lead_id: callbackSchema.lead_id,
+          created_at: callbackSchema.created_at,
+          updated_at: callbackSchema.updated_at,
+        },
       })
       .from(leadSchema)
       .leftJoin(eventSchema, eq(leadSchema.event_id, eventSchema.id))
       .leftJoin(memberships, eq(leadSchema.membership_level, memberships.id))
+      .leftJoin(callbackSchema, eq(leadSchema.id, callbackSchema.lead_id))
       .where(
         and(
           eq(leadSchema.host_id, userId),
