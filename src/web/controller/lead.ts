@@ -606,6 +606,7 @@ export class LeadController {
           membership_level: membership_id,
           dates: body.dates,
         });
+
         //get membership dates
         const membershipDates =
           (await this.membershipService.getMultipleMembershipDates(body.dates)) || [];
@@ -613,12 +614,19 @@ export class LeadController {
         if (!membershipDates || membershipDates.length === 0) {
           return serveBadRequest(c, 'Could not find dates from membership');
         }
+
         //create a free booking
         this.bookingService.create({
           event_id: body.event_id,
           lead_id: lead.id,
           passcode: token,
           host_id: event.host_id,
+          dates: body.dates,
+        });
+
+        //update the lead as membership paid
+        await this.service.update(lead.id, {
+          membership_active: true,
           dates: body.dates,
         });
         //get the event dates
