@@ -32,6 +32,17 @@ interface LeadWithEvents extends Omit<Lead, 'membership'> {
     price: number;
     payment_type: 'one_off' | 'recurring' | null;
   } | null;
+  callback: {
+    id: number;
+    callback_type: string;
+    status: string;
+    notes: string;
+    event_id: number;
+    host_id: number;
+    lead_id: number;
+    created_at: Date | null;
+    updated_at: Date | null;
+  } | null;
 }
 
 export class LeadRepository {
