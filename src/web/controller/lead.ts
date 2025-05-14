@@ -627,6 +627,7 @@ export class LeadController {
         //update the lead as membership paid
         await this.service.update(lead.id, {
           membership_active: true,
+          membership_level: membership_id,
           dates: body.dates,
         });
         //get the event dates
