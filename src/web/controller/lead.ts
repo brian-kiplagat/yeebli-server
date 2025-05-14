@@ -221,12 +221,6 @@ export class LeadController {
           return serveBadRequest(c, 'Ops we cant find that lead');
         }
 
-        await this.bookingService.create({
-          event_id: body.event_id,
-          lead_id: lead[0].id,
-          passcode: token,
-          host_id: event.host_id,
-        });
         //send confirmation email to the lead
         const eventLink = `${env.FRONTEND_URL}/events/membership-gateway?code=${event.id}&token=${token}&email=${body.email}`;
 
