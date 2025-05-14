@@ -1,0 +1,1 @@
+ALTER TABLE `callbacks` DROP COLUMN `scheduled_time`;

@@ -333,7 +333,6 @@ export const callbackSchema = mysqlTable('callbacks', {
     .references(() => userSchema.id)
     .notNull(),
   callback_type: mysqlEnum('callback_type', ['instant', 'scheduled']).notNull(),
-  scheduled_time: timestamp('scheduled_time'),
   status: mysqlEnum('status', ['called', 'uncalled']).default('uncalled'),
   notes: text('notes'),
   created_at: timestamp('created_at').defaultNow(),

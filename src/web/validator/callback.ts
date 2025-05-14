@@ -7,7 +7,6 @@ const callbackSchema = z.object({
   lead_id: z.number().int().positive(),
   event_id: z.number().int().positive(),
   callback_type: z.enum(['instant', 'scheduled']),
-  scheduled_time: z.number().int().positive().nullable().optional(),
   notes: z.string().nullable().optional(),
   host_id: z.number().int().positive(),
 });
@@ -18,7 +17,6 @@ const callbackValidator = validator('json', (value, c) => {
 
 const updateCallbackSchema = z.object({
   callback_type: z.enum(['instant', 'scheduled']).optional(),
-  scheduled_time: z.number().int().positive().nullable().optional(),
   notes: z.string().nullable().optional(),
   status: z.enum(['called', 'uncalled']).optional(),
 });
