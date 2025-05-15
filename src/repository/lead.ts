@@ -257,19 +257,19 @@ export class LeadRepository {
       .offset(offset);
 
     // Group events by lead and ensure unique emails
-    const uniqueLeads = new Map<string, any>();
+    const uniqueLeads = new Map<number, any>();
 
     leads.forEach((lead) => {
       if (lead.email) {
-        if (!uniqueLeads.has(lead.email)) {
+        if (!uniqueLeads.has(lead.id)) {
           // Initialize the lead with its first event
-          uniqueLeads.set(lead.email, {
+          uniqueLeads.set(lead.id, {
             ...lead,
             events: lead.events ? [lead.events] : [],
           });
         } else {
           // Add additional events to existing lead if they're not already included
-          const existingLead = uniqueLeads.get(lead.email);
+          const existingLead = uniqueLeads.get(lead.id);
           if (lead.events?.id && !existingLead.events.some((e: any) => e.id === lead.events?.id)) {
             existingLead.events.push(lead.events);
           }
