@@ -235,7 +235,12 @@ export class LeadController {
           buttonText: 'Secure your place',
           buttonLink: eventLink,
         });
+
+        //return the lead id who has been linked to the event
+        return c.json(lead, 201);
       }
+
+      //create a new lead for no event
       lead = await this.service.create({
         ...body,
         host_id: user.id,
